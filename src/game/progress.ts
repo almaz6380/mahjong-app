@@ -26,6 +26,15 @@ export interface Progress {
   achievements: string[]; // freigeschaltete IDs
   lastDailyChallenge: string; // 'YYYY-MM-DD' der letzten erledigten Tages-Challenge
   aiLevel: AiLevel;
+  lang: 'de' | 'en' | ''; // '' = automatisch (Systemsprache)
+  seenM4Tutorial: boolean;
+  stats: {
+    bestTimeMs: number; // schnellstes Solitaire-Level (0 = noch keins)
+    dailies: number; // erledigte Tages-Challenges
+    m4Hands: number; // gespielte 4-Spieler-Hände
+    m4Wins: number; // davon gewonnen
+    m4BestFaan: number;
+  };
 }
 
 const STORAGE_KEY = 'mahjong.progress.v1';
@@ -45,6 +54,9 @@ const DEFAULT: Progress = {
   achievements: [],
   lastDailyChallenge: '',
   aiLevel: 'normal',
+  lang: '',
+  seenM4Tutorial: false,
+  stats: { bestTimeMs: 0, dailies: 0, m4Hands: 0, m4Wins: 0, m4BestFaan: 0 },
 };
 
 export const BOOSTER_COST: Record<BoosterType, number> = {
@@ -86,7 +98,8 @@ export function useProgress() {
       let loaded: Progress = DEFAULT;
       if (value) {
         try {
-          loaded = { ...DEFAULT, ...JSON.parse(value) };
+          const parsed = JSON.parse(value);
+          loaded = { ...DEFAULT, ...parsed, stats: { ...DEFAULT.stats, ...(parsed.stats ?? {}) } };
         } catch {
           loaded = DEFAULT;
         }
@@ -159,16 +172,21 @@ export function useProgress() {
 
   // Sieg gutschreiben (Münzen + beste Sterne + Statistik), OHNE Level-Aufstieg.
   const recordWin = useCallback(
-    (level: number, stars: number, coins: number) => {
+    (level: number, stars: number, coins: number, elapsedMs = 0) => {
       const s = stateRef.current;
       if (!s) return;
       const best = Math.max(s.bestStars[level] ?? 0, stars);
+      const bestTimeMs =
+        elapsedMs > 0 && (s.stats.bestTimeMs === 0 || elapsedMs < s.stats.bestTimeMs)
+          ? elapsedMs
+          : s.stats.bestTimeMs;
       persist({
         ...s,
         coins: s.coins + coins,
         bestStars: { ...s.bestStars, [level]: best },
         totalWins: s.totalWins + 1,
         lastPlayedDate: todayStr(),
+        stats: { ...s.stats, bestTimeMs },
       });
     },
     [persist],
@@ -244,10 +262,48 @@ export function useProgress() {
     (coins: number) => {
       const s = stateRef.current;
       if (!s) return;
-      persist({ ...s, coins: s.coins + coins, lastDailyChallenge: todayStr() });
+      persist({
+        ...s,
+        coins: s.coins + coins,
+        lastDailyChallenge: todayStr(),
+        stats: { ...s.stats, dailies: s.stats.dailies + 1 },
+      });
     },
     [persist],
   );
+
+  // Ergebnis einer 4-Spieler-Hand für die Statistik verbuchen.
+  const recordM4Hand = useCallback(
+    (won: boolean, faan: number) => {
+      const s = stateRef.current;
+      if (!s) return;
+      persist({
+        ...s,
+        stats: {
+          ...s.stats,
+          m4Hands: s.stats.m4Hands + 1,
+          m4Wins: s.stats.m4Wins + (won ? 1 : 0),
+          m4BestFaan: won ? Math.max(s.stats.m4BestFaan, faan) : s.stats.m4BestFaan,
+        },
+      });
+    },
+    [persist],
+  );
+
+  const setLang = useCallback(
+    (lang: 'de' | 'en' | '') => {
+      const s = stateRef.current;
+      if (!s) return;
+      persist({ ...s, lang });
+    },
+    [persist],
+  );
+
+  const markM4TutorialSeen = useCallback(() => {
+    const s = stateRef.current;
+    if (!s || s.seenM4Tutorial) return;
+    persist({ ...s, seenM4Tutorial: true });
+  }, [persist]);
 
   return {
     progress: state,
@@ -267,5 +323,8 @@ export function useProgress() {
     setRemoveAds,
     unlockAchievements,
     completeDailyChallenge,
+    recordM4Hand,
+    setLang,
+    markM4TutorialSeen,
   };
 }

@@ -81,15 +81,15 @@ export function scoreWin(state: GameState, winner: number): ScoreResult {
   const patterns: { name: string; faan: number }[] = [];
   const add = (name: string, faan: number) => patterns.push({ name, faan });
 
-  add('Gewinn', 1);
+  add('faan.win', 1);
 
   // Selbstzug
-  if (state.result?.fromDiscard == null) add('Selbstzug', 1);
+  if (state.result?.fromDiscard == null) add('faan.selfDraw', 1);
 
   // All Pungs
-  if (dec && allSets.length === 4 && allSets.every((s) => !s.isChow)) add('Alle Pungs', 3);
+  if (dec && allSets.length === 4 && allSets.every((s) => !s.isChow)) add('faan.allPungs', 3);
   // Alle Chows (Ping Wu) – nur wenn Paar keine Ehrenkarte
-  if (dec && allSets.length === 4 && allSets.every((s) => s.isChow) && dec.pairIndex < 27) add('Alle Chows', 1);
+  if (dec && allSets.length === 4 && allSets.every((s) => s.isChow) && dec.pairIndex < 27) add('faan.allChows', 1);
 
   // Flush über alle Steine
   const allTiles: TileCode[] = [...concealed];
@@ -100,8 +100,8 @@ export function scoreWin(state: GameState, winner: number): ScoreResult {
     if (t[0] === 'z') honors = true;
     else if (t[0] === 'm' || t[0] === 's' || t[0] === 'p') suits.add(t[0]);
   }
-  if (suits.size === 1 && !honors) add('Farbrein', 6);
-  else if (suits.size === 1 && honors) add('Halbrein', 3);
+  if (suits.size === 1 && !honors) add('faan.fullFlush', 6);
+  else if (suits.size === 1 && honors) add('faan.halfFlush', 3);
 
   // Drachen- und Wind-Pungs
   const roundIdx = 27 + state.roundWind;
@@ -109,16 +109,16 @@ export function scoreWin(state: GameState, winner: number): ScoreResult {
   for (const s of allSets) {
     if (s.isChow) continue;
     const i = tileIndex(s.code);
-    if (i >= 31) add('Drachen-Pung', 1);
-    else if (i === roundIdx) add('Rundenwind-Pung', 1);
-    else if (i === seatIdx && i < 31) add('Sitzwind-Pung', 1);
+    if (i >= 31) add('faan.dragonPung', 1);
+    else if (i === roundIdx) add('faan.roundWindPung', 1);
+    else if (i === seatIdx && i < 31) add('faan.seatWindPung', 1);
   }
 
   // Bonus-Blumen passend zum Sitz
   const seat = seatWind(state, winner);
   for (const b of pl.bonus) {
     const r = +b.slice(1);
-    if ((b[0] === 'f' || b[0] === 'g') && r === seat + 1) add('Sitz-Blume', 1);
+    if ((b[0] === 'f' || b[0] === 'g') && r === seat + 1) add('faan.seatFlower', 1);
   }
 
   const faan = patterns.reduce((a, p) => a + p.faan, 0);

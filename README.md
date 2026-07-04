@@ -164,9 +164,23 @@ src/mahjong4/
   ui/Table4.tsx  Tisch-UI
 ```
 
+## Neu in v0.5
+
+- **Zweisprachig (DE/EN)**: leichtes i18n (`src/i18n.ts`), Auto-Erkennung der
+  Systemsprache + Umschalter in den Einstellungen.
+- **Statistik-Screen**: Solitär (Level, Siege, 3★, Bestzeit, Challenges, Serie)
+  und 4-Spieler (Hände, Siege, Quote, beste Hand).
+- **4-Spieler-Tutorial** beim ersten Start (Regeln in 4 Karten), danach nie wieder.
+- **PWA**: `public/manifest.webmanifest` + `public/sw.js` → im Browser
+  installierbar („Zum Home-Bildschirm") und offline spielbar. Der Service Worker
+  wird nur im Web registriert, nicht in der nativen App.
+- **GitHub-Backup**: https://github.com/almaz6380/mahjong-app (privat).
+  Live-Demo: https://mahjong-app-plum.vercel.app
+
 ## Roadmap
 
 - [ ] 4-Spieler: **Riichi/japanische Regeln**, mehr Sonderhände, Bestenliste.
-- [ ] **Echte Ads/IAP** scharf schalten (deine IDs/Produkte – siehe oben).
-- [ ] Weitere Solitaire-Layouts, Statistiken, Game Center / Play Games.
+- [ ] **Echte Ads/IAP** scharf schalten (deine IDs/Produkte – siehe oben) +
+      GDPR-Consent-Lösung (UMP ist aktuell gestubbt, siehe `patches/`).
+- [ ] Weitere Solitaire-Layouts, Game Center / Play Games.
 ```

@@ -151,10 +151,10 @@ const TURTLE = fromMaps([
 ]);
 
 export const LAYOUTS: Record<string, Layout> = {
-  mini: { name: 'mini', label: 'Mini', cells: MINI },
-  classic: { name: 'classic', label: 'Klassisch', cells: CLASSIC },
-  pyramid: { name: 'pyramid', label: 'Pyramide', cells: PYRAMID },
-  turtle: { name: 'turtle', label: 'Schildkröte', cells: TURTLE },
+  mini: { name: 'mini', label: 'layout.mini', cells: MINI },
+  classic: { name: 'classic', label: 'layout.classic', cells: CLASSIC },
+  pyramid: { name: 'pyramid', label: 'layout.pyramid', cells: PYRAMID },
+  turtle: { name: 'turtle', label: 'layout.turtle', cells: TURTLE },
 };
 
 // Schwierigkeitsrampe: welches Layout gehört zu welchem Level?

@@ -3,7 +3,7 @@
 
 type Name =
   | 'coin' | 'flame' | 'trophy' | 'gear' | 'help' | 'cart' | 'palette'
-  | 'video' | 'chevron' | 'sparkle' | 'refresh' | 'bulb';
+  | 'video' | 'chevron' | 'sparkle' | 'refresh' | 'bulb' | 'chart';
 
 export function Icon({ name, size = 18 }: { name: Name; size?: number }) {
   const s = { width: size, height: size, display: 'block', flex: 'none' } as const;
@@ -94,6 +94,14 @@ export function Icon({ name, size = 18 }: { name: Name; size?: number }) {
       return (
         <svg viewBox="0 0 24 24" style={s} fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
           <path d="M4 12a8 8 0 0113.7-5.6L20 8M20 4v4h-4M20 12a8 8 0 01-13.7 5.6L4 16M4 20v-4h4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case 'chart':
+      return (
+        <svg viewBox="0 0 24 24" style={s} aria-hidden>
+          <rect x="4" y="12" width="4" height="8" rx="1.2" fill="currentColor" opacity="0.55" />
+          <rect x="10" y="7" width="4" height="13" rx="1.2" fill="currentColor" opacity="0.8" />
+          <rect x="16" y="3" width="4" height="17" rx="1.2" fill="currentColor" />
         </svg>
       );
     case 'bulb':

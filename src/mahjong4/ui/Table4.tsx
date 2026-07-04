@@ -7,9 +7,11 @@ import { standings } from '../match4';
 import { type Difficulty } from '../ai';
 import { Tile } from '../../ui/Tile';
 import { Icon } from '../../ui/Icon';
+import { t } from '../../i18n';
 
 const WINDS = ['東', '南', '西', '北'];
-const WIND_DE = ['Ost', 'Süd', 'West', 'Nord'];
+const WIND_KEYS = ['m4.east', 'm4.south', 'm4.west', 'm4.north'];
+const windName = (i: number) => t(WIND_KEYS[i]);
 
 function Tile4({ code, small, dim, onClick, highlight, claimable }: { code: TileCode; small?: boolean; dim?: boolean; onClick?: () => void; highlight?: boolean; claimable?: boolean }) {
   return (
@@ -58,8 +60,23 @@ function Discards({ tiles }: { tiles: TileCode[] }) {
   );
 }
 
-export function Table4({ onExit, addCoins, difficulty }: { onExit: () => void; addCoins: (n: number) => void; difficulty?: Difficulty }) {
-  const g4 = useMahjong4({ addCoins, difficulty });
+export function Table4({
+  onExit,
+  addCoins,
+  difficulty,
+  showTutorial,
+  onTutorialDone,
+  onHandResult,
+}: {
+  onExit: () => void;
+  addCoins: (n: number) => void;
+  difficulty?: Difficulty;
+  showTutorial?: boolean;
+  onTutorialDone?: () => void;
+  onHandResult?: (won: boolean, faan: number) => void;
+}) {
+  const g4 = useMahjong4({ addCoins, difficulty, onHandResult });
+  const [tutorial, setTutorial] = useState(!!showTutorial);
   const g: GameState = g4.state;
   const inter = g4.interaction;
   const [chowPick, setChowPick] = useState<[TileCode, TileCode][] | null>(null);
@@ -89,15 +106,15 @@ export function Table4({ onExit, addCoins, difficulty }: { onExit: () => void; a
       <header className="hud">
         <button className="icon-btn" onClick={onExit} aria-label="Menü"><Icon name="chevron" /></button>
         <div className="hud-center">
-          <div className="level">Ostrunde · Hand {g4.match.hand}</div>
-          <div className="sub">Wand: {g.live.length - g.livePos}</div>
+          <div className="level">{t('m4.title', { n: g4.match.hand })}</div>
+          <div className="sub">{t('m4.wall', { n: g.live.length - g.livePos })}</div>
         </div>
         <div className="coins"><Icon name="coin" /> +{g4.coinsEarned}</div>
       </header>
 
       {/* Gegner oben (Spieler 2) */}
       <div className={'seat top' + (isTurn(2) ? ' active' : '')}>
-        <div className="seat-tag">{seatLabel(2)} {g.dealer === 2 ? '· Geber' : ''}</div>
+        <div className="seat-tag">{seatLabel(2)} {g.dealer === 2 ? `· ${t('m4.dealer')}` : ''}</div>
         <Back n={g.players[2].hand.length} />
         <Melds melds={g.players[2].melds} />
         <Discards tiles={g.players[2].discards} />
@@ -113,18 +130,16 @@ export function Table4({ onExit, addCoins, difficulty }: { onExit: () => void; a
         </div>
 
         <div className="center">
-          <div className="winds">
-            Runde {WIND_DE[g.roundWind]} · du: {WIND_DE[seatWind(g, 0)]}
-          </div>
+          <div className="winds">{t('m4.roundYou', { r: windName(g.roundWind), s: windName(seatWind(g, 0)) })}</div>
           {g.lastDiscard ? (
             <div className="last">
-              <div className="last-lbl">Abwurf</div>
+              <div className="last-lbl">{t('m4.discard')}</div>
               <Tile4 code={g.lastDiscard.tile} highlight />
             </div>
           ) : aiThinking ? (
-            <div className="ai-think">{WIND_DE[seatWind(g, g.turn)]} denkt…</div>
+            <div className="ai-think">{t('m4.thinks', { w: windName(seatWind(g, g.turn)) })}</div>
           ) : (
-            <div className="turn-ind">{isTurn(0) ? 'Du bist dran' : `${WIND_DE[seatWind(g, g.turn)]} zieht…`}</div>
+            <div className="turn-ind">{isTurn(0) ? t('m4.yourTurn') : t('m4.draws', { w: windName(seatWind(g, g.turn)) })}</div>
           )}
         </div>
 
@@ -153,23 +168,47 @@ export function Table4({ onExit, addCoins, difficulty }: { onExit: () => void; a
         <div className="m4-actions">
           {inter?.kind === 'discard' && (
             <div className={'hint-line' + (tenpai ? ' tenpai' : '')}>
-              {tenpai ? 'Bereit – ein Stein fehlt zum Sieg!' : 'Tippe einen Stein zum Abwerfen'} ·{' '}
+              {tenpai ? t('m4.tenpai') : t('m4.tapDiscard')} ·{' '}
               <button className="link" onClick={g4.hint}>
-                <span className="btn-ico"><Icon name="video" size={13} /> Tipp</span>
+                <span className="btn-ico"><Icon name="video" size={13} /> {t('game.hint')}</span>
               </button>
             </div>
           )}
         </div>
       </div>
 
+      {/* Tutorial beim ersten Start */}
+      {tutorial && (
+        <div className="overlay">
+          <div className="card">
+            <div className="logo"><Tile face="dragonG" /></div>
+            <h2>{t('tut.title')}</h2>
+            <div className="tut-list">
+              {[1, 2, 3, 4].map((i) => (
+                <p key={i}>{t(`tut.${i}`)}</p>
+              ))}
+            </div>
+            <button
+              className="big-btn"
+              onClick={() => {
+                setTutorial(false);
+                onTutorialDone?.();
+              }}
+            >
+              {t('tut.start')}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Anspruch-Buttons */}
-      {opt && (
+      {opt && !tutorial && (
         <div className="claim-bar">
-          {opt.win && <button className="claim win" onClick={() => g4.claimHuman('win')}>Gewinn 🎉</button>}
+          {opt.win && <button className="claim win" onClick={() => g4.claimHuman('win')}>{t('m4.win')}</button>}
           {opt.kong && <button className="claim" onClick={() => g4.claimHuman('kong')}>Kong</button>}
           {opt.pung && <button className="claim" onClick={() => g4.claimHuman('pung')}>Pung</button>}
           {opt.chows.length > 0 && <button className="claim" onClick={onChowClick}>Chow</button>}
-          <button className="claim pass" onClick={g4.passHuman}>Weiter</button>
+          <button className="claim pass" onClick={g4.passHuman}>{t('m4.pass')}</button>
         </div>
       )}
 
@@ -177,7 +216,7 @@ export function Table4({ onExit, addCoins, difficulty }: { onExit: () => void; a
       {chowPick && (
         <div className="overlay" onClick={() => setChowPick(null)}>
           <div className="card" onClick={(e) => e.stopPropagation()}>
-            <h2>Welche Straße?</h2>
+            <h2>{t('m4.whichChow')}</h2>
             <div className="chow-choices">
               {chowPick.map((ch, i) => (
                 <button
@@ -197,7 +236,7 @@ export function Table4({ onExit, addCoins, difficulty }: { onExit: () => void; a
                 </button>
               ))}
             </div>
-            <button className="text-btn" onClick={() => setChowPick(null)}>Abbrechen</button>
+            <button className="text-btn" onClick={() => setChowPick(null)}>{t('common.cancel')}</button>
           </div>
         </div>
       )}
@@ -208,19 +247,19 @@ export function Table4({ onExit, addCoins, difficulty }: { onExit: () => void; a
           <div className="card">
             <div className="logo">{g4.handResult.winner === 0 ? '🎉' : g4.handResult.winner == null ? '🀫' : '🤖'}</div>
             <h2>
-              {g4.handResult.winner === 0 ? 'Du gewinnst!' : g4.handResult.winner == null ? 'Abbruch (Wand leer)' : `${WIND_DE[seatWind(g, g4.handResult.winner)]} gewinnt`}
+              {g4.handResult.winner === 0 ? t('m4.youWin') : g4.handResult.winner == null ? t('m4.wallEmpty') : t('m4.someoneWins', { w: windName(seatWind(g, g4.handResult.winner)) })}
             </h2>
             {g4.handResult.score && (
               <>
-                <p className="coins-won">{g4.handResult.score.faan} Faan</p>
+                <p className="coins-won">{t('stats.faanN', { n: g4.handResult.score.faan })}</p>
                 <div className="faan-list">
                   {g4.handResult.score.patterns.map((p, i) => (
-                    <div key={i}><span>{p.name}</span><span>+{p.faan}</span></div>
+                    <div key={i}><span>{t(p.name)}</span><span>+{p.faan}</span></div>
                   ))}
                 </div>
               </>
             )}
-            <button className="big-btn" onClick={g4.continueHand}>Weiter</button>
+            <button className="big-btn" onClick={g4.continueHand}>{t('common.next')}</button>
           </div>
         </div>
       )}
@@ -230,14 +269,14 @@ export function Table4({ onExit, addCoins, difficulty }: { onExit: () => void; a
         <div className="overlay">
           <div className="card">
             <div className="logo">🏆</div>
-            <h2>Runde beendet</h2>
+            <h2>{t('m4.matchOver')}</h2>
             <div className="faan-list">
               {standings(g4.match).map((p, rank) => (
-                <div key={p}><span>{rank + 1}. {p === 0 ? 'Du' : WIND_DE[seatWind(g, p)]}</span><span>{g4.match.scores[p]}</span></div>
+                <div key={p}><span>{rank + 1}. {p === 0 ? t('common.you') : windName(seatWind(g, p))}</span><span>{g4.match.scores[p]}</span></div>
               ))}
             </div>
-            <p className="coins-won">🪙 +{g4.coinsEarned}</p>
-            <button className="big-btn" onClick={onExit}>Zum Menü</button>
+            <p className="coins-won"><Icon name="coin" size={24} /> +{g4.coinsEarned}</p>
+            <button className="big-btn" onClick={onExit}>{t('common.toMenu')}</button>
           </div>
         </div>
       )}

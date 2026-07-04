@@ -22,10 +22,10 @@ export interface Product {
 }
 
 export const PRODUCTS: Product[] = [
-  { id: 'remove_ads', label: 'Werbung entfernen', price: '2,99 €', removesAds: true, icon: '🚫' },
-  { id: 'coins_small', label: '500 Münzen', price: '0,99 €', coins: 500, icon: '🪙' },
-  { id: 'coins_medium', label: '1500 Münzen', price: '1,99 €', coins: 1500, icon: '💰' },
-  { id: 'coins_large', label: '5000 Münzen', price: '4,99 €', coins: 5000, icon: '💎' },
+  { id: 'remove_ads', label: 'shop.removeAds', price: '2,99 €', removesAds: true, icon: '🚫' },
+  { id: 'coins_small', label: 'shop.coins500', price: '0,99 €', coins: 500, icon: '🪙' },
+  { id: 'coins_medium', label: 'shop.coins1500', price: '1,99 €', coins: 1500, icon: '💰' },
+  { id: 'coins_large', label: 'shop.coins5000', price: '4,99 €', coins: 5000, icon: '💎' },
 ];
 
 export interface PurchaseResult {

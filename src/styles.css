@@ -922,3 +922,32 @@ body {
   color: var(--accent-ink);
   background: var(--accent);
 }
+.stats-section {
+  margin: 8px 2px 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.stat-val {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.tut-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0 14px;
+  text-align: left;
+}
+.tut-list p {
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--text);
+}

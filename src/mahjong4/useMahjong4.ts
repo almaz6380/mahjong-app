@@ -23,7 +23,11 @@ export type Interaction =
 const AI_DELAY = 650;
 const prioOf = (t: string) => (t === 'win' ? 3 : t === 'chow' ? 1 : 2);
 
-export function useMahjong4(opts: { addCoins: (n: number) => void; difficulty?: Difficulty }) {
+export function useMahjong4(opts: {
+  addCoins: (n: number) => void;
+  difficulty?: Difficulty;
+  onHandResult?: (won: boolean, faan: number) => void;
+}) {
   const [, bump] = useReducer((x) => x + 1, 0);
   const rand = useRef<() => number>(Math.random);
   const diff = useRef<Difficulty>(opts.difficulty ?? 'normal');
@@ -89,6 +93,7 @@ export function useMahjong4(opts: { addCoins: (n: number) => void; difficulty?: 
           setCoinsEarned((x) => x + c);
         }
       }
+      opts.onHandResult?.(r.winner === 0, r.winner === 0 && score ? score.faan : 0);
       setHandResult({ winner: r.winner, score });
       setInteraction({ kind: 'handEnd' });
       interactionRef.current = { kind: 'handEnd' };

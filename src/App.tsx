@@ -3,7 +3,7 @@ import { GameScreen } from './ui/GameScreen';
 import { Icon } from './ui/Icon';
 import { Tile } from './ui/Tile';
 import { Table4 } from './mahjong4/ui/Table4';
-import { SettingsScreen, HowToScreen, ThemesScreen, AchievementsScreen, ShopScreen } from './ui/Screens';
+import { SettingsScreen, HowToScreen, ThemesScreen, AchievementsScreen, ShopScreen, StatsScreen } from './ui/Screens';
 import { useProgress } from './game/progress';
 import { layoutForLevel } from './game/layouts';
 import { applyTheme } from './game/themes';
@@ -11,10 +11,11 @@ import { satisfiedAchievements, getAchievement, type Achievement } from './game/
 import { loadSession, clearSession, type SavedGame } from './game/session';
 import { makeDailyBoard, dailyLayoutName, dailyDoneToday } from './game/daily';
 import { setSoundEnabled } from './audio/sound';
+import { setLanguage, detectLang, t } from './i18n';
 import { setAdsRemoved } from './ads/admob';
 import type { PlacedTile } from './game/engine';
 
-type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'shop';
+type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop';
 
 export default function App() {
   const p = useProgress();
@@ -67,6 +68,9 @@ export default function App() {
     );
   }
 
+  // Sprache synchron setzen, bevor Kinder rendern (t() liest modulglobal).
+  setLanguage(progress.lang === 'de' || progress.lang === 'en' ? progress.lang : detectLang());
+
   // --- Tägliche Belohnung (Vorrang) ---
   if (pendingDaily) {
     return (
@@ -74,13 +78,13 @@ export default function App() {
         <div className="overlay">
           <div className="card">
             <div className="logo">🎁</div>
-            <h2>Tägliche Belohnung</h2>
+            <h2>{t('daily.title')}</h2>
             <p>
-              Tag {pendingDaily.streak} in Folge!{pendingDaily.streak > 1 && ' 🔥'}
+              {t('daily.streak', { n: pendingDaily.streak })}{pendingDaily.streak > 1 && ' 🔥'}
             </p>
-            <p className="coins-won">🪙 +{pendingDaily.coins}</p>
+            <p className="coins-won"><Icon name="coin" size={24} /> +{pendingDaily.coins}</p>
             <button className="big-btn" onClick={claimDaily}>
-              Abholen
+              {t('daily.claim')}
             </button>
           </div>
         </div>
@@ -154,7 +158,7 @@ export default function App() {
           mode="daily"
           level={0}
           layoutName={dailyLayoutName()}
-          layoutLabel="Tages-Board"
+          layoutLabel="layout.daily"
           initial={{ tiles: dailyBoard, elapsedMs: 0, helpUsed: 0 }}
           progress={progress}
           api={api}
@@ -166,9 +170,20 @@ export default function App() {
     );
   }
 
-  if (screen === 'mahjong4') return <Table4 onExit={() => setScreen('menu')} addCoins={p.addCoins} difficulty={progress.aiLevel} />;
+  if (screen === 'mahjong4')
+    return (
+      <Table4
+        onExit={() => setScreen('menu')}
+        addCoins={p.addCoins}
+        difficulty={progress.aiLevel}
+        showTutorial={!progress.seenM4Tutorial}
+        onTutorialDone={p.markM4TutorialSeen}
+        onHandResult={p.recordM4Hand}
+      />
+    );
   if (screen === 'settings')
-    return <SettingsScreen progress={progress} setSoundOn={p.setSoundOn} setAiLevel={p.setAiLevel} resetProgress={p.resetProgress} onBack={() => setScreen('menu')} />;
+    return <SettingsScreen progress={progress} setSoundOn={p.setSoundOn} setAiLevel={p.setAiLevel} setLang={p.setLang} resetProgress={p.resetProgress} onBack={() => setScreen('menu')} />;
+  if (screen === 'stats') return <StatsScreen progress={progress} onBack={() => setScreen('menu')} />;
   if (screen === 'howto') return <HowToScreen onBack={() => setScreen('menu')} />;
   if (screen === 'themes')
     return <ThemesScreen progress={progress} purchaseTheme={p.purchaseTheme} selectTheme={p.selectTheme} onBack={() => setScreen('menu')} />;
@@ -193,34 +208,35 @@ export default function App() {
       {canResume ? (
         <>
           <button className="big-btn" onClick={startResume}>
-            Fortsetzen · Level {resume!.level}
+            {t('menu.resume', { n: resume!.level })}
           </button>
           <button className="big-btn ghost solid" onClick={startFresh}>
-            Neu starten
+            {t('menu.restart')}
           </button>
         </>
       ) : (
         <button className="big-btn" onClick={startFresh}>
-          Level {progress.level} spielen
+          {t('menu.play', { n: progress.level })}
         </button>
       )}
 
       <button className="big-btn ghost solid" onClick={startDaily} disabled={dailyDone}>
-        Tages-Challenge{dailyDone ? ' ✓' : ''}
+        {t('menu.daily')}{dailyDone ? ' ✓' : ''}
       </button>
       <button className="big-btn ghost solid" onClick={() => setScreen('mahjong4')}>
-        4 Spieler · Ostrunde
+        {t('menu.m4')}
       </button>
 
       <div className="menu-icons">
-        <button onClick={() => setScreen('shop')}><Icon name="cart" size={22} /><span>Shop</span></button>
-        <button onClick={() => setScreen('themes')}><Icon name="palette" size={22} /><span>Designs</span></button>
-        <button onClick={() => setScreen('achievements')}><Icon name="trophy" size={22} /><span>Erfolge</span></button>
-        <button onClick={() => setScreen('settings')}><Icon name="gear" size={22} /><span>Optionen</span></button>
-        <button onClick={() => setScreen('howto')}><Icon name="help" size={22} /><span>Hilfe</span></button>
+        <button onClick={() => setScreen('shop')}><Icon name="cart" size={22} /><span>{t('menu.shop')}</span></button>
+        <button onClick={() => setScreen('themes')}><Icon name="palette" size={22} /><span>{t('menu.themes')}</span></button>
+        <button onClick={() => setScreen('achievements')}><Icon name="trophy" size={22} /><span>{t('menu.achievements')}</span></button>
+        <button onClick={() => setScreen('stats')}><Icon name="chart" size={22} /><span>{t('menu.stats')}</span></button>
+        <button onClick={() => setScreen('settings')}><Icon name="gear" size={22} /><span>{t('menu.settings')}</span></button>
+        <button onClick={() => setScreen('howto')}><Icon name="help" size={22} /><span>{t('menu.help')}</span></button>
       </div>
 
-      <div className="credit">v0.3 · Endless · Mahjong</div>
+      <div className="credit">v0.5 · Mahjong</div>
       {achToast && <AchToast a={achToast} />}
     </div>
   );
@@ -231,8 +247,8 @@ function AchToast({ a }: { a: Achievement }) {
     <div className="ach-toast">
       <span className="ach-icon">{a.icon}</span>
       <span>
-        <b>Erfolg freigeschaltet</b>
-        <small>{a.label}</small>
+        <b>{t('ach.unlocked')}</b>
+        <small>{t(a.label)}</small>
       </span>
     </div>
   );

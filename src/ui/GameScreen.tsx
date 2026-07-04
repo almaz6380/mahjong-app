@@ -9,13 +9,14 @@ import { DAILY_REWARD } from '../game/daily';
 import { saveSession, clearSession } from '../game/session';
 import { maybeShowInterstitial, showRewarded } from '../ads/admob';
 import { playTap, playMatch, playInvalid, playWin } from '../audio/sound';
+import { t } from '../i18n';
 import type { PlacedTile } from '../game/engine';
 
 interface Api {
   useBooster: (t: BoosterType) => boolean;
   spendCoins: (n: number) => boolean;
   addCoins: (n: number) => void;
-  recordWin: (level: number, stars: number, coins: number) => void;
+  recordWin: (level: number, stars: number, coins: number, elapsedMs?: number) => void;
   advanceLevel: () => void;
   completeDailyChallenge: (coins: number) => void;
 }
@@ -33,9 +34,9 @@ interface Props {
 }
 
 const BOOSTER_LABEL: Record<BoosterType, string> = {
-  hint: 'Tipp',
-  shuffle: 'Mischen',
-  undo: 'Zurück',
+  hint: 'game.hint',
+  shuffle: 'game.shuffle',
+  undo: 'game.undo',
 };
 
 export function GameScreen({ mode, level, layoutName, layoutLabel, initial, progress, api, onExit, onNewRound }: Props) {
@@ -111,7 +112,7 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
         setWin({ stars, coins, doubled: false });
       } else {
         const coins = coinsFor(stars);
-        api.recordWin(level, stars, coins);
+        api.recordWin(level, stars, coins, snap.elapsedMs);
         clearSession();
         setWin({ stars, coins, doubled: false });
       }
@@ -133,7 +134,7 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
   }, [level, progress.totalWins, api]);
 
   const deadlock = !game.hasMoves && game.remaining > 0 && !game.won;
-  const title = mode === 'daily' ? 'Tages-Challenge' : `Level ${level}`;
+  const title = mode === 'daily' ? t('game.daily') : t('game.level', { n: level });
 
   return (
     <div className="app">
@@ -143,9 +144,7 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
         </button>
         <div className="hud-center">
           <div className="level">{title}</div>
-          <div className="sub">
-            {layoutLabel} · {game.remaining / 2} Paare
-          </div>
+          <div className="sub">{t('game.pairs', { layout: t(layoutLabel), n: game.remaining / 2 })}</div>
         </div>
         <div className="coins"><Icon name="coin" /> {progress.coins}</div>
       </header>
@@ -160,15 +159,15 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
       />
 
       <nav className="controls">
-        <button onClick={onNewRound}>Neu</button>
+        <button onClick={onNewRound}>{t('game.new')}</button>
         <button className="booster" onClick={() => handleBooster('undo')} disabled={!game.canUndo}>
-          Zurück<span className="badge">{progress.boosters.undo}</span>
+          {t('game.undo')}<span className="badge">{progress.boosters.undo}</span>
         </button>
         <button className="booster" onClick={() => handleBooster('hint')}>
-          Tipp<span className="badge">{progress.boosters.hint}</span>
+          {t('game.hint')}<span className="badge">{progress.boosters.hint}</span>
         </button>
         <button className="booster" onClick={() => handleBooster('shuffle')}>
-          Mischen<span className="badge">{progress.boosters.shuffle}</span>
+          {t('game.shuffle')}<span className="badge">{progress.boosters.shuffle}</span>
         </button>
       </nav>
 
@@ -176,10 +175,10 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
         <div className="overlay">
           <div className="card">
             <div className="logo">🔀</div>
-            <h2>Keine Züge mehr</h2>
-            <p>Misch die Steine neu, um weiterzuspielen.</p>
+            <h2>{t('game.noMoves')}</h2>
+            <p>{t('game.noMovesText')}</p>
             <button className="big-btn" onClick={() => handleBooster('shuffle')}>
-              Mischen{progress.boosters.shuffle > 0 ? ` (${progress.boosters.shuffle})` : ''}
+              {t('game.shuffle')}{progress.boosters.shuffle > 0 ? ` (${progress.boosters.shuffle})` : ''}
             </button>
           </div>
         </div>
@@ -189,16 +188,16 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
         <div className="overlay" onClick={() => setPurchase(null)}>
           <div className="card" onClick={(e) => e.stopPropagation()}>
             <div className="logo">✨</div>
-            <h2>{BOOSTER_LABEL[purchase]} aufgebraucht</h2>
-            <p>Hol dir Nachschub:</p>
+            <h2>{t('game.boosterEmpty', { b: t(BOOSTER_LABEL[purchase]) })}</h2>
+            <p>{t('game.refill')}</p>
             <button className="big-btn" onClick={buyWithCoins} disabled={progress.coins < BOOSTER_COST[purchase]}>
-              <span className="btn-ico"><Icon name="coin" /> {BOOSTER_COST[purchase]} Münzen</span>
+              <span className="btn-ico"><Icon name="coin" /> {t('game.coinsBtn', { n: BOOSTER_COST[purchase] })}</span>
             </button>
             <button className="big-btn ghost solid" onClick={buyWithVideo}>
-              <span className="btn-ico"><Icon name="video" /> Video ansehen</span>
+              <span className="btn-ico"><Icon name="video" /> {t('game.watchVideo')}</span>
             </button>
             <button className="text-btn" onClick={() => setPurchase(null)}>
-              Abbrechen
+              {t('common.cancel')}
             </button>
           </div>
         </div>
@@ -214,23 +213,23 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
                 </span>
               ))}
             </div>
-            <h2>{mode === 'daily' ? 'Tages-Challenge geschafft!' : `Level ${level} geschafft!`}</h2>
+            <h2>{mode === 'daily' ? t('game.dailyDone') : t('game.levelDone', { n: level })}</h2>
             <p className="coins-won">
               <Icon name="coin" size={24} /> +<CountUp value={win.doubled ? win.coins * 2 : win.coins} />
               {win.doubled && <span className="doubled"> ×2!</span>}
             </p>
             {!win.doubled && (
               <button className="big-btn ghost solid" onClick={doubleCoins}>
-                <span className="btn-ico"><Icon name="video" /> Münzen verdoppeln</span>
+                <span className="btn-ico"><Icon name="video" /> {t('game.doubleCoins')}</span>
               </button>
             )}
             {mode === 'daily' ? (
               <button className="big-btn" onClick={onExit}>
-                Zum Menü
+                {t('common.toMenu')}
               </button>
             ) : (
               <button className="big-btn" onClick={nextLevel}>
-                Weiter →
+                {t('game.nextLevel')}
               </button>
             )}
           </div>
