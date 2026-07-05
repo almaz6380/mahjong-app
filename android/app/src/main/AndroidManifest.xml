@@ -10,7 +10,7 @@
         <!-- AdMob: TEST-App-ID (vor Launch durch echte ID ersetzen). -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713"
+            android:value="ca-app-pub-8860791993288062~6537384535"
         />
 
         <activity

@@ -3,12 +3,10 @@ import { Capacitor } from '@capacitor/core';
 // ===========================================================================
 //  AdMob-Anbindung (Banner + Interstitial + Rewarded)
 // ===========================================================================
-// Aktuell mit GOOGLE-TEST-IDs verdrahtet -> zeigt sofort Test-Anzeigen an,
-// ohne dass ein echtes Konto nötig ist. Vor dem Launch:
-//   1. AdMob-Konto anlegen (https://admob.google.com)
-//   2. App + Ad-Units (Banner/Interstitial/Rewarded) für iOS & Android erstellen
-//   3. Die IDs unten in PROD ersetzen und USE_TEST_ADS = false setzen
-//   4. App-IDs in ios/.../Info.plist bzw. android/.../AndroidManifest.xml eintragen
+// PROD-IDs sind eingetragen (Konto pub-8860791993288062, siehe admob-ids.md).
+// Solange USE_TEST_ADS = true laufen Google-Test-Anzeigen (Pflicht während der
+// Entwicklung — echte IDs anklicken wäre ein Policy-Verstoß!).
+// Vor dem Launch-Build nur noch: USE_TEST_ADS = false setzen.
 // ===========================================================================
 
 const USE_TEST_ADS = true;
@@ -28,14 +26,14 @@ const TEST = {
 
 const PROD = {
   ios: {
-    banner: 'DEINE_IOS_BANNER_ID',
-    interstitial: 'DEINE_IOS_INTERSTITIAL_ID',
-    rewarded: 'DEINE_IOS_REWARDED_ID',
+    banner: 'ca-app-pub-8860791993288062/8674674274',
+    interstitial: 'ca-app-pub-8860791993288062/5884824014',
+    rewarded: 'ca-app-pub-8860791993288062/6048510934',
   },
   android: {
-    banner: 'DEINE_ANDROID_BANNER_ID',
-    interstitial: 'DEINE_ANDROID_INTERSTITIAL_ID',
-    rewarded: 'DEINE_ANDROID_REWARDED_ID',
+    banner: 'ca-app-pub-8860791993288062/6100481827',
+    interstitial: 'ca-app-pub-8860791993288062/2300837611',
+    rewarded: 'ca-app-pub-8860791993288062/9987755941',
   },
 };
 

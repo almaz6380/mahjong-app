@@ -43,7 +43,7 @@
 	<true/>
 	<!-- AdMob: TEST-App-ID (vor Launch durch echte ID ersetzen). -->
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<string>ca-app-pub-8860791993288062~3474318488</string>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>Deine Zustimmung erlaubt uns, dir relevantere Werbung anzuzeigen.</string>
 	<key>SKAdNetworkItems</key>
