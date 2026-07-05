@@ -1,4 +1,4 @@
-package com.mahjong.master;
+package com.mahjongroyale.app;
 
 import com.getcapacitor.BridgeActivity;
 

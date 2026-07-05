@@ -1,6 +1,6 @@
 {
-  "name": "Mahjong",
-  "short_name": "Mahjong",
+  "name": "Mahjong Royale",
+  "short_name": "Mahjong Royale",
   "description": "Mahjong Solitaire mit Endless-Leveln und traditionellem 4-Spieler-Modus.",
   "start_url": ".",
   "scope": ".",

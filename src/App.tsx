@@ -216,7 +216,7 @@ export default function App() {
   return (
     <div className="menu">
       <div className="logo"><Tile face="dragonR" /></div>
-      <h1>Mahjong</h1>
+      <h1>Mahjong Royale</h1>
 
       <div className="menu-stats">
         <span><Icon name="coin" /> {progress.coins}</span>
