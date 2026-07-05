@@ -258,7 +258,7 @@ export default function App() {
         <button onClick={() => setScreen('howto')}><Icon name="help" size={22} /><span>{t('menu.help')}</span></button>
       </div>
 
-      <div className="credit">v0.5 · Mahjong</div>
+      <div className="credit">v1.0 · Mahjong Royale</div>
       {achToast && <AchToast a={achToast} />}
     </div>
   );

@@ -11,3 +11,7 @@ android/.gradle
 android/local.properties
 .env
 .vercel
+
+# Android-Signierung (niemals committen)
+android/upload-keystore.jks
+android/keystore.properties

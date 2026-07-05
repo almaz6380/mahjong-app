@@ -96,7 +96,7 @@ export function SettingsScreen({
             {t('set.resetBtn')}
           </button>
         </div>
-        <div className="credit">v0.5 · Mahjong</div>
+        <div className="credit">v1.0 · Mahjong Royale</div>
       </div>
 
       {confirm && (
