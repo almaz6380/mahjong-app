@@ -13,6 +13,9 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
+        <!-- targetSdk 35: Android-15-Edge-to-Edge-Zwang abwählen, damit die
+             Statusleiste nicht ins WebView-Spielfeld ragt. -->
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
     </style>
 
 
