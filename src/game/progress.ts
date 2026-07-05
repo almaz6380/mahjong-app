@@ -34,6 +34,7 @@ export interface Progress {
     m4Hands: number; // gespielte 4-Spieler-Hände
     m4Wins: number; // davon gewonnen
     m4BestFaan: number;
+    modeBest: Record<string, number>; // Bestwerte je Spezialmodus
   };
 }
 
@@ -56,7 +57,7 @@ const DEFAULT: Progress = {
   aiLevel: 'normal',
   lang: '',
   seenM4Tutorial: false,
-  stats: { bestTimeMs: 0, dailies: 0, m4Hands: 0, m4Wins: 0, m4BestFaan: 0 },
+  stats: { bestTimeMs: 0, dailies: 0, m4Hands: 0, m4Wins: 0, m4BestFaan: 0, modeBest: {} },
 };
 
 export const BOOSTER_COST: Record<BoosterType, number> = {
@@ -290,6 +291,19 @@ export function useProgress() {
     [persist],
   );
 
+  // Bestwert je Modus verbuchen. higher=true: höher ist besser; false: niedriger (z. B. Züge/Zeit).
+  const recordModeBest = useCallback(
+    (key: string, value: number, higher = true): boolean => {
+      const s = stateRef.current;
+      if (!s) return false;
+      const prev = s.stats.modeBest[key];
+      const better = prev === undefined || (higher ? value > prev : value < prev);
+      if (better) persist({ ...s, stats: { ...s.stats, modeBest: { ...s.stats.modeBest, [key]: value } } });
+      return better;
+    },
+    [persist],
+  );
+
   const setLang = useCallback(
     (lang: 'de' | 'en' | '') => {
       const s = stateRef.current;
@@ -324,6 +338,7 @@ export function useProgress() {
     unlockAchievements,
     completeDailyChallenge,
     recordM4Hand,
+    recordModeBest,
     setLang,
     markM4TutorialSeen,
   };

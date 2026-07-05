@@ -298,6 +298,13 @@ body {
   left: 0;
 }
 
+/* SVG-Steinmotiv füllt immer seinen Container (auch in den Spezialmodi). */
+.tileface {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 /* ---------- Steine (Container; Motiv kommt als SVG) ---------- */
 .tile {
   position: absolute;
@@ -950,4 +957,208 @@ body {
   font-size: 13.5px;
   line-height: 1.45;
   color: var(--text);
+}
+
+/* ================= Modi ================= */
+.mode-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.mode-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 16px 14px 14px;
+  min-height: 118px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  color: var(--text);
+  text-align: left;
+}
+.mode-card:active {
+  background: var(--surface-2);
+}
+.mode-emoji {
+  font-size: 30px;
+  margin-bottom: 4px;
+}
+.mode-name {
+  font-weight: 800;
+  font-size: 16px;
+}
+.mode-sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+.mode-best {
+  margin-top: auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* Modus-Spielrahmen */
+.mode-play {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: calc(env(safe-area-inset-bottom) + var(--banner-space));
+}
+.mode-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+.mode-head .grow { flex: 1; text-align: center; }
+.mode-head .score {
+  font-weight: 800;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+.mode-head .score small {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.mode-board {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+}
+.mode-foot {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  padding: 8px 12px calc(10px + env(safe-area-inset-bottom));
+  flex-wrap: wrap;
+}
+.mode-foot button {
+  padding: 11px 18px;
+  font: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.mode-foot button:disabled { opacity: 0.4; }
+
+/* --- 2048 / Merge --- */
+.merge-grid {
+  position: relative;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 14px;
+  padding: 8px;
+}
+.merge-cell {
+  position: absolute;
+  transition: left 0.12s ease, top 0.12s ease;
+}
+.merge-bg {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+/* --- Memory --- */
+.memory-grid {
+  display: grid;
+  gap: 6px;
+}
+.mem-cell {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  perspective: 600px;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.mem-inner {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.3s;
+  transform-style: preserve-3d;
+}
+.mem-cell.up .mem-inner { transform: rotateY(180deg); }
+.mem-face, .mem-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+}
+.mem-face { transform: rotateY(180deg); }
+.mem-cell.done { opacity: 0.45; }
+
+/* --- Match-3 --- */
+.m3-grid {
+  display: grid;
+  gap: 3px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
+  padding: 5px;
+}
+.m3-cell {
+  aspect-ratio: 1;
+  background: none;
+  border: none;
+  padding: 1px;
+  transition: transform 0.1s ease;
+}
+.m3-cell.sel { transform: scale(0.86); }
+.m3-cell.clear { animation: m3clear 0.18s ease forwards; }
+@keyframes m3clear { to { transform: scale(0.2); opacity: 0; } }
+
+/* --- Sudoku --- */
+.sudoku-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  background: var(--line);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 8px;
+  overflow: hidden;
+  width: min(94vw, 460px);
+  aspect-ratio: 1;
+}
+.sk-cell {
+  background: #12161d;
+  border: 0.5px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 4.4vw;
+  max-font-size: 22px;
+  padding: 0;
+  color: var(--text);
+}
+.sk-cell.given { color: var(--muted); background: #0d1117; }
+.sk-cell.sel { background: rgba(243, 193, 78, 0.22); }
+.sk-cell.peer { background: rgba(255, 255, 255, 0.05); }
+.sk-cell.bad { color: var(--danger); }
+.sk-cell.br { border-right: 1.5px solid rgba(255, 255, 255, 0.35); }
+.sk-cell.bb { border-bottom: 1.5px solid rgba(255, 255, 255, 0.35); }
+.sk-pad {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 4px;
+  width: min(94vw, 460px);
+  margin: 10px auto 0;
+}
+.sk-pad button {
+  aspect-ratio: 3 / 4;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 3px;
 }

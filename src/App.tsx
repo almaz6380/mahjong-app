@@ -4,6 +4,11 @@ import { Icon } from './ui/Icon';
 import { Tile } from './ui/Tile';
 import { Table4 } from './mahjong4/ui/Table4';
 import { SettingsScreen, HowToScreen, ThemesScreen, AchievementsScreen, ShopScreen, StatsScreen } from './ui/Screens';
+import { ModesScreen } from './modes/ModesScreen';
+import { MemoryScreen } from './modes/memory/MemoryScreen';
+import { MergeScreen } from './modes/merge/MergeScreen';
+import { SudokuScreen } from './modes/sudoku/SudokuScreen';
+import { Match3Screen } from './modes/match3/Match3Screen';
 import { useProgress } from './game/progress';
 import { layoutForLevel } from './game/layouts';
 import { applyTheme } from './game/themes';
@@ -15,7 +20,7 @@ import { setLanguage, detectLang, t } from './i18n';
 import { setAdsRemoved } from './ads/admob';
 import type { PlacedTile } from './game/engine';
 
-type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop';
+type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop' | 'modes' | 'memory' | 'merge' | 'sudoku' | 'match3';
 
 export default function App() {
   const p = useProgress();
@@ -184,6 +189,20 @@ export default function App() {
   if (screen === 'settings')
     return <SettingsScreen progress={progress} setSoundOn={p.setSoundOn} setAiLevel={p.setAiLevel} setLang={p.setLang} resetProgress={p.resetProgress} onBack={() => setScreen('menu')} />;
   if (screen === 'stats') return <StatsScreen progress={progress} onBack={() => setScreen('menu')} />;
+
+  // Spezialmodi
+  const modeApi = {
+    addCoins: p.addCoins,
+    spendCoins: p.spendCoins,
+    recordModeBest: p.recordModeBest,
+    bestOf: (k: string) => progress.stats.modeBest[k],
+  };
+  if (screen === 'modes')
+    return <ModesScreen onPick={(id) => setScreen(id)} onBack={() => setScreen('menu')} best={(k) => progress.stats.modeBest[k]} />;
+  if (screen === 'memory') return <MemoryScreen api={modeApi} onExit={() => setScreen('modes')} />;
+  if (screen === 'merge') return <MergeScreen api={modeApi} onExit={() => setScreen('modes')} />;
+  if (screen === 'sudoku') return <SudokuScreen api={modeApi} onExit={() => setScreen('modes')} />;
+  if (screen === 'match3') return <Match3Screen api={modeApi} onExit={() => setScreen('modes')} />;
   if (screen === 'howto') return <HowToScreen onBack={() => setScreen('menu')} />;
   if (screen === 'themes')
     return <ThemesScreen progress={progress} purchaseTheme={p.purchaseTheme} selectTheme={p.selectTheme} onBack={() => setScreen('menu')} />;
@@ -225,6 +244,9 @@ export default function App() {
       </button>
       <button className="big-btn ghost solid" onClick={() => setScreen('mahjong4')}>
         {t('menu.m4')}
+      </button>
+      <button className="big-btn ghost solid" onClick={() => setScreen('modes')}>
+        {t('menu.moreGames')}
       </button>
 
       <div className="menu-icons">

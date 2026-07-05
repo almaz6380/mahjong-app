@@ -194,6 +194,42 @@ const D: Record<string, Entry> = {
   'faan.roundWindPung': { de: 'Rundenwind-Pung', en: 'Round wind pung' },
   'faan.seatWindPung': { de: 'Sitzwind-Pung', en: 'Seat wind pung' },
   'faan.seatFlower': { de: 'Sitz-Blume', en: 'Seat flower' },
+
+  // Modi-Menü + gemeinsame Modus-Strings
+  'menu.moreGames': { de: 'Weitere Spiele', en: 'More games' },
+  'mode.title': { de: 'Weitere Spiele', en: 'More games' },
+  'mode.best': { de: 'Bestwert: {n}', en: 'Best: {n}' },
+  'mode.bestLabel': { de: 'Best', en: 'Best' },
+  'mode.score': { de: 'Punkte', en: 'Score' },
+  'mode.newBest': { de: 'Neuer Bestwert!', en: 'New best!' },
+  'mode.gameOver': { de: 'Vorbei', en: 'Game over' },
+  'mode.won': { de: 'Geschafft!', en: 'Solved!' },
+  'mode.again': { de: 'Nochmal', en: 'Play again' },
+  'mode.moves': { de: 'Züge', en: 'Moves' },
+  'mode.undo': { de: 'Zurück', en: 'Undo' },
+  'mode.hint': { de: 'Tipp', en: 'Hint' },
+  'mode.extraMoves': { de: 'Extra-Züge', en: 'Extra moves' },
+  'mode.merge': { de: 'Mahjong 2048', en: 'Mahjong 2048' },
+  'mode.merge.sub': { de: 'Verschmelzen & wachsen', en: 'Merge & grow' },
+  'mode.match3': { de: 'Match-3', en: 'Match-3' },
+  'mode.match3.sub': { de: '3 gleiche in einer Reihe', en: 'Line up 3 alike' },
+  'mode.memory': { de: 'Paare', en: 'Pairs' },
+  'mode.memory.sub': { de: 'Gedächtnis-Spiel', en: 'Memory game' },
+  'mode.sudoku': { de: 'Sudoku', en: 'Sudoku' },
+  'mode.sudoku.sub': { de: 'Mit Kreis-Steinen', en: 'With circle tiles' },
+
+  // Merge (2048)
+  'merge.swipe': { de: 'Wische, um Steine zu verschmelzen', en: 'Swipe to merge tiles' },
+
+  // Memory
+  'memory.size': { de: 'Größe', en: 'Size' },
+
+  // Match-3
+  'match3.goal': { de: 'Ziel: {n} in {m} Zügen', en: 'Goal: {n} in {m} moves' },
+  'match3.left': { de: 'Züge übrig: {n}', en: 'Moves left: {n}' },
+
+  // Sudoku
+  'sudoku.pick': { de: 'Zelle wählen, dann Stein tippen', en: 'Pick a cell, then a tile' },
 };
 
 export function t(key: string, vars?: Record<string, string | number>): string {

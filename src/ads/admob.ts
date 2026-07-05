@@ -116,6 +116,19 @@ export async function maybeShowInterstitial(level: number, totalWins: number): P
   }
 }
 
+// Für die Spezialmodi: Interstitial zwischen Runden, nur Zeit-gedrosselt.
+export async function maybeShowInterstitialModes(): Promise<void> {
+  if (!ready || adsRemoved) return;
+  if (Date.now() - lastInterstitial < INTERSTITIAL_MIN_GAP_MS) return;
+  lastInterstitial = Date.now();
+  try {
+    await AdMob.prepareInterstitial({ adId: ids().interstitial, isTesting: USE_TEST_ADS });
+    await AdMob.showInterstitial();
+  } catch (e) {
+    console.warn('Interstitial-Ad fehlgeschlagen:', e);
+  }
+}
+
 // ---------------------------------------------------------------------------
 //  Rewarded – belohntes Video. Gibt true zurück, wenn der Nutzer die Belohnung
 //  verdient hat (Video vollständig gesehen).

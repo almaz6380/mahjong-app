@@ -46,6 +46,10 @@ export function TileDefs() {
           <stop offset="0.5" stopColor="#3fb873" />
           <stop offset="1" stopColor="#1c7546" />
         </linearGradient>
+        <linearGradient id="tback" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#1a6b4f" />
+          <stop offset="1" stopColor="#0f4531" />
+        </linearGradient>
       </defs>
     </svg>
   );
@@ -176,6 +180,33 @@ export function Tile({ face, className }: { face: string; className?: string }) 
   return (
     <svg className={'tileface' + (className ? ' ' + className : '')} viewBox="0 0 60 80" preserveAspectRatio="xMidYMid meet">
       <TileBody>{motif(f)}</TileBody>
+    </svg>
+  );
+}
+
+// Nur die Kreis-Punkte (ohne Stein-Korpus) – für Sudoku-Ziffern 1–9.
+export function PinDigit({ rank, className }: { rank: number; className?: string }) {
+  const pts = PIN[rank] ?? [];
+  const r = rank === 1 ? 9 : rank >= 8 ? 4 : 5;
+  return (
+    <svg className={className} viewBox="8 10 44 60" preserveAspectRatio="xMidYMid meet" style={{ width: '82%', height: '82%' }}>
+      {pts.map(([x, y], i) => (
+        <Dot key={i} x={x} y={y} c={DOT_COLORS[(rank === 1 ? 0 : i) % 3]} r={r} />
+      ))}
+    </svg>
+  );
+}
+
+// Verdeckte Rückseite (Memory & Co.): grüner Filz-Stein mit Ornament.
+export function TileBack({ className }: { className?: string }) {
+  return (
+    <svg className={'tileface' + (className ? ' ' + className : '')} viewBox="0 0 60 80" preserveAspectRatio="xMidYMid meet">
+      <rect x="3" y="6" width="54" height="72" rx="9" fill="#000" opacity="0.18" />
+      <rect x="3" y="3" width="54" height="72" rx="9" fill="url(#tback)" />
+      <rect x="3" y="3" width="54" height="72" rx="9" fill="none" stroke="rgba(255,255,255,.14)" />
+      <rect x="9" y="12" width="42" height="54" rx="7" fill="none" stroke="rgba(255,255,255,.22)" strokeWidth="1.5" />
+      <circle cx="30" cy="39" r="10" fill="none" stroke="rgba(255,255,255,.28)" strokeWidth="2" />
+      <circle cx="30" cy="39" r="3.4" fill="rgba(255,255,255,.30)" />
     </svg>
   );
 }

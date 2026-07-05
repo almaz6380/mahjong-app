@@ -164,6 +164,18 @@ src/mahjong4/
   ui/Table4.tsx  Tisch-UI
 ```
 
+## Neu in v0.6 — Vier Spezialmodi
+
+Unter „Weitere Spiele" (`src/modes/`, Grid `ModesScreen`), alle mit den Mahjong-Steinen,
+aber nicht-mahjongtypischer Mechanik – zahlen in dieselbe Münz-/Werbe-Ökonomie ein:
+- **Mahjong 2048** (`modes/merge/`) — verschmelzen (m1→…→m9→Drachen), Wischen/Tasten, Highscore, Undo per Video.
+- **Match-3** (`modes/match3/`) — Candy-Crush mit Kaskaden, 25 Züge, Highscore, +5 Züge per Video.
+- **Paare/Memory** (`modes/memory/`) — verdeckte Steine (Tile-Rückseite in `ui/Tile.tsx`), 3 Größen.
+- **Steine-Sudoku** (`modes/sudoku/`) — 9×9 mit Kreis-Pips als Ziffern (`PinDigit`), Generator mit
+  Eindeutigkeits-Prüfung + Solver, Hinweis per Video.
+- Jede Logik headless getestet (esbuild+node): 2048 15/15, Match-3 9/9, Sudoku 24/24 eindeutig.
+- Bestwerte in `progress.stats.modeBest`.
+
 ## Neu in v0.5
 
 - **Zweisprachig (DE/EN)**: leichtes i18n (`src/i18n.ts`), Auto-Erkennung der
