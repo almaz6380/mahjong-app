@@ -108,6 +108,10 @@ const D: Record<string, Entry> = {
   'shop.coins500': { de: '500 Münzen', en: '500 coins' },
   'shop.coins1500': { de: '1500 Münzen', en: '1,500 coins' },
   'shop.coins5000': { de: '5000 Münzen', en: '5,000 coins' },
+  'shop.restore': { de: 'Frühere Käufe', en: 'Previous purchases' },
+  'shop.restoreBtn': { de: 'Wiederherstellen', en: 'Restore' },
+  'shop.restored': { de: 'Käufe wiederhergestellt! ✅', en: 'Purchases restored! ✅' },
+  'shop.restoreNone': { de: 'Keine früheren Käufe gefunden.', en: 'No previous purchases found.' },
 
   // Themes
   'theme.classic': { de: 'Klassisch', en: 'Classic' },

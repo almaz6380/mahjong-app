@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { Progress } from '../game/progress';
 import { THEMES } from '../game/themes';
 import { ACHIEVEMENTS } from '../game/achievements';
-import { PRODUCTS, purchase, type Product } from '../store/iap';
+import { PRODUCTS, purchase, displayPrice, canRestore, restorePurchases, type Product } from '../store/iap';
 import { setAdsRemoved, canChangeAdConsent, changeAdConsent } from '../ads/admob';
 import { Icon } from './Icon';
 import { t } from '../i18n';
@@ -308,12 +308,32 @@ export function ShopScreen({
                 <span className="tag">{t('common.active')}</span>
               ) : (
                 <button className="small-btn gold" onClick={() => buy(p)}>
-                  {p.price}
+                  {displayPrice(p)}
                 </button>
               )}
             </div>
           );
         })}
+        {canRestore() && (
+          <div className="row">
+            <span>{t('shop.restore')}</span>
+            <button
+              className="small-btn"
+              onClick={async () => {
+                const ownsRemoveAds = await restorePurchases();
+                if (ownsRemoveAds) {
+                  setRemoveAds();
+                  setAdsRemoved(true);
+                  setMsg(t('shop.restored'));
+                } else {
+                  setMsg(t('shop.restoreNone'));
+                }
+              }}
+            >
+              {t('shop.restoreBtn')}
+            </button>
+          </div>
+        )}
         <p className="credit">{t('shop.support')}</p>
       </div>
 

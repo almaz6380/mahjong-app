@@ -11,6 +11,8 @@ PODS:
     - Capacitor
   - CapacitorPreferences (6.0.4):
     - Capacitor
+  - CordovaPlugins (6.2.1):
+    - CapacitorCordova
   - Google-Mobile-Ads-SDK (11.3.0):
     - GoogleUserMessagingPlatform (>= 1.1)
   - GoogleUserMessagingPlatform (3.1.0)
@@ -22,6 +24,7 @@ DEPENDENCIES:
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorHaptics (from `../../node_modules/@capacitor/haptics`)"
   - "CapacitorPreferences (from `../../node_modules/@capacitor/preferences`)"
+  - CordovaPlugins (from `../capacitor-cordova-ios-plugins`)
 
 SPEC REPOS:
   trunk:
@@ -41,6 +44,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/haptics"
   CapacitorPreferences:
     :path: "../../node_modules/@capacitor/preferences"
+  CordovaPlugins:
+    :path: "../capacitor-cordova-ios-plugins"
 
 SPEC CHECKSUMS:
   Capacitor: c95400d761e376be9da6be5a05f226c0e865cebf
@@ -49,9 +54,10 @@ SPEC CHECKSUMS:
   CapacitorCordova: 8d93e14982f440181be7304aa9559ca631d77fff
   CapacitorHaptics: 40f83026feeee9cfe36e89e9c98a3baaaf20c450
   CapacitorPreferences: 5848e0691b36b4bb4acc98e481ab56d451578d30
+  CordovaPlugins: 1d6968748cbc887909ab0ba41e3e7ca82c51cb86
   Google-Mobile-Ads-SDK: 301a16c461c331ba34ff4dab40a22ab7c147af61
   GoogleUserMessagingPlatform: befe603da6501006420c206222acd449bba45a9c
 
-PODFILE CHECKSUM: 620efe94ab8d22603c70f7ba746e822931826a06
+PODFILE CHECKSUM: 367f89e7b46a5086e657a8935c29b1b05bcac46f
 
 COCOAPODS: 1.16.2
