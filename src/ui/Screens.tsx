@@ -3,7 +3,7 @@ import type { Progress } from '../game/progress';
 import { THEMES } from '../game/themes';
 import { ACHIEVEMENTS } from '../game/achievements';
 import { PRODUCTS, purchase, type Product } from '../store/iap';
-import { setAdsRemoved } from '../ads/admob';
+import { setAdsRemoved, canChangeAdConsent, changeAdConsent } from '../ads/admob';
 import { Icon } from './Icon';
 import { t } from '../i18n';
 
@@ -82,6 +82,14 @@ export function SettingsScreen({
             ))}
           </div>
         </div>
+        {canChangeAdConsent() && (
+          <div className="row">
+            <span>{t('set.adConsent')}</span>
+            <button className="small-btn" onClick={() => changeAdConsent()}>
+              {t('set.adConsentBtn')}
+            </button>
+          </div>
+        )}
         <div className="row">
           <span>{t('set.reset')}</span>
           <button className="small-btn danger" onClick={() => setConfirm(true)}>

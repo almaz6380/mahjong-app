@@ -104,7 +104,8 @@ export function useMahjong4(opts: {
       if (g.turn === 0) {
         const t = draw(g);
         bump();
-        if (g.phase === 'over') { drive(); return; }
+        // draw() kann g.phase auf 'over' mutieren (leere Mauer) — TS sieht das nicht.
+        if ((g.phase as string) === 'over') { drive(); return; }
         if (t && canWinSelfDraw(g, 0)) { declareWin(g, 0, null, t); playWin(); bump(); drive(); return; }
         setSuggested(null);
         setInteraction({ kind: 'discard' });

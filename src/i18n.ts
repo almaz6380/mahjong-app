@@ -87,6 +87,8 @@ const D: Record<string, Entry> = {
   'set.resetQ': { de: 'Wirklich zurücksetzen?', en: 'Really reset?' },
   'set.resetText': { de: 'Level, Münzen und alle Erfolge gehen verloren.', en: 'Levels, coins and all awards will be lost.' },
   'set.resetYes': { de: 'Ja, zurücksetzen', en: 'Yes, reset' },
+  'set.adConsent': { de: 'Werbe-Einwilligung (DSGVO)', en: 'Ad consent (GDPR)' },
+  'set.adConsentBtn': { de: 'Ändern', en: 'Change' },
 
   // Anleitung (Solitaire)
   'howto.title': { de: "So geht's", en: 'How to play' },

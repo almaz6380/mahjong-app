@@ -60,6 +60,56 @@ let BannerAdSize: any = null;
 let RewardAdPluginEvents: any = null;
 let ready = false;
 
+// ---------------------------------------------------------------------------
+//  GDPR-Consent (Google UMP) + iOS-App-Tracking-Transparency.
+//  Die Consent-Nachricht selbst wird in AdMob konfiguriert
+//  (Datenschutz & Mitteilungen -> DSGVO); ohne veröffentlichte Nachricht
+//  meldet UMP NOT_REQUIRED und es erscheint kein Dialog.
+// ---------------------------------------------------------------------------
+async function runConsentFlow(): Promise<void> {
+  try {
+    const info = await AdMob.requestConsentInfo();
+
+    // iOS ab 14: ATT-Dialog einmalig anzeigen (auf Android nicht vorhanden).
+    if (Capacitor.getPlatform() === 'ios') {
+      try {
+        const tracking = await AdMob.trackingAuthorizationStatus();
+        if (tracking.status === 'notDetermined') {
+          await AdMob.requestTrackingAuthorization();
+        }
+      } catch (e) {
+        console.warn('ATT-Abfrage fehlgeschlagen:', e);
+      }
+    }
+
+    if (info.isConsentFormAvailable && info.status === 'REQUIRED') {
+      await AdMob.showConsentForm();
+    }
+  } catch (e) {
+    // Kein Netz o.ä.: Ads laufen dann ohne personalisierte Einwilligung an;
+    // UMP fragt beim nächsten Start erneut.
+    console.warn('Consent-Flow fehlgeschlagen:', e);
+  }
+}
+
+// Für die Einstellungen: Einwilligung nachträglich ändern (DSGVO-Pflicht).
+export function canChangeAdConsent(): boolean {
+  return isNative;
+}
+
+export async function changeAdConsent(): Promise<void> {
+  if (!ready) return;
+  try {
+    await AdMob.resetConsentInfo();
+    const info = await AdMob.requestConsentInfo();
+    if (info.isConsentFormAvailable) {
+      await AdMob.showConsentForm();
+    }
+  } catch (e) {
+    console.warn('Consent-Änderung fehlgeschlagen:', e);
+  }
+}
+
 export async function initAds(): Promise<void> {
   if (!isNative) return; // Im Browser: keine Ads.
   const mod = await import('@capacitor-community/admob');
@@ -67,6 +117,8 @@ export async function initAds(): Promise<void> {
   BannerAdPosition = mod.BannerAdPosition;
   BannerAdSize = mod.BannerAdSize;
   RewardAdPluginEvents = mod.RewardAdPluginEvents;
+
+  await runConsentFlow();
 
   await AdMob.initialize({ initializeForTesting: USE_TEST_ADS });
   ready = true;
