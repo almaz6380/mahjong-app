@@ -9,7 +9,7 @@ import { Capacitor } from '@capacitor/core';
 // Vor dem Launch-Build nur noch: USE_TEST_ADS = false setzen.
 // ===========================================================================
 
-const USE_TEST_ADS = true;
+const USE_TEST_ADS = false;
 
 const TEST = {
   ios: {
