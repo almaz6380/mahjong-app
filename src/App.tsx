@@ -243,28 +243,28 @@ export default function App() {
       </div>
 
       <div className="hub-grid">
-        <button className="hub-card feature" onClick={canResume ? startResume : startFresh}>
+        <button className="hub-card feature c-gold" onClick={canResume ? startResume : startFresh}>
           <span className="hub-face"><Tile face="char1" /></span>
           <span className="hub-name">{t('hub.solitaire')}</span>
           <span className="hub-sub">{canResume ? t('hub.resume', { n: resume!.level }) : t('hub.solitaire.sub', { n: progress.level })}</span>
         </button>
-        <button className="hub-card" onClick={() => setScreen('crush')}>
+        <button className="hub-card c-sapphire" onClick={() => setScreen('crush')}>
           <span className="hub-emoji">💎</span>
           <span className="hub-name">{t('menu.crush')}</span>
           <span className="hub-sub">{t('hub.crush.sub')}</span>
           {crushDone > 0 && <span className="hub-badge">{crushDone}/50</span>}
         </button>
-        <button className="hub-card" onClick={() => setScreen('mahjong4')}>
+        <button className="hub-card c-ruby" onClick={() => setScreen('mahjong4')}>
           <span className="hub-emoji">🀄</span>
           <span className="hub-name">{t('menu.m4')}</span>
           <span className="hub-sub">{t('hub.m4.sub')}</span>
         </button>
-        <button className="hub-card" onClick={startDaily} disabled={dailyDone}>
+        <button className="hub-card c-magenta" onClick={startDaily} disabled={dailyDone}>
           <span className="hub-emoji">🎁</span>
           <span className="hub-name">{t('hub.daily')}</span>
           <span className="hub-sub">{dailyDone ? '✓ ' + t('common.active') : t('hub.daily.sub')}</span>
         </button>
-        <button className="hub-card wide" onClick={() => setScreen('modes')}>
+        <button className="hub-card wide c-violet" onClick={() => setScreen('modes')}>
           <span className="hub-emoji">🎲</span>
           <span className="hub-name">{t('hub.more')}</span>
           <span className="hub-sub">{t('hub.more.sub')}</span>

@@ -5,10 +5,12 @@ import './styles.css'
 import { initAds } from './ads/admob'
 import { initIAP } from './store/iap'
 import { TileDefs } from './ui/Tile'
+import { AppBackground } from './ui/AppBackground'
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <TileDefs />
+    <AppBackground />
     <App />
   </React.StrictMode>,
 )
