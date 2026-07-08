@@ -1223,17 +1223,27 @@ body {
   pointer-events: none;
 }
 
-/* Level-Karte */
+/* Level-Karte (geschwungener Pfad) */
+.crush-map-scroll { overflow-y: auto; }
 .crush-map {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 6px 22px 20px;
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+}
+.crush-path {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 0;
 }
 .crush-node {
-  position: relative;
-  width: 74px;
-  min-height: 62px;
+  position: absolute;
+  z-index: 1;
+  transform: translate(-50%, -50%);
+  width: 72px;
+  min-height: 60px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1243,13 +1253,18 @@ body {
   border: 1px solid var(--line);
   border-radius: 16px;
   color: var(--text);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
 }
 .crush-node.cleared { border-color: rgba(245, 179, 1, 0.55); }
 .crush-node.current {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(245, 179, 1, 0.35);
+  box-shadow: 0 0 0 3px rgba(245, 179, 1, 0.4), 0 4px 12px rgba(0, 0, 0, 0.4);
+  animation: crushNodePulse 1.5s ease-in-out infinite;
 }
-.crush-node.locked { opacity: 0.5; }
+@keyframes crushNodePulse {
+  50% { transform: translate(-50%, -50%) scale(1.1); }
+}
+.crush-node.locked { opacity: 0.45; box-shadow: none; }
 .crush-num { font-weight: 800; font-size: 20px; }
 .crush-node-stars { display: flex; gap: 1px; font-size: 11px; color: rgba(255, 255, 255, 0.25); }
 .crush-node-stars .on { color: var(--accent); }

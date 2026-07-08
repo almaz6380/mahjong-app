@@ -1,5 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
-import { Tile } from '../../ui/Tile';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '../../ui/Icon';
 import { t } from '../../i18n';
 import { playTap, playMatch, playInvalid, playWin } from '../../audio/sound';
@@ -11,7 +10,50 @@ import {
   DRAGON, BLOCKED, LINE, type CrushState,
 } from './crush';
 
-const FACES = ['z5', 'z6', 's1', 'p1', 'm1', 'flower1'];
+// Farbige Match-3-Gems: je Sorte eigene Form + Farbe + Glanz (statt Mahjong-Stein).
+const GEM_COLORS = ['#e6392f', '#22c55e', '#2f7ff2', '#a855f7', '#f5a623', '#ec4899'];
+
+function gemShape(v: number): React.ReactNode {
+  switch (v) {
+    case 0: // Raute (rot)
+      return <polygon points="30,5 55,30 30,55 5,30" />;
+    case 1: { // Sechseck (grün)
+      const p = [0, 60, 120, 180, 240, 300].map((a) => {
+        const r = (a - 90) * Math.PI / 180;
+        return `${30 + Math.cos(r) * 25},${30 + Math.sin(r) * 25}`;
+      }).join(' ');
+      return <polygon points={p} />;
+    }
+    case 2: // Kreis (blau)
+      return <circle cx="30" cy="30" r="24" />;
+    case 3: // Drachen/Kite (violett)
+      return <polygon points="30,4 52,26 30,56 8,26" />;
+    case 4: // Achteck (amber)
+      return <polygon points="19,6 41,6 54,19 54,41 41,54 19,54 6,41 6,19" />;
+    default: { // Blüte (pink)
+      const petals = [0, 72, 144, 216, 288].map((a) => {
+        const r = a * Math.PI / 180;
+        return `${30 + Math.cos(r) * 24},${30 + Math.sin(r) * 24}`;
+      }).join(' ');
+      return <polygon points={petals} />;
+    }
+  }
+}
+
+function CrushGem({ v }: { v: number }) {
+  const c = GEM_COLORS[v] ?? GEM_COLORS[0];
+  return (
+    <svg className="tileface crush-gem" viewBox="0 0 60 60" preserveAspectRatio="xMidYMid meet" style={{ filter: `drop-shadow(0 1px 2px ${c}aa)` }}>
+      <g fill={c} stroke="rgba(0,0,0,.35)" strokeWidth="1.4" strokeLinejoin="round">
+        {gemShape(v)}
+      </g>
+      <g fill="#fff" stroke="none">
+        <ellipse cx="23" cy="20" rx="7" ry="4" opacity="0.55" transform="rotate(-30 23 20)" />
+        <circle cx="38" cy="38" r="2.2" opacity="0.5" />
+      </g>
+    </svg>
+  );
+}
 
 export interface CrushProps {
   crush: Record<number, number>; // Level -> Sterne
@@ -38,7 +80,7 @@ function Cell({ v, spec, armor, sel, onClick }: { v: number; spec: number; armor
   } else if (v === DRAGON) {
     inner = <span className="crush-dragon">🐉</span>;
   } else {
-    inner = <Tile face={FACES[v] ?? 'm1'} />;
+    inner = <CrushGem v={v} />;
   }
   return (
     <button
@@ -177,13 +219,37 @@ function CrushPlay({ levelId, props, onDone }: { levelId: number; props: CrushPr
   );
 }
 
-// --- Level-Karte -------------------------------------------------------------
+// --- Level-Karte (geschwungener Pfad) ----------------------------------------
+// Knoten liegen auf einer Serpentine; eine gepunktete Linie verbindet sie.
+// Positionen und Linie werden aus demselben Lane-Muster berechnet.
+const LANES = [50, 22, 50, 78]; // horizontale Prozent-Spuren, zyklisch
+const ROW_H = 118; // vertikaler Abstand pro Level in px
+const TOP_PAD = 40;
+
+function laneX(id: number): number {
+  return LANES[(id - 1) % LANES.length];
+}
+function nodeY(id: number, total: number): number {
+  // Level 1 unten, höchstes oben.
+  return TOP_PAD + (total - id) * ROW_H;
+}
+
 function CrushMap({ props, onPick }: { props: CrushProps; onPick: (id: number) => void }) {
   const stars = props.crush;
   const totalStars = Object.values(stars).reduce((a, b) => a + b, 0);
-  // Höchstes freigeschaltetes Level = erstes ungelöstes (alle vorher bestanden).
   let unlocked = 1;
   while (unlocked <= LEVELS.length && (stars[unlocked] ?? 0) > 0) unlocked++;
+
+  const total = LEVELS.length;
+  const mapH = TOP_PAD * 2 + total * ROW_H;
+  // Pfadpunkte (in %-x, px-y) von Level 1 (unten) nach oben.
+  const pts = LEVELS.map((lv) => `${laneX(lv.id)},${nodeY(lv.id, total)}`).join(' ');
+
+  // Beim Öffnen zum aktuellen Level scrollen.
+  const currentRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    currentRef.current?.scrollIntoView({ block: 'center' });
+  }, []);
 
   return (
     <div className="app screen">
@@ -192,18 +258,23 @@ function CrushMap({ props, onPick }: { props: CrushProps; onPick: (id: number) =
         <div className="hud-center"><div className="level">{t('crush.title')}</div></div>
         <div className="menu-stats" style={{ margin: 0 }}><span className="crush-star-count">★ {totalStars}</span></div>
       </header>
-      <div className="screen-body">
-        <div className="crush-map">
+      <div className="screen-body crush-map-scroll">
+        <div className="crush-map" style={{ height: mapH }}>
+          <svg className="crush-path" width="100%" height={mapH} viewBox={`0 0 100 ${mapH}`} preserveAspectRatio="none" aria-hidden>
+            <polyline points={pts} fill="none" stroke="rgba(245,179,1,0.5)" strokeWidth="3" strokeLinecap="round" strokeDasharray="5 9" vectorEffect="non-scaling-stroke" />
+          </svg>
           {LEVELS.map((lv) => {
             const s = stars[lv.id] ?? 0;
             const locked = lv.id > unlocked;
+            const isCurrent = lv.id === unlocked;
             return (
               <button
                 key={lv.id}
-                className={'crush-node' + (locked ? ' locked' : s > 0 ? ' cleared' : ' current')}
+                ref={isCurrent ? currentRef : undefined}
+                className={'crush-node' + (locked ? ' locked' : isCurrent ? ' current' : ' cleared')}
                 onClick={() => !locked && onPick(lv.id)}
                 disabled={locked}
-                style={{ alignSelf: lv.id % 4 < 2 ? 'flex-start' : 'flex-end' }}
+                style={{ left: `${laneX(lv.id)}%`, top: nodeY(lv.id, total) }}
               >
                 <span className="crush-num">{locked ? '🔒' : lv.id}</span>
                 {!locked && (

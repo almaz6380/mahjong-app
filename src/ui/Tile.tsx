@@ -5,8 +5,6 @@
 type Suit = 'man' | 'sou' | 'pin' | 'wind' | 'dragon' | 'flower' | 'season';
 interface Face { suit: Suit; rank: number }
 
-const CJK = "'Songti SC','Songti TC','STSong','SimSun','Noto Serif CJK SC','Noto Serif SC',serif";
-
 export function normalizeFace(key: string): Face {
   // 4-Spieler-Codes
   if (/^[mspz][0-9]$/.test(key) || /^[fg][0-9]$/.test(key)) {
@@ -37,45 +35,78 @@ export function TileDefs() {
     <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden>
       <defs>
         <linearGradient id="tbody" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#ffffff" />
-          <stop offset="0.45" stopColor="#f7f2e6" />
-          <stop offset="1" stopColor="#e8dfca" />
-        </linearGradient>
-        <linearGradient id="bamboo" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="#25925a" />
-          <stop offset="0.5" stopColor="#3fb873" />
-          <stop offset="1" stopColor="#1c7546" />
+          <stop offset="0" stopColor="#fffdf8" />
+          <stop offset="0.5" stopColor="#f6efe0" />
+          <stop offset="1" stopColor="#e6dcc5" />
         </linearGradient>
         <linearGradient id="tback" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#1a6b4f" />
           <stop offset="1" stopColor="#0f4531" />
+        </linearGradient>
+        {/* Gold (Krone) */}
+        <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#ffe07a" />
+          <stop offset="0.5" stopColor="#f5b301" />
+          <stop offset="1" stopColor="#c8890a" />
+        </linearGradient>
+        {/* Kristall (Sou) */}
+        <linearGradient id="crystal" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#6ff0da" />
+          <stop offset="0.5" stopColor="#22c4a8" />
+          <stop offset="1" stopColor="#0f8f7c" />
         </linearGradient>
       </defs>
     </svg>
   );
 }
 
-const NUM = ['一', '二', '三', '四', '五', '六', '七', '八', '九'];
-const WINDS = ['東', '南', '西', '北'];
-const DOT_COLORS = ['#1f5fa8', '#1f8a4d', '#c0392b'];
+// Farben der drei Pin-Edelsteine (zyklisch pro Pip) – eigene, kräftige Gem-Töne.
+const DOT_COLORS = ['#2f7ff2', '#22b06a', '#e0483d'];
 
-function Dot({ x, y, c, r = 5 }: { x: number; y: number; c: string; r?: number }) {
+// Facettierter runder Edelstein (ersetzt die flachen Pin-Kreise).
+function Gem({ x, y, c, r = 5 }: { x: number; y: number; c: string; r?: number }) {
   return (
     <g>
       <circle cx={x} cy={y} r={r} fill={c} />
-      <circle cx={x} cy={y} r={r} fill="none" stroke="rgba(0,0,0,.28)" strokeWidth="0.6" />
-      <circle cx={x} cy={y} r={r * 0.4} fill="#fff" opacity="0.9" />
+      <path d={`M${x - r} ${y} A ${r} ${r} 0 0 1 ${x + r} ${y} Z`} fill="#fff" opacity="0.28" />
+      <circle cx={x} cy={y} r={r} fill="none" stroke="rgba(0,0,0,.35)" strokeWidth="0.7" />
+      <circle cx={x - r * 0.32} cy={y - r * 0.32} r={r * 0.28} fill="#fff" opacity="0.95" />
     </g>
   );
 }
 
-function Bamboo({ x, y, w = 7, h = 20 }: { x: number; y: number; w?: number; h?: number }) {
+// Vertikaler Kristall-Stab (ersetzt Bambus im Sou).
+function Crystal({ x, y, w = 7, h = 20 }: { x: number; y: number; w?: number; h?: number }) {
+  const hw = w / 2, hh = h / 2, tip = h * 0.22;
+  const pts = `${x},${y - hh} ${x + hw},${y - hh + tip} ${x + hw},${y + hh - tip} ${x},${y + hh} ${x - hw},${y + hh - tip} ${x - hw},${y - hh + tip}`;
   return (
     <g>
-      <rect x={x - w / 2} y={y - h / 2} width={w} height={h} rx={w / 2} fill="url(#bamboo)" stroke="rgba(0,0,0,.2)" strokeWidth="0.5" />
-      <rect x={x - w / 2} y={y - 1} width={w} height={2} fill="#0f5230" opacity="0.8" />
-      <rect x={x - w / 2} y={y - h / 2 + 3} width={w} height={1.4} fill="#0f5230" opacity="0.6" />
-      <rect x={x - w / 2 + 1} y={y - h / 2} width={w * 0.35} height={h} rx={w / 4} fill="#7ee0a6" opacity="0.5" />
+      <polygon points={pts} fill="url(#crystal)" stroke="rgba(0,0,0,.28)" strokeWidth="0.5" />
+      <polyline points={`${x},${y - hh} ${x},${y + hh}`} stroke="rgba(255,255,255,.5)" strokeWidth="0.7" />
+      <polygon points={`${x},${y - hh} ${x + hw},${y - hh + tip} ${x},${y}`} fill="#fff" opacity="0.22" />
+    </g>
+  );
+}
+
+// Kleine Krone (Man-Emblem, "Royale").
+function Crown({ cx, cy, s = 1 }: { cx: number; cy: number; s?: number }) {
+  return (
+    <g transform={`translate(${cx} ${cy}) scale(${s})`}>
+      <path d="M-11 5 L-11 -5 L-5 1 L0 -8 L5 1 L11 -5 L11 5 Z" fill="url(#gold)" stroke="rgba(120,80,0,.5)" strokeWidth="0.8" strokeLinejoin="round" />
+      <rect x="-11" y="5" width="22" height="3.4" rx="1.2" fill="url(#gold)" stroke="rgba(120,80,0,.5)" strokeWidth="0.6" />
+      <circle cx="0" cy="-8" r="1.7" fill="#fff3c4" />
+      <circle cx="-11" cy="-5" r="1.5" fill="#fff3c4" />
+      <circle cx="11" cy="-5" r="1.5" fill="#fff3c4" />
+    </g>
+  );
+}
+
+// Facettierte Raute (Basis für Winde/Drachen-Sigille).
+function Diamond({ cx, cy, r, c }: { cx: number; cy: number; r: number; c: string }) {
+  return (
+    <g>
+      <polygon points={`${cx},${cy - r} ${cx + r * 0.8},${cy} ${cx},${cy + r} ${cx - r * 0.8},${cy}`} fill={c} stroke="rgba(0,0,0,.3)" strokeWidth="0.8" strokeLinejoin="round" />
+      <polygon points={`${cx},${cy - r} ${cx + r * 0.8},${cy} ${cx},${cy}`} fill="#fff" opacity="0.25" />
     </g>
   );
 }
@@ -105,24 +136,42 @@ const SOU: Record<number, [number, number][]> = {
   9: [[18, 22], [30, 22], [42, 22], [18, 41], [30, 41], [42, 41], [18, 60], [30, 60], [42, 60]],
 };
 
+// Premium-Steinkorpus: weicher Schatten, Elfenbein-Körper, dezenter Goldrahmen, Glanzkante.
 function TileBody({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <rect x="3" y="6" width="54" height="72" rx="9" fill="#000" opacity="0.18" />
-      <rect x="3" y="3" width="54" height="72" rx="9" fill="url(#tbody)" />
-      <rect x="3" y="3" width="54" height="72" rx="9" fill="none" stroke="rgba(0,0,0,.12)" />
-      <rect x="7" y="6" width="46" height="9" rx="5" fill="#fff" opacity="0.55" />
+      <rect x="3" y="6" width="54" height="72" rx="10" fill="#000" opacity="0.2" />
+      <rect x="3" y="3" width="54" height="72" rx="10" fill="url(#tbody)" />
+      <rect x="5" y="5" width="50" height="68" rx="8" fill="none" stroke="rgba(245,179,1,.35)" strokeWidth="0.8" />
+      <rect x="3" y="3" width="54" height="72" rx="10" fill="none" stroke="rgba(0,0,0,.14)" />
+      <rect x="7" y="6" width="46" height="8" rx="4" fill="#fff" opacity="0.5" />
       {children}
     </>
   );
 }
+
+// Rangzahl im eigenen Stil (arabisch, kräftig) – ersetzt chinesische Ziffern.
+function Numeral({ n, x = 30, y = 34, size = 26, fill = '#1e2a44' }: { n: number; x?: number; y?: number; size?: number; fill?: string }) {
+  return (
+    <text x={x} y={y} textAnchor="middle" fontFamily="Inter, system-ui, sans-serif" fontSize={size} fontWeight="800" fill={fill}>{n}</text>
+  );
+}
+
+const WIND_COLORS = ['#2f7ff2', '#22b06a', '#e0483d', '#a678f0'];
+// Pfeilrichtung je Wind (E/S/W/N) – rein zur Unterscheidung.
+const WIND_ARROW: Record<number, string> = {
+  1: 'M-3 -4 L4 0 L-3 4 Z',   // rechts
+  2: 'M-4 -3 L4 -3 L0 4 Z',   // unten
+  3: 'M3 -4 L-4 0 L3 4 Z',    // links
+  4: 'M-4 3 L4 3 L0 -4 Z',    // oben
+};
 
 function motif(f: Face): React.ReactNode {
   const { suit, rank } = f;
   if (suit === 'pin') {
     const pts = PIN[rank] ?? [];
     const r = rank === 1 ? 9 : rank >= 8 ? 4 : 5;
-    return pts.map(([x, y], i) => <Dot key={i} x={x} y={y} c={DOT_COLORS[(rank === 1 ? 0 : i) % 3]} r={r} />);
+    return pts.map(([x, y], i) => <Gem key={i} x={x} y={y} c={DOT_COLORS[(rank === 1 ? 0 : i) % 3]} r={r} />);
   }
   if (suit === 'sou') {
     const pts = SOU[rank] ?? [];
@@ -130,29 +179,64 @@ function motif(f: Face): React.ReactNode {
     const h = rank >= 6 ? 17 : 20;
     return (
       <>
-        {pts.map(([x, y], i) => <Bamboo key={i} x={x} y={y} w={w} h={h} />)}
-        {rank === 1 && <circle cx="30" cy="22" r="4" fill="#c0392b" />}
+        {pts.map(([x, y], i) => <Crystal key={i} x={x} y={y} w={w} h={h} />)}
+        {rank === 1 && <Gem x={30} y={20} c="#e0483d" r={4} />}
       </>
     );
   }
   if (suit === 'man') {
+    // Krone (Royale) + große Rangzahl.
     return (
       <>
-        <text x="30" y="31" textAnchor="middle" fontFamily={CJK} fontSize="25" fontWeight="700" fill="#1e3a5f">{NUM[rank - 1]}</text>
-        <text x="30" y="60" textAnchor="middle" fontFamily={CJK} fontSize="23" fontWeight="700" fill="#c0392b">萬</text>
+        <Crown cx={30} cy={26} s={1.05} />
+        <Numeral n={rank} x={30} y={64} size={30} fill="#1e2a44" />
       </>
     );
   }
   if (suit === 'wind') {
-    return <text x="30" y="52" textAnchor="middle" fontFamily={CJK} fontSize="34" fontWeight="700" fill="#31404f">{WINDS[rank - 1]}</text>;
+    const c = WIND_COLORS[(rank - 1) % 4];
+    return (
+      <g>
+        <Diamond cx={30} cy={40} r={20} c={c} />
+        <path d={WIND_ARROW[rank] ?? WIND_ARROW[1]} transform="translate(30 40) scale(1.6)" fill="#fff" opacity="0.95" />
+      </g>
+    );
   }
   if (suit === 'dragon') {
-    if (rank === 1) return <text x="30" y="53" textAnchor="middle" fontFamily={CJK} fontSize="36" fontWeight="700" fill="#c0392b">中</text>;
-    if (rank === 2) return <text x="30" y="53" textAnchor="middle" fontFamily={CJK} fontSize="36" fontWeight="700" fill="#1f8a4d">發</text>;
-    return <rect x="14" y="19" width="32" height="42" rx="4" fill="none" stroke="#2a5fa8" strokeWidth="3" />;
+    if (rank === 1) {
+      // Flamme (rot)
+      return (
+        <g>
+          <path d="M30 16 C 40 26, 40 40, 30 62 C 20 44, 22 34, 30 16 Z" fill="#e0483d" stroke="rgba(0,0,0,.25)" strokeWidth="0.8" />
+          <path d="M30 30 C 35 36, 35 44, 30 56 C 26 46, 27 40, 30 30 Z" fill="#ffd76a" />
+        </g>
+      );
+    }
+    if (rank === 2) {
+      // Jade-Blatt (grün)
+      return (
+        <g>
+          <path d="M30 16 C 46 26, 44 52, 30 62 C 16 52, 14 26, 30 16 Z" fill="#22b06a" stroke="rgba(0,0,0,.25)" strokeWidth="0.8" />
+          <path d="M30 20 L30 58" stroke="#0c6b41" strokeWidth="1.6" />
+          <path d="M30 32 L40 26 M30 40 L20 34 M30 48 L40 42" stroke="#0c6b41" strokeWidth="1.2" />
+        </g>
+      );
+    }
+    // Stern/Orb (silber)
+    const star = Array.from({ length: 5 }, (_, i) => {
+      const a = (-90 + i * 72) * Math.PI / 180;
+      const a2 = a + 36 * Math.PI / 180;
+      return `${30 + Math.cos(a) * 18},${40 + Math.sin(a) * 18} ${30 + Math.cos(a2) * 8},${40 + Math.sin(a2) * 8}`;
+    }).join(' ');
+    return (
+      <g>
+        <polygon points={star} fill="#e8eef7" stroke="#9aa8bd" strokeWidth="1" strokeLinejoin="round" />
+        <circle cx="30" cy="40" r="4" fill="#c7d2e0" />
+      </g>
+    );
   }
-  // Blumen / Jahreszeiten
-  const color = suit === 'flower' ? '#c2418a' : '#0e8a86';
+  // Blumen / Jahreszeiten – helle eigene Icons.
+  const color = suit === 'flower' ? '#e857a6' : '#f5a623';
   const petals = suit === 'flower';
   return (
     <>
@@ -160,17 +244,21 @@ function motif(f: Face): React.ReactNode {
         <g>
           {[0, 60, 120, 180, 240, 300].map((a) => {
             const rad = (a * Math.PI) / 180;
-            return <circle key={a} cx={30 + Math.cos(rad) * 9} cy={38 + Math.sin(rad) * 9} r="6" fill={color} opacity="0.9" />;
+            return <circle key={a} cx={30 + Math.cos(rad) * 9} cy={38 + Math.sin(rad) * 9} r="6.5" fill={color} opacity="0.92" />;
           })}
-          <circle cx="30" cy="38" r="6" fill="#f5d24e" />
+          <circle cx="30" cy="38" r="6" fill="#ffe07a" />
         </g>
       ) : (
         <g>
-          <path d="M30 20 C 44 26, 44 48, 30 58 C 16 48, 16 26, 30 20 Z" fill={color} opacity="0.9" />
-          <path d="M30 22 L30 56" stroke="#0a5b58" strokeWidth="1.4" />
+          {/* Sonne/Strahlen (Jahreszeit) */}
+          {Array.from({ length: 8 }, (_, i) => {
+            const a = (i * 45) * Math.PI / 180;
+            return <line key={i} x1={30 + Math.cos(a) * 11} y1={38 + Math.sin(a) * 11} x2={30 + Math.cos(a) * 18} y2={38 + Math.sin(a) * 18} stroke={color} strokeWidth="2.4" strokeLinecap="round" />;
+          })}
+          <circle cx="30" cy="38" r="10" fill={color} />
         </g>
       )}
-      <text x="46" y="68" textAnchor="middle" fontFamily={CJK} fontSize="12" fontWeight="700" fill={color}>{rank}</text>
+      <Numeral n={rank} x={46} y={70} size={13} fill={color} />
     </>
   );
 }
@@ -191,7 +279,7 @@ export function PinDigit({ rank, className }: { rank: number; className?: string
   return (
     <svg className={className} viewBox="8 10 44 60" preserveAspectRatio="xMidYMid meet" style={{ width: '82%', height: '82%' }}>
       {pts.map(([x, y], i) => (
-        <Dot key={i} x={x} y={y} c={DOT_COLORS[(rank === 1 ? 0 : i) % 3]} r={r} />
+        <Gem key={i} x={x} y={y} c={DOT_COLORS[(rank === 1 ? 0 : i) % 3]} r={r} />
       ))}
     </svg>
   );
