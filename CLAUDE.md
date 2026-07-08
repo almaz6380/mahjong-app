@@ -1,7 +1,9 @@
 # Mahjong Royale (mahjong-app)
 
-Mahjong-Solitaire-Spiel + 4-Spieler-Modus + 4 Bonus-Spiele. Vite + React + TypeScript,
-verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: **Deutsch**.
+Spielesammlung mit Startbildschirm als **Spiele-Hub**: Mahjong Solitaire, **Mahjong Connect**
+(Lianliankan), 4-Spieler-Modus und 4 Bonus-Spiele; dazu wählbare Stein-Designs (Skins) und ein
+leuchtender Riesen-Stein als App-Hintergrund. Vite + React + TypeScript, verpackt mit Capacitor
+für iOS und Android. Sprache im Projekt/mit dem Nutzer: **Deutsch**.
 
 ## Befehle
 
@@ -15,7 +17,11 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
 
 - `src/engine.ts`, `src/layouts.ts` — Solitaire-Kern; jedes Board rückwärts konstruiert = garantiert lösbar
 - `src/mahjong4/` — 4-Spieler-Modus (Hongkong vereinfacht, KI per Shanten-Heuristik)
+- `src/modes/connect/` — **Mahjong Connect** (BFS-Pfad ≤2 Kurven, garantiert lösbar via Auto-Mischen);
+  Hub-Spiel, Fortschritt in `progress.connectLevel`
 - `src/modes/` — Bonus-Spiele (2048, Match-3, Memory, Steine-Sudoku), gemeinsame `ModeApi` in types.ts
+- `src/ui/AppBackground.tsx` — globaler Hintergrund (leuchtender Riesen-Stein), in main.tsx gemountet;
+  `src/game/themes.ts` — Hintergrund-Themes + Stein-Skins (`applySkin`/`TILE_SKINS`)
 - `src/ads/admob.ts` — **`USE_TEST_ADS`-Flag**: `false` = echte Anzeigen (Launch), `true` = Google-Test-IDs.
   Prod-IDs siehe `admob-ids.md`. Der Bundler eliminiert den jeweils inaktiven ID-Block!
   Check im fertigen Build: `grep 3940256099942544` (Test-ID) im entpackten JS-Bundle → darf im Release NICHT vorkommen.
