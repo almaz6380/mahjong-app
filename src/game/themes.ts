@@ -46,6 +46,43 @@ export const THEMES: Theme[] = [
   },
 ];
 
+// --- Stein-Designs (Skins) --------------------------------------------------
+// Wirken global über ein data-skin-Attribut auf <html> (CSS in styles.css),
+// damit sie überall greifen, wo <Tile> gerendert wird (Board, Table4, Modi).
+
+export interface TileSkin {
+  id: string;
+  label: string;
+  cost: number;
+  swatch: string;
+}
+
+export const TILE_SKINS: TileSkin[] = [
+  { id: 'ivory', label: 'skin.ivory', cost: 0, swatch: '#f4ecd8' },
+  { id: 'sakura', label: 'skin.sakura', cost: 400, swatch: '#f6b8cf' },
+  { id: 'minimal', label: 'skin.minimal', cost: 500, swatch: '#dfe7ee' },
+  { id: 'neon', label: 'skin.neon', cost: 700, swatch: '#12203a' },
+  { id: 'contrast', label: 'skin.contrast', cost: 300, swatch: '#111111' },
+];
+
+export function getSkin(id: string): TileSkin {
+  return TILE_SKINS.find((s) => s.id === id) ?? TILE_SKINS[0];
+}
+
+export function applySkin(id: string) {
+  document.documentElement.setAttribute('data-skin', getSkin(id).id);
+}
+
+// CSS-Filter je Skin – für die Vorschau-Kacheln im Design-Screen (unabhängig
+// vom global gesetzten data-skin). Muss zu den Regeln in styles.css passen.
+export const SKIN_FILTER: Record<string, string> = {
+  ivory: 'none',
+  sakura: 'saturate(1.35) hue-rotate(-30deg) brightness(1.03)',
+  minimal: 'saturate(0.6) contrast(1.2)',
+  neon: 'contrast(1.15) saturate(1.6) drop-shadow(0 0 4px rgba(94,160,255,0.7))',
+  contrast: 'contrast(1.7) saturate(1.5) brightness(1.05)',
+};
+
 export function getTheme(id: string): Theme {
   return THEMES.find((t) => t.id === id) ?? THEMES[0];
 }

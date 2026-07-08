@@ -236,6 +236,43 @@ const D: Record<string, Entry> = {
 
   // Sudoku
   'sudoku.pick': { de: 'Zelle wählen, dann Stein tippen', en: 'Pick a cell, then a tile' },
+
+  // Mahjong Crush
+  'menu.crush': { de: 'Mahjong Crush', en: 'Mahjong Crush' },
+  'crush.title': { de: 'Mahjong Crush', en: 'Mahjong Crush' },
+  'crush.sub': { de: '50 Level · Spezialsteine', en: '50 levels · power tiles' },
+  'crush.level': { de: 'Level {n}', en: 'Level {n}' },
+  'crush.cleared': { de: 'Level geschafft!', en: 'Level cleared!' },
+  'crush.failed': { de: 'Nicht geschafft', en: 'Not quite' },
+  'crush.outOfMoves': { de: 'Die Züge sind aufgebraucht.', en: 'You ran out of moves.' },
+  'crush.next': { de: 'Weiter', en: 'Continue' },
+  'crush.shuffle': { de: 'Mischen', en: 'Shuffle' },
+  'crush.tileWord': { de: 'Steine', en: 'tiles' },
+  'crush.goalScore': { de: '{n} Punkte', en: 'Score {n}' },
+  'crush.goalCollect': { de: '{n} {tile} sammeln', en: 'Collect {n} {tile}' },
+  'crush.goalBlocks': { de: 'Alle Jade-Blöcke räumen', en: 'Clear all jade blocks' },
+
+  // Stein-Designs (Skins)
+  'menu.design': { de: 'Design', en: 'Design' },
+  'design.title': { de: 'Design', en: 'Design' },
+  'design.bg': { de: 'Hintergrund', en: 'Background' },
+  'design.tiles': { de: 'Stein-Design', en: 'Tile design' },
+  'skin.ivory': { de: 'Elfenbein', en: 'Ivory' },
+  'skin.sakura': { de: 'Sakura', en: 'Sakura' },
+  'skin.minimal': { de: 'Modern', en: 'Modern' },
+  'skin.neon': { de: 'Neon-Nacht', en: 'Neon night' },
+  'skin.contrast': { de: 'Hoher Kontrast', en: 'High contrast' },
+
+  // Spiele-Hub
+  'hub.solitaire': { de: 'Solitaire', en: 'Solitaire' },
+  'hub.solitaire.sub': { de: 'Der Klassiker · Level {n}', en: 'The classic · level {n}' },
+  'hub.resume': { de: 'Fortsetzen · Level {n}', en: 'Resume · level {n}' },
+  'hub.daily': { de: 'Tages-Challenge', en: 'Daily challenge' },
+  'hub.daily.sub': { de: 'Jeden Tag neu', en: 'New every day' },
+  'hub.crush.sub': { de: '50 Level · Match-3', en: '50 levels · match-3' },
+  'hub.m4.sub': { de: '1 gegen 3 KI', en: 'You vs 3 AI' },
+  'hub.more': { de: 'Mehr Spiele', en: 'More games' },
+  'hub.more.sub': { de: '2048 · Paare · Sudoku', en: '2048 · pairs · sudoku' },
 };
 
 export function t(key: string, vars?: Record<string, string | number>): string {

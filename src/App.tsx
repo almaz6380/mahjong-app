@@ -9,9 +9,10 @@ import { MemoryScreen } from './modes/memory/MemoryScreen';
 import { MergeScreen } from './modes/merge/MergeScreen';
 import { SudokuScreen } from './modes/sudoku/SudokuScreen';
 import { Match3Screen } from './modes/match3/Match3Screen';
+import { CrushScreen } from './modes/match3/CrushScreen';
 import { useProgress } from './game/progress';
 import { layoutForLevel } from './game/layouts';
-import { applyTheme } from './game/themes';
+import { applyTheme, applySkin } from './game/themes';
 import { satisfiedAchievements, getAchievement, type Achievement } from './game/achievements';
 import { loadSession, clearSession, type SavedGame } from './game/session';
 import { makeDailyBoard, dailyLayoutName, dailyDoneToday } from './game/daily';
@@ -20,7 +21,7 @@ import { setLanguage, detectLang, t } from './i18n';
 import { setAdsRemoved } from './ads/admob';
 import type { PlacedTile } from './game/engine';
 
-type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop' | 'modes' | 'memory' | 'merge' | 'sudoku' | 'match3';
+type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop' | 'modes' | 'memory' | 'merge' | 'sudoku' | 'match3' | 'crush';
 
 export default function App() {
   const p = useProgress();
@@ -42,6 +43,9 @@ export default function App() {
   useEffect(() => {
     if (progress) applyTheme(progress.theme);
   }, [progress?.theme]);
+  useEffect(() => {
+    if (progress) applySkin(progress.tileSkin);
+  }, [progress?.tileSkin]);
   useEffect(() => {
     if (progress) setSoundEnabled(progress.soundOn);
   }, [progress?.soundOn]);
@@ -203,20 +207,34 @@ export default function App() {
   if (screen === 'merge') return <MergeScreen api={modeApi} onExit={() => setScreen('modes')} />;
   if (screen === 'sudoku') return <SudokuScreen api={modeApi} onExit={() => setScreen('modes')} />;
   if (screen === 'match3') return <Match3Screen api={modeApi} onExit={() => setScreen('modes')} />;
+  if (screen === 'crush')
+    return (
+      <CrushScreen
+        crush={progress.crush}
+        addCoins={p.addCoins}
+        spendCoins={p.spendCoins}
+        coins={progress.coins}
+        recordCrush={p.recordCrush}
+        onExit={() => setScreen('menu')}
+      />
+    );
   if (screen === 'howto') return <HowToScreen onBack={() => setScreen('menu')} />;
   if (screen === 'themes')
-    return <ThemesScreen progress={progress} purchaseTheme={p.purchaseTheme} selectTheme={p.selectTheme} onBack={() => setScreen('menu')} />;
+    return <ThemesScreen progress={progress} purchaseTheme={p.purchaseTheme} selectTheme={p.selectTheme} purchaseSkin={p.purchaseSkin} selectSkin={p.selectSkin} onBack={() => setScreen('menu')} />;
   if (screen === 'achievements') return <AchievementsScreen progress={progress} onBack={() => setScreen('menu')} />;
   if (screen === 'shop')
     return <ShopScreen progress={progress} addCoins={p.addCoins} setRemoveAds={p.setRemoveAds} onBack={() => setScreen('menu')} />;
 
-  // --- Menü ---
+  // --- Menü (Spiele-Hub) ---
   const canResume = !!resume && resume.level === progress.level;
   const dailyDone = dailyDoneToday(progress.lastDailyChallenge);
+  const crushDone = Object.keys(progress.crush).length;
   return (
-    <div className="menu">
-      <div className="logo"><Tile face="dragonR" /></div>
-      <h1>Mahjong Royale</h1>
+    <div className="menu hub">
+      <div className="hub-title">
+        <div className="logo sm"><Tile face="dragonR" /></div>
+        <h1>Mahjong Royale</h1>
+      </div>
 
       <div className="menu-stats">
         <span><Icon name="coin" /> {progress.coins}</span>
@@ -224,41 +242,45 @@ export default function App() {
         <span><Icon name="trophy" /> {progress.achievements.length}</span>
       </div>
 
-      {canResume ? (
-        <>
-          <button className="big-btn" onClick={startResume}>
-            {t('menu.resume', { n: resume!.level })}
-          </button>
-          <button className="big-btn ghost solid" onClick={startFresh}>
-            {t('menu.restart')}
-          </button>
-        </>
-      ) : (
-        <button className="big-btn" onClick={startFresh}>
-          {t('menu.play', { n: progress.level })}
+      <div className="hub-grid">
+        <button className="hub-card feature" onClick={canResume ? startResume : startFresh}>
+          <span className="hub-face"><Tile face="char1" /></span>
+          <span className="hub-name">{t('hub.solitaire')}</span>
+          <span className="hub-sub">{canResume ? t('hub.resume', { n: resume!.level }) : t('hub.solitaire.sub', { n: progress.level })}</span>
         </button>
-      )}
-
-      <button className="big-btn ghost solid" onClick={startDaily} disabled={dailyDone}>
-        {t('menu.daily')}{dailyDone ? ' ✓' : ''}
-      </button>
-      <button className="big-btn ghost solid" onClick={() => setScreen('mahjong4')}>
-        {t('menu.m4')}
-      </button>
-      <button className="big-btn ghost solid" onClick={() => setScreen('modes')}>
-        {t('menu.moreGames')}
-      </button>
+        <button className="hub-card" onClick={() => setScreen('crush')}>
+          <span className="hub-emoji">💎</span>
+          <span className="hub-name">{t('menu.crush')}</span>
+          <span className="hub-sub">{t('hub.crush.sub')}</span>
+          {crushDone > 0 && <span className="hub-badge">{crushDone}/50</span>}
+        </button>
+        <button className="hub-card" onClick={() => setScreen('mahjong4')}>
+          <span className="hub-emoji">🀄</span>
+          <span className="hub-name">{t('menu.m4')}</span>
+          <span className="hub-sub">{t('hub.m4.sub')}</span>
+        </button>
+        <button className="hub-card" onClick={startDaily} disabled={dailyDone}>
+          <span className="hub-emoji">🎁</span>
+          <span className="hub-name">{t('hub.daily')}</span>
+          <span className="hub-sub">{dailyDone ? '✓ ' + t('common.active') : t('hub.daily.sub')}</span>
+        </button>
+        <button className="hub-card wide" onClick={() => setScreen('modes')}>
+          <span className="hub-emoji">🎲</span>
+          <span className="hub-name">{t('hub.more')}</span>
+          <span className="hub-sub">{t('hub.more.sub')}</span>
+        </button>
+      </div>
 
       <div className="menu-icons">
         <button onClick={() => setScreen('shop')}><Icon name="cart" size={22} /><span>{t('menu.shop')}</span></button>
-        <button onClick={() => setScreen('themes')}><Icon name="palette" size={22} /><span>{t('menu.themes')}</span></button>
+        <button onClick={() => setScreen('themes')}><Icon name="palette" size={22} /><span>{t('menu.design')}</span></button>
         <button onClick={() => setScreen('achievements')}><Icon name="trophy" size={22} /><span>{t('menu.achievements')}</span></button>
         <button onClick={() => setScreen('stats')}><Icon name="chart" size={22} /><span>{t('menu.stats')}</span></button>
         <button onClick={() => setScreen('settings')}><Icon name="gear" size={22} /><span>{t('menu.settings')}</span></button>
         <button onClick={() => setScreen('howto')}><Icon name="help" size={22} /><span>{t('menu.help')}</span></button>
       </div>
 
-      <div className="credit">v1.0 · Mahjong Royale</div>
+      <div className="credit">v1.1 · Mahjong Royale</div>
       {achToast && <AchToast a={achToast} />}
     </div>
   );

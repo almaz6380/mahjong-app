@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Progress } from '../game/progress';
-import { THEMES } from '../game/themes';
+import { THEMES, TILE_SKINS, SKIN_FILTER } from '../game/themes';
+import { Tile } from './Tile';
 import { ACHIEVEMENTS } from '../game/achievements';
 import { PRODUCTS, purchase, displayPrice, canRestore, restorePurchases, type Product } from '../store/iap';
 import { setAdsRemoved, canChangeAdConsent, changeAdConsent } from '../ads/admob';
@@ -139,25 +140,65 @@ export function HowToScreen({ onBack }: { onBack: () => void }) {
   );
 }
 
-// --- Themes ----------------------------------------------------------------
+// --- Design (Hintergrund-Welten + Stein-Designs) ---------------------------
 export function ThemesScreen({
   progress,
   purchaseTheme,
   selectTheme,
+  purchaseSkin,
+  selectSkin,
   onBack,
 }: {
   progress: Progress;
   purchaseTheme: (id: string, cost: number) => boolean;
   selectTheme: (id: string) => void;
+  purchaseSkin: (id: string, cost: number) => boolean;
+  selectSkin: (id: string) => void;
   onBack: () => void;
 }) {
   return (
     <div className="app screen">
-      <ScreenHeader title={t('menu.themes')} onBack={onBack} />
+      <ScreenHeader title={t('design.title')} onBack={onBack} />
       <div className="screen-body">
         <div className="menu-stats" style={{ justifyContent: 'center' }}>
           <span><Icon name="coin" /> {progress.coins}</span>
         </div>
+
+        <div className="stats-section">{t('design.tiles')}</div>
+        {TILE_SKINS.map((sk) => {
+          const owned = progress.ownedSkins.includes(sk.id);
+          const active = progress.tileSkin === sk.id;
+          return (
+            <div className="row" key={sk.id}>
+              <span className="skin-row">
+                <span
+                  className="skin-preview"
+                  style={{ filter: SKIN_FILTER[sk.id] ?? 'none', background: sk.id === 'neon' ? '#12203a' : undefined }}
+                >
+                  <Tile face="s1" />
+                </span>{' '}
+                {t(sk.label)}
+              </span>
+              {active ? (
+                <span className="tag">{t('common.active')}</span>
+              ) : owned ? (
+                <button className="small-btn" onClick={() => selectSkin(sk.id)}>
+                  {t('common.choose')}
+                </button>
+              ) : (
+                <button
+                  className="small-btn gold"
+                  disabled={progress.coins < sk.cost}
+                  onClick={() => purchaseSkin(sk.id, sk.cost)}
+                >
+                  <span className="btn-ico"><Icon name="coin" size={16} /> {sk.cost}</span>
+                </button>
+              )}
+            </div>
+          );
+        })}
+
+        <div className="stats-section">{t('design.bg')}</div>
         {THEMES.map((th) => {
           const owned = progress.ownedThemes.includes(th.id);
           const active = progress.theme === th.id;

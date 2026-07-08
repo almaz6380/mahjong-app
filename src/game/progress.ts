@@ -28,6 +28,9 @@ export interface Progress {
   aiLevel: AiLevel;
   lang: 'de' | 'en' | ''; // '' = automatisch (Systemsprache)
   seenM4Tutorial: boolean;
+  tileSkin: string; // gewähltes Stein-Design
+  ownedSkins: string[];
+  crush: Record<number, number>; // Crush-Level -> beste Sternzahl (1..3)
   stats: {
     bestTimeMs: number; // schnellstes Solitaire-Level (0 = noch keins)
     dailies: number; // erledigte Tages-Challenges
@@ -57,6 +60,9 @@ const DEFAULT: Progress = {
   aiLevel: 'normal',
   lang: '',
   seenM4Tutorial: false,
+  tileSkin: 'ivory',
+  ownedSkins: ['ivory'],
+  crush: {},
   stats: { bestTimeMs: 0, dailies: 0, m4Hands: 0, m4Wins: 0, m4BestFaan: 0, modeBest: {} },
 };
 
@@ -242,6 +248,41 @@ export function useProgress() {
     [persist],
   );
 
+  const purchaseSkin = useCallback(
+    (id: string, cost: number): boolean => {
+      const s = stateRef.current;
+      if (!s || s.ownedSkins.includes(id) || s.coins < cost) return false;
+      persist({ ...s, coins: s.coins - cost, ownedSkins: [...s.ownedSkins, id], tileSkin: id });
+      return true;
+    },
+    [persist],
+  );
+
+  const selectSkin = useCallback(
+    (id: string) => {
+      const s = stateRef.current;
+      if (!s || !s.ownedSkins.includes(id)) return;
+      persist({ ...s, tileSkin: id });
+    },
+    [persist],
+  );
+
+  // Crush-Level-Ergebnis verbuchen: Münzen + beste Sternzahl (nur Verbesserung).
+  const recordCrush = useCallback(
+    (levelId: number, stars: number, coins: number) => {
+      const s = stateRef.current;
+      if (!s) return;
+      const best = Math.max(s.crush[levelId] ?? 0, stars);
+      persist({
+        ...s,
+        coins: s.coins + coins,
+        crush: { ...s.crush, [levelId]: best },
+        lastPlayedDate: todayStr(),
+      });
+    },
+    [persist],
+  );
+
   const setRemoveAds = useCallback(() => {
     const s = stateRef.current;
     if (!s) return;
@@ -334,6 +375,9 @@ export function useProgress() {
     resetProgress,
     purchaseTheme,
     selectTheme,
+    purchaseSkin,
+    selectSkin,
+    recordCrush,
     setRemoveAds,
     unlockAchievements,
     completeDailyChallenge,
