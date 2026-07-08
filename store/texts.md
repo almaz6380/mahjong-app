@@ -170,7 +170,7 @@ Hello, thank you for the feedback regarding guideline 4.3.0.
 We have significantly expanded the app to make its unique scope clear. Mahjong Royale is not a
 single solitaire game but a collection of seven distinct mahjong experiences:
 
-1. Mahjong Crush (NEW in 1.1) — a level-based puzzle mode with 50 hand-crafted levels, unique
+1. Mahjong Crush — a level-based puzzle mode with 50 hand-crafted levels, unique
    goals (score, collect, clear armored "jade" blocks), and special power tiles (line blast,
    dragon bomb). This is original gameplay not found in typical mahjong solitaire apps.
 2. Classic Solitaire — with guaranteed-solvable boards and a daily challenge.
@@ -178,12 +178,12 @@ single solitaire game but a collection of seven distinct mahjong experiences:
    AI opponents, with pung/kong/chow, an east round and scoring.
 4-7. Four further original mini-games (Mahjong 2048, Match-3, Pairs, Tile Sudoku).
 
-Version 1.1 also introduces a new game-hub home screen that presents these modes up front, and
+This updated build also introduces a new game-hub home screen that presents these modes up front, and
 five unlockable tile designs. We believe this clearly differentiates the app. We're happy to make
 any further adjustments you suggest. Thank you for your time.
 
 ## Apple — Notes for Review (Kurzfassung, ins Review-Feld)
-v1.1 adds an original level-based mode "Mahjong Crush" (50 levels, goals, power tiles), a new
+This updated build adds an original level-based mode "Mahjong Crush" (50 levels, goals, power tiles), a new
 game-hub home screen and 5 tile designs. The app is a collection of 7 distinct mahjong games
 (Crush, Solitaire, 4-player mahjong, 2048, Match-3, Pairs, Sudoku), not a single solitaire title.
 No account or login required. IAPs: remove_ads + 3 coin packs. Ads via AdMob after ATT/UMP consent.
