@@ -237,20 +237,15 @@ const D: Record<string, Entry> = {
   // Sudoku
   'sudoku.pick': { de: 'Zelle wählen, dann Stein tippen', en: 'Pick a cell, then a tile' },
 
-  // Mahjong Crush
-  'menu.crush': { de: 'Mahjong Crush', en: 'Mahjong Crush' },
-  'crush.title': { de: 'Mahjong Crush', en: 'Mahjong Crush' },
-  'crush.sub': { de: '50 Level · Spezialsteine', en: '50 levels · power tiles' },
-  'crush.level': { de: 'Level {n}', en: 'Level {n}' },
-  'crush.cleared': { de: 'Level geschafft!', en: 'Level cleared!' },
-  'crush.failed': { de: 'Nicht geschafft', en: 'Not quite' },
-  'crush.outOfMoves': { de: 'Die Züge sind aufgebraucht.', en: 'You ran out of moves.' },
-  'crush.next': { de: 'Weiter', en: 'Continue' },
-  'crush.shuffle': { de: 'Mischen', en: 'Shuffle' },
-  'crush.tileWord': { de: 'Steine', en: 'tiles' },
-  'crush.goalScore': { de: '{n} Punkte', en: 'Score {n}' },
-  'crush.goalCollect': { de: '{n} {tile} sammeln', en: 'Collect {n} {tile}' },
-  'crush.goalBlocks': { de: 'Alle Jade-Blöcke räumen', en: 'Clear all jade blocks' },
+  // Mahjong Connect
+  'menu.connect': { de: 'Mahjong Connect', en: 'Mahjong Connect' },
+  'connect.title': { de: 'Mahjong Connect', en: 'Mahjong Connect' },
+  'connect.level': { de: 'Level {n}', en: 'Level {n}' },
+  'connect.cleared': { de: 'Brett geschafft!', en: 'Board cleared!' },
+  'connect.next': { de: 'Weiter', en: 'Continue' },
+  'connect.hint': { de: 'Tipp', en: 'Hint' },
+  'connect.shuffle': { de: 'Mischen', en: 'Shuffle' },
+  'connect.reshuffled': { de: 'Kein Zug – neu gemischt', en: 'No move – reshuffled' },
 
   // Stein-Designs (Skins)
   'menu.design': { de: 'Design', en: 'Design' },
@@ -269,7 +264,7 @@ const D: Record<string, Entry> = {
   'hub.resume': { de: 'Fortsetzen · Level {n}', en: 'Resume · level {n}' },
   'hub.daily': { de: 'Tages-Challenge', en: 'Daily challenge' },
   'hub.daily.sub': { de: 'Jeden Tag neu', en: 'New every day' },
-  'hub.crush.sub': { de: '50 Level · Match-3', en: '50 levels · match-3' },
+  'hub.connect.sub': { de: 'Gleiche Steine verbinden', en: 'Connect matching tiles' },
   'hub.m4.sub': { de: '1 gegen 3 KI', en: 'You vs 3 AI' },
   'hub.more': { de: 'Mehr Spiele', en: 'More games' },
   'hub.more.sub': { de: '2048 · Paare · Sudoku', en: '2048 · pairs · sudoku' },

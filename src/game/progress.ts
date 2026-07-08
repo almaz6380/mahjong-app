@@ -30,7 +30,7 @@ export interface Progress {
   seenM4Tutorial: boolean;
   tileSkin: string; // gewähltes Stein-Design
   ownedSkins: string[];
-  crush: Record<number, number>; // Crush-Level -> beste Sternzahl (1..3)
+  connectLevel: number; // höchstes freigeschaltetes Mahjong-Connect-Level
   stats: {
     bestTimeMs: number; // schnellstes Solitaire-Level (0 = noch keins)
     dailies: number; // erledigte Tages-Challenges
@@ -62,7 +62,7 @@ const DEFAULT: Progress = {
   seenM4Tutorial: false,
   tileSkin: 'ivory',
   ownedSkins: ['ivory'],
-  crush: {},
+  connectLevel: 1,
   stats: { bestTimeMs: 0, dailies: 0, m4Hands: 0, m4Wins: 0, m4BestFaan: 0, modeBest: {} },
 };
 
@@ -267,18 +267,12 @@ export function useProgress() {
     [persist],
   );
 
-  // Crush-Level-Ergebnis verbuchen: Münzen + beste Sternzahl (nur Verbesserung).
-  const recordCrush = useCallback(
-    (levelId: number, stars: number, coins: number) => {
+  // Connect-Level freischalten (höchstes erreichtes Level).
+  const recordConnect = useCallback(
+    (level: number) => {
       const s = stateRef.current;
-      if (!s) return;
-      const best = Math.max(s.crush[levelId] ?? 0, stars);
-      persist({
-        ...s,
-        coins: s.coins + coins,
-        crush: { ...s.crush, [levelId]: best },
-        lastPlayedDate: todayStr(),
-      });
+      if (!s || level <= s.connectLevel) return;
+      persist({ ...s, connectLevel: level, lastPlayedDate: todayStr() });
     },
     [persist],
   );
@@ -377,7 +371,7 @@ export function useProgress() {
     selectTheme,
     purchaseSkin,
     selectSkin,
-    recordCrush,
+    recordConnect,
     setRemoveAds,
     unlockAchievements,
     completeDailyChallenge,

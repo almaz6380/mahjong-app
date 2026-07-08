@@ -9,7 +9,7 @@ import { MemoryScreen } from './modes/memory/MemoryScreen';
 import { MergeScreen } from './modes/merge/MergeScreen';
 import { SudokuScreen } from './modes/sudoku/SudokuScreen';
 import { Match3Screen } from './modes/match3/Match3Screen';
-import { CrushScreen } from './modes/match3/CrushScreen';
+import { ConnectScreen } from './modes/connect/ConnectScreen';
 import { useProgress } from './game/progress';
 import { layoutForLevel } from './game/layouts';
 import { applyTheme, applySkin } from './game/themes';
@@ -21,7 +21,7 @@ import { setLanguage, detectLang, t } from './i18n';
 import { setAdsRemoved } from './ads/admob';
 import type { PlacedTile } from './game/engine';
 
-type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop' | 'modes' | 'memory' | 'merge' | 'sudoku' | 'match3' | 'crush';
+type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop' | 'modes' | 'memory' | 'merge' | 'sudoku' | 'match3' | 'connect';
 
 export default function App() {
   const p = useProgress();
@@ -207,14 +207,14 @@ export default function App() {
   if (screen === 'merge') return <MergeScreen api={modeApi} onExit={() => setScreen('modes')} />;
   if (screen === 'sudoku') return <SudokuScreen api={modeApi} onExit={() => setScreen('modes')} />;
   if (screen === 'match3') return <Match3Screen api={modeApi} onExit={() => setScreen('modes')} />;
-  if (screen === 'crush')
+  if (screen === 'connect')
     return (
-      <CrushScreen
-        crush={progress.crush}
+      <ConnectScreen
+        connectLevel={progress.connectLevel}
+        coins={progress.coins}
         addCoins={p.addCoins}
         spendCoins={p.spendCoins}
-        coins={progress.coins}
-        recordCrush={p.recordCrush}
+        recordConnect={p.recordConnect}
         onExit={() => setScreen('menu')}
       />
     );
@@ -228,7 +228,7 @@ export default function App() {
   // --- Menü (Spiele-Hub) ---
   const canResume = !!resume && resume.level === progress.level;
   const dailyDone = dailyDoneToday(progress.lastDailyChallenge);
-  const crushDone = Object.keys(progress.crush).length;
+  const connectLevel = progress.connectLevel;
   return (
     <div className="menu hub">
       <div className="hub-title">
@@ -248,11 +248,11 @@ export default function App() {
           <span className="hub-name">{t('hub.solitaire')}</span>
           <span className="hub-sub">{canResume ? t('hub.resume', { n: resume!.level }) : t('hub.solitaire.sub', { n: progress.level })}</span>
         </button>
-        <button className="hub-card c-sapphire" onClick={() => setScreen('crush')}>
-          <span className="hub-emoji">💎</span>
-          <span className="hub-name">{t('menu.crush')}</span>
-          <span className="hub-sub">{t('hub.crush.sub')}</span>
-          {crushDone > 0 && <span className="hub-badge">{crushDone}/50</span>}
+        <button className="hub-card c-sapphire" onClick={() => setScreen('connect')}>
+          <span className="hub-emoji">🔗</span>
+          <span className="hub-name">{t('menu.connect')}</span>
+          <span className="hub-sub">{t('hub.connect.sub')}</span>
+          {connectLevel > 1 && <span className="hub-badge">Lv {connectLevel}</span>}
         </button>
         <button className="hub-card c-ruby" onClick={() => setScreen('mahjong4')}>
           <span className="hub-emoji">🀄</span>

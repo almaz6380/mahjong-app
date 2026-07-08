@@ -115,7 +115,7 @@ EN: Initial release 🎉
 ## Warum 1.1
 Apple lehnte 1.0 mit **4.3.0 Design: Spam** ab (wirkt wie Standard-Mahjong-Solitaire).
 1.1 macht die Eigenständigkeit sichtbar: neuer **Spiele-Hub** als Startbildschirm, neuer
-**„Mahjong Crush"**-Modus (50 eigene Level, Spezialsteine, Ziele, Sterne) und **5 Stein-Designs**.
+**„Mahjong Connect"**-Modus (Steine per Weg verbinden, Level, Tipp/Mischen) und **5 Stein-Designs**.
 
 ## App-Name en-US (weg vom reinen „Solitaire")
 - Vorher: „Mahjong Royale: Solitaire"
@@ -123,45 +123,45 @@ Apple lehnte 1.0 mit **4.3.0 Design: Spam** ab (wirkt wie Standard-Mahjong-Solit
 - DE-Name bleibt „Mahjong Royale"
 
 ## Untertitel (App Store, max 30)
-DE: **Crush, Solitaire & 4 Spieler**
-EN: **Crush, Solitaire & 4 Players**
+DE: **Connect, Solitaire & 4 Spieler**
+EN: **Connect, Solitaire & 4 Players**
 
 ## Kurzbeschreibung (Play, max 80)
-DE: **7 Mahjong-Spiele in einem: Crush-Level, Solitaire, 4-Spieler & mehr.**
-EN: **7 mahjong games in one: crush levels, solitaire, 4-player mode & more.**
+DE: **7 Mahjong-Spiele in einem: Connect, Solitaire, 4-Spieler & mehr.**
+EN: **7 mahjong games in one: connect, solitaire, 4-player mode & more.**
 
 ## Beschreibung — neuer Intro-Absatz (ersetzt den ersten Absatz oben)
-DE: **Sieben Mahjong-Spiele in einer App!** Von level-basiertem „Mahjong Crush" über klassisches
+DE: **Sieben Mahjong-Spiele in einer App!** Von „Mahjong Connect" über klassisches
 Solitaire bis zu echtem 4-Spieler-Mahjong — dazu Bonus-Spiele, 5 Stein-Designs und ein edles
 dunkles Design. Für jeden Geschmack das richtige Spiel.
-EN: **Seven mahjong games in one app!** From level-based "Mahjong Crush" and classic solitaire to
+EN: **Seven mahjong games in one app!** From "Mahjong Connect" and classic solitaire to
 real 4-player mahjong — plus bonus games, 5 tile designs and an elegant dark look. A mode for every mood.
 
 ## Beschreibung — neuer Block (direkt nach dem Intro einfügen)
 DE:
-🆕 MAHJONG CRUSH (NEU)
-• 50 handgebaute Level mit eigenen Zielen — Punkte, Steine sammeln, Jade-Blöcke räumen
-• Spezialsteine: Reihen-Blitz (4 in einer Reihe) und Drachen-Bombe (5 in einer Reihe)
-• Sterne pro Level, Level-Karte, Booster
+🆕 MAHJONG CONNECT (NEU)
+• Verbinde zwei gleiche, freie Steine mit einem Weg, der höchstens zweimal abbiegt
+• Leere Level für Level das ganze Brett — immer lösbar dank Auto-Mischen
+• Tipp & Mischen als Hilfen, endlose Level mit steigender Schwierigkeit
 🎨 5 STEIN-DESIGNS
 • Elfenbein, Sakura, Modern, Neon-Nacht und Hoher Kontrast — freischaltbar mit Münzen
 
 EN:
-🆕 MAHJONG CRUSH (NEW)
-• 50 hand-built levels with their own goals — score, collect tiles, clear jade blocks
-• Power tiles: line blast (4 in a row) and dragon bomb (5 in a row)
-• Stars per level, level map, boosters
+🆕 MAHJONG CONNECT (NEW)
+• Link two matching free tiles with a path that turns at most twice
+• Clear the whole board level by level — always solvable thanks to auto-shuffle
+• Hint & shuffle helpers, endless levels with rising difficulty
 🎨 5 TILE DESIGNS
 • Ivory, Sakura, Modern, Neon Night and High Contrast — unlock with coins
 
-## Keywords (App Store, max 100) — ergänzt um crush/match
-DE: mahjong,crush,solitaire,match 3,puzzle,brettspiel,denkspiel,paare,steine,taipei,majong
-EN: mahjong,crush,solitaire,match 3,puzzle,board game,brain,pairs,tiles,taipei,majong
+## Keywords (App Store, max 100) — ergänzt um connect
+DE: mahjong,connect,solitaire,verbinden,puzzle,brettspiel,denkspiel,paare,steine,taipei,majong
+EN: mahjong,connect,solitaire,link,puzzle,board game,brain,pairs,tiles,taipei,majong
 
 ## Versionstext 1.1 („Was ist neu")
-DE: Neu: „Mahjong Crush" mit 50 Leveln, Spezialsteinen und Zielen! Außerdem ein neuer
+DE: Neu: „Mahjong Connect" — verbinde gleiche Steine über clevere Wege! Außerdem ein neuer
 Spiele-Startbildschirm und 5 freischaltbare Stein-Designs. Viel Spaß! 🀄
-EN: New: "Mahjong Crush" with 50 levels, power tiles and goals! Plus a new game hub start
+EN: New: "Mahjong Connect" — link matching tiles along clever paths! Plus a new game hub start
 screen and 5 unlockable tile designs. Have fun! 🀄
 
 ## Apple — Antwort im Resolution Center (auf die 4.3.0-Nachricht)
@@ -170,9 +170,9 @@ Hello, thank you for the feedback regarding guideline 4.3.0.
 We have significantly expanded the app to make its unique scope clear. Mahjong Royale is not a
 single solitaire game but a collection of seven distinct mahjong experiences:
 
-1. Mahjong Crush — a level-based puzzle mode with 50 hand-crafted levels, unique
-   goals (score, collect, clear armored "jade" blocks), and special power tiles (line blast,
-   dragon bomb). This is original gameplay not found in typical mahjong solitaire apps.
+1. Mahjong Connect — a link-style puzzle mode: connect two matching free tiles with a path that
+   turns at most twice, clearing the whole board level by level. This is original gameplay,
+   distinct from mahjong solitaire.
 2. Classic Solitaire — with guaranteed-solvable boards and a daily challenge.
 3. 4 Players · East Round — a full 4-player mahjong game (simplified Hong Kong rules) vs. three
    AI opponents, with pung/kong/chow, an east round and scoring.
@@ -183,7 +183,8 @@ five unlockable tile designs. We believe this clearly differentiates the app. We
 any further adjustments you suggest. Thank you for your time.
 
 ## Apple — Notes for Review (Kurzfassung, ins Review-Feld)
-This updated build adds an original level-based mode "Mahjong Crush" (50 levels, goals, power tiles), a new
-game-hub home screen and 5 tile designs. The app is a collection of 7 distinct mahjong games
-(Crush, Solitaire, 4-player mahjong, 2048, Match-3, Pairs, Sudoku), not a single solitaire title.
-No account or login required. IAPs: remove_ads + 3 coin packs. Ads via AdMob after ATT/UMP consent.
+This updated build adds an original link-style mode "Mahjong Connect" (connect matching tiles with a
+≤2-turn path, endless levels), a new game-hub home screen and 5 tile designs. The app is a collection
+of 7 distinct mahjong games (Connect, Solitaire, 4-player mahjong, 2048, Match-3, Pairs, Sudoku),
+not a single solitaire title. No account or login required. IAPs: remove_ads + 3 coin packs.
+Ads via AdMob after ATT/UMP consent.

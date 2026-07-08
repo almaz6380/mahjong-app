@@ -1218,113 +1218,6 @@ body {
   padding: 3px;
 }
 
-/* ================= Mahjong Crush ================= */
-.crush-goals {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  justify-content: center;
-  padding: 4px 12px 0;
-}
-.crush-goal {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 4px 10px;
-}
-.crush-goal b { color: var(--accent); font-variant-numeric: tabular-nums; }
-.crush-goal.done { color: #7ee0a6; border-color: rgba(126, 224, 166, 0.5); }
-.crush-goal.done b { color: #7ee0a6; }
-
-.crush-block {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  font-size: 26px;
-  color: #4fe0c0;
-  background: rgba(13, 91, 87, 0.35);
-  border: 1.5px solid rgba(79, 224, 192, 0.5);
-  border-radius: 9px;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-}
-.crush-block.armor2 {
-  color: #ffd76a;
-  border-color: rgba(255, 215, 106, 0.6);
-  box-shadow: inset 0 0 0 2px rgba(255, 215, 106, 0.35);
-}
-.crush-dragon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  font-size: 30px;
-  filter: drop-shadow(0 0 6px rgba(245, 179, 1, 0.9));
-  animation: crushPulse 1.4s ease-in-out infinite;
-}
-@keyframes crushPulse { 50% { transform: scale(1.12); } }
-.crush-line { position: relative; }
-.crush-spark {
-  position: absolute;
-  top: 1px; right: 2px;
-  font-size: 12px;
-  color: var(--accent);
-  filter: drop-shadow(0 0 3px var(--accent));
-  pointer-events: none;
-}
-
-/* Level-Karte (geschwungener Pfad) */
-.crush-map-scroll { overflow-y: auto; }
-.crush-map {
-  position: relative;
-  width: 100%;
-  max-width: 460px;
-  margin: 0 auto;
-}
-.crush-path {
-  position: absolute;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-.crush-node {
-  position: absolute;
-  z-index: 1;
-  transform: translate(-50%, -50%);
-  width: 72px;
-  min-height: 60px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  color: var(--text);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
-}
-.crush-node.cleared { border-color: rgba(245, 179, 1, 0.55); }
-.crush-node.current {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(245, 179, 1, 0.4), 0 4px 12px rgba(0, 0, 0, 0.4);
-  animation: crushNodePulse 1.5s ease-in-out infinite;
-}
-@keyframes crushNodePulse {
-  50% { transform: translate(-50%, -50%) scale(1.1); }
-}
-.crush-node.locked { opacity: 0.45; box-shadow: none; }
-.crush-num { font-weight: 800; font-size: 20px; }
-.crush-node-stars { display: flex; gap: 1px; font-size: 11px; color: rgba(255, 255, 255, 0.25); }
-.crush-node-stars .on { color: var(--accent); }
-.crush-star-count { font-weight: 800; color: var(--accent); }
-
 /* ================= Stein-Designs (Skins) ================= */
 /* Wirken global auf alle <Tile>-SVGs via [data-skin] am <html>. */
 :root[data-skin="sakura"] .tileface { filter: saturate(1.35) hue-rotate(-30deg) brightness(1.03) drop-shadow(0 1px 2px rgba(180, 60, 110, 0.25)); }
@@ -1454,4 +1347,64 @@ body {
   box-shadow: 0 2px 8px rgba(var(--cc), 0.5);
   border-radius: 999px;
   padding: 3px 9px;
+}
+
+/* ================= Mahjong Connect ================= */
+.connect-wrap {
+  position: relative;
+  max-width: 96vw;
+}
+.connect-grid {
+  display: grid;
+  gap: 2px;
+}
+.connect-cell {
+  aspect-ratio: 3 / 4;
+}
+.connect-tile {
+  width: 100%;
+  height: 100%;
+  padding: 1px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  transition: transform 0.08s ease, box-shadow 0.12s ease;
+}
+.connect-tile .tileface { width: 100%; height: 100%; }
+.connect-tile.sel {
+  transform: scale(0.9);
+  box-shadow: 0 0 0 3px var(--accent), 0 4px 12px rgba(0, 0, 0, 0.4);
+  border-radius: 10px;
+}
+.connect-tile.hint {
+  animation: connectHint 0.55s ease-in-out infinite alternate;
+  border-radius: 10px;
+}
+@keyframes connectHint {
+  from { box-shadow: 0 0 0 2px rgba(94, 224, 166, 0.5); }
+  to { box-shadow: 0 0 0 4px rgba(94, 224, 166, 0.95); }
+}
+.connect-path {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  filter: drop-shadow(0 0 4px var(--accent));
+  z-index: 3;
+}
+.connect-path polyline { stroke-width: 4px; }
+.connect-toast {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 999px;
+  white-space: nowrap;
+  z-index: 4;
 }
