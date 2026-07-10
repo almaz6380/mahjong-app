@@ -76,6 +76,7 @@ const D: Record<string, Entry> = {
   // Einstellungen
   'set.title': { de: 'Einstellungen', en: 'Settings' },
   'set.sound': { de: 'Sound & Haptik', en: 'Sound & haptics' },
+  'set.notify': { de: 'Tägliche Erinnerung', en: 'Daily reminder' },
   'set.ai': { de: 'KI-Stärke (4 Spieler)', en: 'AI strength (4 players)' },
   'set.easy': { de: 'Leicht', en: 'Easy' },
   'set.normal': { de: 'Mittel', en: 'Normal' },
@@ -221,6 +222,8 @@ const D: Record<string, Entry> = {
   'mode.match3.sub': { de: '3 gleiche in einer Reihe', en: 'Line up 3 alike' },
   'mode.tilematch': { de: 'Tile Match', en: 'Tile Match' },
   'mode.tilematch.sub': { de: 'Finde 3 gleiche Steine', en: 'Find 3 matching tiles' },
+  'mode.blitz': { de: 'Zeit-Blitz', en: 'Time Attack' },
+  'mode.blitz.sub': { de: 'So viele Paare wie möglich', en: 'As many pairs as you can' },
   'mode.memory': { de: 'Paare', en: 'Pairs' },
   'mode.memory.sub': { de: 'Gedächtnis-Spiel', en: 'Memory game' },
   'mode.sudoku': { de: 'Sudoku', en: 'Sudoku' },
@@ -258,6 +261,16 @@ const D: Record<string, Entry> = {
   'tm.full': { de: 'Ablage voll', en: 'Tray full' },
   'tm.fullText': { de: 'Die Ablage ist voll. Mach 3 Slots frei oder starte neu.', en: 'The tray is full. Free 3 slots or start over.' },
   'tm.free3': { de: '3 Slots frei machen', en: 'Free 3 slots' },
+
+  // Zeit-Blitz
+  'blitz.title': { de: 'Zeit-Blitz', en: 'Time Attack' },
+  'blitz.score': { de: '{n} Paare', en: '{n} pairs' },
+  'blitz.boards': { de: 'Bretter: {n}', en: 'Boards: {n}' },
+  'blitz.over': { de: 'Zeit abgelaufen!', en: 'Time up!' },
+
+  // Event des Tages
+  'event.title': { de: 'Event des Tages', en: 'Daily event' },
+  'event.sub': { de: '{game} spielen → +{n} Münzen', en: 'Play {game} → +{n} coins' },
 
   // Stein-Designs (Skins)
   'menu.design': { de: 'Design', en: 'Design' },

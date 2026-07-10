@@ -28,6 +28,8 @@ export interface Progress {
   aiLevel: AiLevel;
   lang: 'de' | 'en' | ''; // '' = automatisch (Systemsprache)
   seenM4Tutorial: boolean;
+  notify: boolean; // tägliche Erinnerung an
+  lastEvent: string; // 'YYYY-M-D' des zuletzt eingelösten Tages-Events
   tileSkin: string; // gewähltes Stein-Design
   ownedSkins: string[];
   connectLevel: number; // höchstes freigeschaltetes Mahjong-Connect-Level
@@ -60,6 +62,8 @@ const DEFAULT: Progress = {
   aiLevel: 'normal',
   lang: '',
   seenM4Tutorial: false,
+  notify: true,
+  lastEvent: '',
   tileSkin: 'ivory',
   ownedSkins: ['ivory'],
   connectLevel: 1,
@@ -216,6 +220,26 @@ export function useProgress() {
     [persist],
   );
 
+  const setNotify = useCallback(
+    (on: boolean) => {
+      const s = stateRef.current;
+      if (!s) return;
+      persist({ ...s, notify: on });
+    },
+    [persist],
+  );
+
+  // Tages-Event-Bonus einlösen (max. 1×/Tag; selbst-abgesichert via Ref).
+  const claimEvent = useCallback(
+    (bonus: number): boolean => {
+      const s = stateRef.current;
+      if (!s || s.lastEvent === todayStr()) return false;
+      persist({ ...s, coins: s.coins + bonus, lastEvent: todayStr() });
+      return true;
+    },
+    [persist],
+  );
+
   const resetProgress = useCallback(() => {
     persist({ ...DEFAULT });
   }, [persist]);
@@ -365,6 +389,8 @@ export function useProgress() {
     recordWin,
     advanceLevel,
     setSoundOn,
+    setNotify,
+    claimEvent,
     setAiLevel,
     resetProgress,
     purchaseTheme,

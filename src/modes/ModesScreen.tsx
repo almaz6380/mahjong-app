@@ -11,6 +11,7 @@ interface Card {
 
 const CARDS: Card[] = [
   { id: 'tilematch', emoji: '🧩', titleKey: 'mode.tilematch', subKey: 'mode.tilematch.sub' },
+  { id: 'blitz', emoji: '⏱️', titleKey: 'mode.blitz', subKey: 'mode.blitz.sub' },
   { id: 'merge', emoji: '🔀', titleKey: 'mode.merge', subKey: 'mode.merge.sub' },
   { id: 'match3', emoji: '💎', titleKey: 'mode.match3', subKey: 'mode.match3.sub' },
   { id: 'memory', emoji: '🧠', titleKey: 'mode.memory', subKey: 'mode.memory.sub' },

@@ -10,6 +10,7 @@ import { MergeScreen } from './modes/merge/MergeScreen';
 import { SudokuScreen } from './modes/sudoku/SudokuScreen';
 import { Match3Screen } from './modes/match3/Match3Screen';
 import { TileMatchScreen } from './modes/tilematch/TileMatchScreen';
+import { BlitzScreen } from './modes/blitz/BlitzScreen';
 import { ConnectScreen } from './modes/connect/ConnectScreen';
 import { useProgress } from './game/progress';
 import { layoutForLevel } from './game/layouts';
@@ -17,12 +18,15 @@ import { applyTheme, applySkin } from './game/themes';
 import { satisfiedAchievements, getAchievement, type Achievement } from './game/achievements';
 import { loadSession, clearSession, type SavedGame } from './game/session';
 import { makeDailyBoard, dailyLayoutName, dailyDoneToday } from './game/daily';
+import { todayEvent } from './game/events';
+import { todayStr } from './game/progress';
 import { setSoundEnabled } from './audio/sound';
 import { setLanguage, detectLang, t } from './i18n';
 import { setAdsRemoved } from './ads/admob';
+import { setupDailyReminder } from './notify';
 import type { PlacedTile } from './game/engine';
 
-type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop' | 'modes' | 'memory' | 'merge' | 'sudoku' | 'match3' | 'tilematch' | 'connect';
+type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop' | 'modes' | 'memory' | 'merge' | 'sudoku' | 'match3' | 'tilematch' | 'blitz' | 'connect';
 
 export default function App() {
   const p = useProgress();
@@ -53,6 +57,9 @@ export default function App() {
   useEffect(() => {
     if (progress) setAdsRemoved(progress.removeAds);
   }, [progress?.removeAds]);
+  useEffect(() => {
+    if (progress) setupDailyReminder(progress.notify, progress.lang === 'en' ? 'en' : 'de');
+  }, [progress?.notify]);
 
   // Erfolge automatisch freischalten.
   useEffect(() => {
@@ -192,14 +199,20 @@ export default function App() {
       />
     );
   if (screen === 'settings')
-    return <SettingsScreen progress={progress} setSoundOn={p.setSoundOn} setAiLevel={p.setAiLevel} setLang={p.setLang} resetProgress={p.resetProgress} onBack={() => setScreen('menu')} />;
+    return <SettingsScreen progress={progress} setSoundOn={p.setSoundOn} setNotify={p.setNotify} setAiLevel={p.setAiLevel} setLang={p.setLang} resetProgress={p.resetProgress} onBack={() => setScreen('menu')} />;
   if (screen === 'stats') return <StatsScreen progress={progress} onBack={() => setScreen('menu')} />;
 
-  // Spezialmodi
+  // Spezialmodi. recordModeBest ist zugleich der Hook fürs Tages-Event:
+  // schließt man den Event-Modus ab, gibt es einmal täglich einen Bonus.
+  const event = todayEvent();
   const modeApi = {
     addCoins: p.addCoins,
     spendCoins: p.spendCoins,
-    recordModeBest: p.recordModeBest,
+    recordModeBest: (key: string, value: number, higher?: boolean) => {
+      const better = p.recordModeBest(key, value, higher);
+      if (key === event.mode) p.claimEvent(event.bonus);
+      return better;
+    },
     bestOf: (k: string) => progress.stats.modeBest[k],
   };
   if (screen === 'modes')
@@ -209,6 +222,7 @@ export default function App() {
   if (screen === 'sudoku') return <SudokuScreen api={modeApi} onExit={() => setScreen('modes')} />;
   if (screen === 'match3') return <Match3Screen api={modeApi} onExit={() => setScreen('modes')} />;
   if (screen === 'tilematch') return <TileMatchScreen api={modeApi} onExit={() => setScreen('modes')} />;
+  if (screen === 'blitz') return <BlitzScreen api={modeApi} onExit={() => setScreen('modes')} />;
   if (screen === 'connect')
     return (
       <ConnectScreen
@@ -231,6 +245,7 @@ export default function App() {
   const canResume = !!resume && resume.level === progress.level;
   const dailyDone = dailyDoneToday(progress.lastDailyChallenge);
   const connectLevel = progress.connectLevel;
+  const eventDone = progress.lastEvent === todayStr();
   return (
     <div className="menu hub">
       <div className="hub-title">
@@ -265,6 +280,13 @@ export default function App() {
           <span className="hub-emoji">🎁</span>
           <span className="hub-name">{t('hub.daily')}</span>
           <span className="hub-sub">{dailyDone ? '✓ ' + t('common.active') : t('hub.daily.sub')}</span>
+        </button>
+        <button className="hub-card wide c-gold" onClick={() => setScreen(event.mode)}>
+          <span className="hub-emoji">🏆</span>
+          <span className="hub-name">{t('event.title')}</span>
+          <span className="hub-sub">
+            {eventDone ? '✓ ' + t('common.active') : t('event.sub', { game: t(event.titleKey), n: event.bonus })}
+          </span>
         </button>
         <button className="hub-card wide c-violet" onClick={() => setScreen('modes')}>
           <span className="hub-emoji">🎲</span>

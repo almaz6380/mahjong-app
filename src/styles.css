@@ -1444,3 +1444,22 @@ body {
 }
 .tm-slot.filled { background: rgba(255, 255, 255, 0.06); border-color: rgba(245, 179, 1, 0.4); }
 .tm-slot .tileface { width: 100%; height: 100%; }
+
+/* ================= Zeit-Blitz ================= */
+.blitz-bar {
+  height: 8px;
+  margin: 0 12px 4px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+.blitz-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #22c55e, #f5b301);
+  transition: width 0.9s linear, background 0.3s ease;
+}
+.blitz-bar-fill.low { background: linear-gradient(90deg, #e0483d, #ff8a3d); }
+.coins.blitz-low { color: #ff6a5a; animation: blitzPulse 0.7s ease-in-out infinite; }
+@keyframes blitzPulse { 50% { opacity: 0.55; } }
+.blitz-stat { font-size: 13px; font-weight: 700; color: var(--muted); align-self: center; }

@@ -12,4 +12,4 @@ export interface ModeProps {
   onExit: () => void;
 }
 
-export type ModeId = 'memory' | 'merge' | 'sudoku' | 'match3' | 'tilematch';
+export type ModeId = 'memory' | 'merge' | 'sudoku' | 'match3' | 'tilematch' | 'blitz';
