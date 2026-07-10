@@ -35,6 +35,7 @@ const D: Record<string, Entry> = {
   'menu.restart': { de: 'Neu starten', en: 'Start over' },
   'menu.daily': { de: 'Tages-Challenge', en: 'Daily challenge' },
   'menu.m4': { de: '4 Spieler · Ostrunde', en: '4 players · East round' },
+  'menu.riichi': { de: 'Riichi Mahjong', en: 'Riichi Mahjong' },
   'menu.shop': { de: 'Shop', en: 'Shop' },
   'menu.themes': { de: 'Designs', en: 'Themes' },
   'menu.achievements': { de: 'Erfolge', en: 'Awards' },
@@ -300,6 +301,7 @@ const D: Record<string, Entry> = {
   'hub.daily.sub': { de: 'Jeden Tag neu', en: 'New every day' },
   'hub.connect.sub': { de: 'Gleiche Steine verbinden', en: 'Connect matching tiles' },
   'hub.m4.sub': { de: '1 gegen 3 KI', en: 'You vs 3 AI' },
+  'hub.riichi.sub': { de: 'Japanisch · Riichi/Dora', en: 'Japanese · riichi/dora' },
   'hub.more': { de: 'Mehr Spiele', en: 'More games' },
   'hub.more.sub': { de: '2048 · Paare · Sudoku', en: '2048 · pairs · sudoku' },
 };

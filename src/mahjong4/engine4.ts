@@ -70,8 +70,8 @@ function replaceBonus(state: GameState, p: number, first: TileCode): TileCode | 
   return tile; // regulärer Stein oder null (Dead Wall leer)
 }
 
-export function createGame(dealer: number, rand: () => number = Math.random): GameState {
-  const wall = buildWall(rand);
+export function createGame(dealer: number, rand: () => number = Math.random, presetWall?: TileCode[]): GameState {
+  const wall = presetWall ?? buildWall(rand);
   const dead = wall.slice(wall.length - 14);
   const live = wall.slice(0, wall.length - 14);
 

@@ -3,6 +3,7 @@ import { GameScreen } from './ui/GameScreen';
 import { Icon } from './ui/Icon';
 import { Tile } from './ui/Tile';
 import { Table4 } from './mahjong4/ui/Table4';
+import { RiichiTable } from './mahjong4/ui/RiichiTable';
 import { SettingsScreen, HowToScreen, ThemesScreen, AchievementsScreen, ShopScreen, StatsScreen } from './ui/Screens';
 import { ModesScreen } from './modes/ModesScreen';
 import { MemoryScreen } from './modes/memory/MemoryScreen';
@@ -27,7 +28,7 @@ import { setAdsRemoved } from './ads/admob';
 import { setupDailyReminder } from './notify';
 import type { PlacedTile } from './game/engine';
 
-type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop' | 'modes' | 'memory' | 'merge' | 'sudoku' | 'match3' | 'tilematch' | 'blitz' | 'dimensions' | 'connect';
+type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop' | 'modes' | 'memory' | 'merge' | 'sudoku' | 'match3' | 'tilematch' | 'blitz' | 'dimensions' | 'connect' | 'riichi';
 
 export default function App() {
   const p = useProgress();
@@ -199,6 +200,14 @@ export default function App() {
         onHandResult={p.recordM4Hand}
       />
     );
+  if (screen === 'riichi')
+    return (
+      <RiichiTable
+        onExit={() => setScreen('menu')}
+        addCoins={p.addCoins}
+        onHandResult={(won) => p.recordM4Hand(won, 0)}
+      />
+    );
   if (screen === 'settings')
     return <SettingsScreen progress={progress} setSoundOn={p.setSoundOn} setNotify={p.setNotify} setAiLevel={p.setAiLevel} setLang={p.setLang} resetProgress={p.resetProgress} onBack={() => setScreen('menu')} />;
   if (screen === 'stats') return <StatsScreen progress={progress} onBack={() => setScreen('menu')} />;
@@ -277,6 +286,11 @@ export default function App() {
           <span className="hub-emoji">🀄</span>
           <span className="hub-name">{t('menu.m4')}</span>
           <span className="hub-sub">{t('hub.m4.sub')}</span>
+        </button>
+        <button className="hub-card c-emerald" onClick={() => setScreen('riichi')}>
+          <span className="hub-emoji">🎴</span>
+          <span className="hub-name">{t('menu.riichi')}</span>
+          <span className="hub-sub">{t('hub.riichi.sub')}</span>
         </button>
         <button className="hub-card c-magenta" onClick={startDaily} disabled={dailyDone}>
           <span className="hub-emoji">🎁</span>

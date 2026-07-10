@@ -1308,6 +1308,12 @@ body {
 .c-ruby { --cc: 226, 57, 45; }
 .c-magenta { --cc: 236, 72, 153; }
 .c-violet { --cc: 149, 108, 246; }
+.c-emerald { --cc: 16, 185, 129; }
+
+/* Riichi-Tisch: Dora-Anzeige + Ergebnis-Buttons */
+.dora-chip { display: inline-flex; align-items: center; gap: 6px; margin: 4px 0; padding: 3px 8px; border-radius: 999px; background: rgba(16, 185, 129, 0.16); border: 1px solid rgba(16, 185, 129, 0.4); }
+.dora-chip .dora-lbl { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; color: rgba(16, 185, 129, 0.95); }
+.row-btns { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 
 .hub-card.feature {
   grid-column: 1 / -1;
