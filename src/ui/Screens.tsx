@@ -292,12 +292,33 @@ export function StatsScreen({ progress, onBack }: { progress: Progress; onBack: 
     [t('stats.m4Rate'), rate],
     [t('stats.m4Faan'), st.m4BestFaan > 0 ? t('stats.faanN', { n: st.m4BestFaan }) : '–'],
   ];
+  // Lokale Bestenliste: Bestwerte je Modus.
+  const mb = st.modeBest;
+  const memBest = ['memory-easy', 'memory-normal', 'memory-hard']
+    .map((k) => mb[k]).filter((v) => v !== undefined) as number[];
+  const dash = (v: number | undefined) => (v === undefined ? '–' : v);
+  const rowsBest: [string, string | number][] = [
+    [t('menu.connect'), progress.connectLevel > 1 ? t('crush.level', { n: progress.connectLevel }) : '–'],
+    [t('mode.tilematch'), mb['tilematch'] ? t('crush.level', { n: mb['tilematch'] }) : '–'],
+    [t('mode.blitz'), mb['blitz'] ? t('blitz.score', { n: mb['blitz'] }) : '–'],
+    [t('mode.match3'), dash(mb['match3'])],
+    [t('mode.merge'), dash(mb['merge'])],
+    [t('mode.memory'), memBest.length ? Math.min(...memBest) : '–'],
+    [t('mode.sudoku'), dash(mb['sudoku'])],
+  ];
   return (
     <div className="app screen">
       <ScreenHeader title={t('stats.title')} onBack={onBack} />
       <div className="screen-body">
         <div className="stats-section">{t('stats.solitaire')}</div>
         {rows.map(([k, v]) => (
+          <div className="row" key={k}>
+            <span>{k}</span>
+            <span className="stat-val">{v}</span>
+          </div>
+        ))}
+        <div className="stats-section">{t('stats.best')}</div>
+        {rowsBest.map(([k, v]) => (
           <div className="row" key={k}>
             <span>{k}</span>
             <span className="stat-val">{v}</span>

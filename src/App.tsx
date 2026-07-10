@@ -11,6 +11,7 @@ import { SudokuScreen } from './modes/sudoku/SudokuScreen';
 import { Match3Screen } from './modes/match3/Match3Screen';
 import { TileMatchScreen } from './modes/tilematch/TileMatchScreen';
 import { BlitzScreen } from './modes/blitz/BlitzScreen';
+import { DimensionsScreen } from './modes/dimensions/DimensionsScreen';
 import { ConnectScreen } from './modes/connect/ConnectScreen';
 import { useProgress } from './game/progress';
 import { layoutForLevel } from './game/layouts';
@@ -26,7 +27,7 @@ import { setAdsRemoved } from './ads/admob';
 import { setupDailyReminder } from './notify';
 import type { PlacedTile } from './game/engine';
 
-type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop' | 'modes' | 'memory' | 'merge' | 'sudoku' | 'match3' | 'tilematch' | 'blitz' | 'connect';
+type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop' | 'modes' | 'memory' | 'merge' | 'sudoku' | 'match3' | 'tilematch' | 'blitz' | 'dimensions' | 'connect';
 
 export default function App() {
   const p = useProgress();
@@ -223,6 +224,7 @@ export default function App() {
   if (screen === 'match3') return <Match3Screen api={modeApi} onExit={() => setScreen('modes')} />;
   if (screen === 'tilematch') return <TileMatchScreen api={modeApi} onExit={() => setScreen('modes')} />;
   if (screen === 'blitz') return <BlitzScreen api={modeApi} onExit={() => setScreen('modes')} />;
+  if (screen === 'dimensions') return <DimensionsScreen api={modeApi} onExit={() => setScreen('modes')} />;
   if (screen === 'connect')
     return (
       <ConnectScreen

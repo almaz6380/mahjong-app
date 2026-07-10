@@ -1463,3 +1463,32 @@ body {
 .coins.blitz-low { color: #ff6a5a; animation: blitzPulse 0.7s ease-in-out infinite; }
 @keyframes blitzPulse { 50% { opacity: 0.55; } }
 .blitz-stat { font-size: 13px; font-weight: 700; color: var(--muted); align-self: center; }
+
+/* ================= Mahjong Dimensions (3D) ================= */
+.dim-board {
+  perspective: 1100px;
+  perspective-origin: 50% 42%;
+  overflow: visible;
+}
+.dim-scene {
+  position: relative;
+  width: 0; height: 0;
+  transform-style: preserve-3d;
+  transition: transform 0.4s ease;
+}
+.dim-tile {
+  position: absolute;
+  width: 40px; height: 53px;
+  margin: -26px 0 0 -20px; /* zentriert auf den Ankerpunkt */
+  padding: 0;
+  background: none;
+  border: none;
+  transform-style: preserve-3d;
+  filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.5));
+}
+.dim-tile .tileface { width: 100%; height: 100%; }
+.dim-tile.blocked { filter: brightness(0.6) saturate(0.85) drop-shadow(0 3px 4px rgba(0,0,0,0.5)); pointer-events: none; }
+.dim-tile.free:active { filter: brightness(1.08); }
+.dim-tile.sel .tileface { outline: 3px solid var(--accent); outline-offset: -2px; border-radius: 9px; }
+.dim-tile.hint .tileface { animation: dimHint 0.55s ease-in-out infinite alternate; border-radius: 9px; }
+@keyframes dimHint { from { outline: 2px solid rgba(94,224,166,.5); } to { outline: 4px solid rgba(94,224,166,.95); } }

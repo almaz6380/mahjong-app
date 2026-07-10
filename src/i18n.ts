@@ -157,6 +157,7 @@ const D: Record<string, Entry> = {
   'stats.m4Rate': { de: 'Siegquote', en: 'Win rate' },
   'stats.m4Faan': { de: 'Beste Hand', en: 'Best hand' },
   'stats.solitaire': { de: 'Solitär', en: 'Solitaire' },
+  'stats.best': { de: 'Bestwerte', en: 'Best scores' },
   'stats.faanN': { de: '{n} Faan', en: '{n} faan' },
 
   // 4-Spieler-Tisch
@@ -224,6 +225,8 @@ const D: Record<string, Entry> = {
   'mode.tilematch.sub': { de: 'Finde 3 gleiche Steine', en: 'Find 3 matching tiles' },
   'mode.blitz': { de: 'Zeit-Blitz', en: 'Time Attack' },
   'mode.blitz.sub': { de: 'So viele Paare wie möglich', en: 'As many pairs as you can' },
+  'mode.dimensions': { de: 'Dimensions 3D', en: 'Dimensions 3D' },
+  'mode.dimensions.sub': { de: 'Drehbarer 3D-Steinturm', en: 'Rotatable 3D tile tower' },
   'mode.memory': { de: 'Paare', en: 'Pairs' },
   'mode.memory.sub': { de: 'Gedächtnis-Spiel', en: 'Memory game' },
   'mode.sudoku': { de: 'Sudoku', en: 'Sudoku' },
@@ -267,6 +270,12 @@ const D: Record<string, Entry> = {
   'blitz.score': { de: '{n} Paare', en: '{n} pairs' },
   'blitz.boards': { de: 'Bretter: {n}', en: 'Boards: {n}' },
   'blitz.over': { de: 'Zeit abgelaufen!', en: 'Time up!' },
+
+  // Mahjong Dimensions
+  'dim.level': { de: 'Level {n}', en: 'Level {n}' },
+  'dim.hint': { de: 'Tipp', en: 'Hint' },
+  'dim.shuffle': { de: 'Mischen', en: 'Shuffle' },
+  'dim.cleared': { de: 'Turm geschafft!', en: 'Tower cleared!' },
 
   // Event des Tages
   'event.title': { de: 'Event des Tages', en: 'Daily event' },
