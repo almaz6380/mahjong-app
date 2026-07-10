@@ -219,6 +219,8 @@ const D: Record<string, Entry> = {
   'mode.merge.sub': { de: 'Verschmelzen & wachsen', en: 'Merge & grow' },
   'mode.match3': { de: 'Match-3', en: 'Match-3' },
   'mode.match3.sub': { de: '3 gleiche in einer Reihe', en: 'Line up 3 alike' },
+  'mode.tilematch': { de: 'Tile Match', en: 'Tile Match' },
+  'mode.tilematch.sub': { de: 'Finde 3 gleiche Steine', en: 'Find 3 matching tiles' },
   'mode.memory': { de: 'Paare', en: 'Pairs' },
   'mode.memory.sub': { de: 'Gedächtnis-Spiel', en: 'Memory game' },
   'mode.sudoku': { de: 'Sudoku', en: 'Sudoku' },
@@ -246,6 +248,16 @@ const D: Record<string, Entry> = {
   'connect.hint': { de: 'Tipp', en: 'Hint' },
   'connect.shuffle': { de: 'Mischen', en: 'Shuffle' },
   'connect.reshuffled': { de: 'Kein Zug – neu gemischt', en: 'No move – reshuffled' },
+
+  // Tile Match
+  'tm.level': { de: 'Level {n}', en: 'Level {n}' },
+  'tm.undo': { de: 'Zurück', en: 'Undo' },
+  'tm.shuffle': { de: 'Mischen', en: 'Shuffle' },
+  'tm.cleared': { de: 'Brett geschafft!', en: 'Board cleared!' },
+  'tm.next': { de: 'Weiter', en: 'Continue' },
+  'tm.full': { de: 'Ablage voll', en: 'Tray full' },
+  'tm.fullText': { de: 'Die Ablage ist voll. Mach 3 Slots frei oder starte neu.', en: 'The tray is full. Free 3 slots or start over.' },
+  'tm.free3': { de: '3 Slots frei machen', en: 'Free 3 slots' },
 
   // Stein-Designs (Skins)
   'menu.design': { de: 'Design', en: 'Design' },

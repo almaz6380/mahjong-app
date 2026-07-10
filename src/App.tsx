@@ -9,6 +9,7 @@ import { MemoryScreen } from './modes/memory/MemoryScreen';
 import { MergeScreen } from './modes/merge/MergeScreen';
 import { SudokuScreen } from './modes/sudoku/SudokuScreen';
 import { Match3Screen } from './modes/match3/Match3Screen';
+import { TileMatchScreen } from './modes/tilematch/TileMatchScreen';
 import { ConnectScreen } from './modes/connect/ConnectScreen';
 import { useProgress } from './game/progress';
 import { layoutForLevel } from './game/layouts';
@@ -21,7 +22,7 @@ import { setLanguage, detectLang, t } from './i18n';
 import { setAdsRemoved } from './ads/admob';
 import type { PlacedTile } from './game/engine';
 
-type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop' | 'modes' | 'memory' | 'merge' | 'sudoku' | 'match3' | 'connect';
+type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop' | 'modes' | 'memory' | 'merge' | 'sudoku' | 'match3' | 'tilematch' | 'connect';
 
 export default function App() {
   const p = useProgress();
@@ -207,6 +208,7 @@ export default function App() {
   if (screen === 'merge') return <MergeScreen api={modeApi} onExit={() => setScreen('modes')} />;
   if (screen === 'sudoku') return <SudokuScreen api={modeApi} onExit={() => setScreen('modes')} />;
   if (screen === 'match3') return <Match3Screen api={modeApi} onExit={() => setScreen('modes')} />;
+  if (screen === 'tilematch') return <TileMatchScreen api={modeApi} onExit={() => setScreen('modes')} />;
   if (screen === 'connect')
     return (
       <ConnectScreen
