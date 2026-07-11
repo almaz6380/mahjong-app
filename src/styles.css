@@ -607,6 +607,8 @@ body {
 .side { background: none; border: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 4px 8px; }
 .side:disabled { opacity: 0.55; }
 .side-emoji { position: relative; font-size: 40px; line-height: 1; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.18)); }
+.side-cal { filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.35)); }
+.side-cal svg { width: 42px; height: 42px; display: block; }
 .side-dot { position: absolute; top: -2px; right: -4px; width: 10px; height: 10px; border-radius: 50%; background: #e0503f; border: 2px solid #164e39; }
 .side-lbl {
   font-size: 12.5px; font-weight: 800; color: #fff; padding: 4px 12px; border-radius: 9px;
