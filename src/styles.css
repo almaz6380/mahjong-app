@@ -557,6 +557,116 @@ body {
   from { width: 0; }
   to { width: 100%; }
 }
+
+/* ============ Startseite (Bambus warm, natürliche Mahjong-Farben) ============ */
+.home {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  color: #f4ecd8;
+  padding: calc(env(safe-area-inset-top) + 14px) calc(env(safe-area-inset-right) + 16px)
+           calc(env(safe-area-inset-bottom) + 18px) calc(env(safe-area-inset-left) + 16px);
+  background:
+    radial-gradient(95% 55% at 50% 6%, #1d5f46, transparent 72%),
+    radial-gradient(80% 45% at 50% 106%, #06231a, transparent 60%),
+    linear-gradient(180deg, #164e39, #0b2c20);
+}
+.home-top { display: flex; align-items: center; justify-content: space-between; }
+.coin-pill {
+  display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 6px 0 12px;
+  border-radius: 999px; background: rgba(244, 236, 216, 0.10); border: 1px solid rgba(244, 236, 216, 0.20);
+  color: #f4ecd8; font-weight: 800; font-size: 15px; cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.coin-pill .plus {
+  width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(180deg, #4bad79, #2c7d54);
+  color: #fff; display: grid; place-items: center; font-size: 16px; font-weight: 800;
+}
+.home-actions { display: flex; gap: 8px; }
+.home-rbtn {
+  width: 40px; height: 40px; border-radius: 13px; border: 1px solid rgba(244, 236, 216, 0.20);
+  background: rgba(244, 236, 216, 0.10); color: #e8dcbf; display: grid; place-items: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08); cursor: pointer;
+}
+.home-stage { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; min-height: 0; }
+.home-brand { text-align: center; margin-top: 10px; }
+.hb-sub { font-size: 14px; font-weight: 800; letter-spacing: 0.34em; text-transform: uppercase; color: #63bd8e; }
+.hb-main { font-size: 34px; font-weight: 900; letter-spacing: 0.01em; color: #f4ecd8; line-height: 1; text-transform: uppercase; text-shadow: 0 2px 6px rgba(0,0,0,0.25); }
+.home-tile {
+  width: clamp(104px, 33vw, 136px); margin: auto 0; position: relative;
+  filter: drop-shadow(0 18px 26px rgba(80, 50, 20, 0.32));
+}
+.home-tile svg { width: 100%; height: auto; display: block; }
+.home-tile::before {
+  content: ""; position: absolute; inset: -30% -20%; z-index: -1; border-radius: 50%;
+  background: radial-gradient(circle, rgba(90, 160, 105, 0.28), transparent 68%);
+}
+.home-sides { position: absolute; left: 0; right: 0; bottom: 6px; display: flex; justify-content: space-between; padding: 0 6px; }
+.side { background: none; border: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 4px 8px; }
+.side:disabled { opacity: 0.55; }
+.side-emoji { position: relative; font-size: 40px; line-height: 1; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.18)); }
+.side-dot { position: absolute; top: -2px; right: -4px; width: 10px; height: 10px; border-radius: 50%; background: #e0503f; border: 2px solid #164e39; }
+.side-lbl {
+  font-size: 12.5px; font-weight: 800; color: #fff; padding: 4px 12px; border-radius: 9px;
+  background: linear-gradient(180deg, #c09150, #8a5a26); box-shadow: 0 3px 8px rgba(80, 50, 20, 0.28);
+}
+.home-bottom { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.play-btn {
+  width: 100%; max-width: 420px; height: 64px; border: 0; border-radius: 19px; cursor: pointer;
+  background: linear-gradient(180deg, #47ab72, #2c7d54);
+  box-shadow: 0 12px 24px rgba(30, 90, 55, 0.35), inset 0 2px 0 rgba(255, 255, 255, 0.3);
+  color: #fff; display: flex; align-items: center; justify-content: center; gap: 12px;
+}
+.play-btn:active { transform: translateY(1px); }
+.play-tri { font-size: 16px; }
+.play-tx { font-size: 21px; font-weight: 800; line-height: 1.05; text-align: left; }
+.play-tx small { display: block; font-size: 12px; font-weight: 600; opacity: 0.86; }
+.allgames-btn { background: none; border: 0; cursor: pointer; color: rgba(244, 236, 216, 0.7); font-weight: 800; font-size: 15px; padding: 4px; }
+
+/* Games-Sheet */
+.sheet-overlay {
+  position: fixed; inset: 0; z-index: 60; background: rgba(30, 20, 8, 0.44);
+  display: flex; flex-direction: column; justify-content: flex-end; backdrop-filter: blur(4px);
+  animation: fadein 0.2s ease;
+}
+.games-sheet {
+  background: linear-gradient(180deg, #fbf4e4, #f0e2c6); border-radius: 26px 26px 0 0;
+  padding: 12px 14px calc(env(safe-area-inset-bottom) + 20px);
+  box-shadow: 0 -18px 44px rgba(0, 0, 0, 0.35); max-height: 84%;
+  animation: sheetup 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes sheetup { from { transform: translateY(100%); } to { transform: none; } }
+.sheet-grab { width: 42px; height: 4px; border-radius: 999px; background: rgba(90, 60, 25, 0.28); margin: 2px auto 12px; }
+.games-sheet h3 { margin: 0 0 12px 6px; font-size: 18px; font-weight: 800; color: #33260f; }
+.games-list { display: flex; flex-direction: column; gap: 8px; }
+.game-row {
+  display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 15px; cursor: pointer;
+  background: rgba(90, 60, 25, 0.06); border: 1px solid rgba(90, 60, 25, 0.12); text-align: left; width: 100%;
+}
+.game-row:active { background: rgba(90, 60, 25, 0.12); }
+.game-ico {
+  width: 44px; height: 44px; border-radius: 10px; flex: none; display: grid; place-items: center; overflow: hidden;
+  background: linear-gradient(158deg, #fdf8ec, #ead9b6);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.7), 0 3px 8px rgba(0, 0, 0, 0.12); font-size: 22px;
+}
+.game-ico svg { width: 90%; height: 90%; }
+.game-tx { display: flex; flex-direction: column; gap: 1px; }
+.game-tx b { font-size: 15.5px; color: #33260f; }
+.game-tx span { font-size: 12.5px; color: rgba(58, 44, 23, 0.6); }
+.game-badge { margin-left: auto; font-size: 11px; font-weight: 800; color: #2c7d54; background: rgba(63, 156, 109, 0.16); border-radius: 999px; padding: 2px 8px; }
+.game-chev { margin-left: auto; color: rgba(58, 44, 23, 0.4); font-size: 20px; }
+.game-badge + .game-chev { margin-left: 8px; }
+
+/* Optionen: Navigations-Zeilen (Statistik/Erfolge/Shop/Hilfe) */
+.set-nav { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+.set-nav button {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 13px 14px; border-radius: 14px;
+  background: var(--surface); border: 1px solid var(--line); color: var(--text); font: inherit; font-weight: 600; cursor: pointer;
+}
+.set-nav button span { font-size: 15px; }
+.set-nav button .chev { margin-left: auto; opacity: 0.5; font-style: normal; font-size: 18px; }
 .card .logo {
   width: 60px;
   height: 60px;

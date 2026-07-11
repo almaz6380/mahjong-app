@@ -4,6 +4,7 @@ import { Icon } from './ui/Icon';
 import { Tile } from './ui/Tile';
 import { Table4 } from './mahjong4/ui/Table4';
 import { RiichiTable } from './mahjong4/ui/RiichiTable';
+import { GamesSheet, type GameItem } from './ui/GamesSheet';
 import { SettingsScreen, HowToScreen, ThemesScreen, AchievementsScreen, ShopScreen, StatsScreen } from './ui/Screens';
 import { ModesScreen } from './modes/ModesScreen';
 import { MemoryScreen } from './modes/memory/MemoryScreen';
@@ -41,6 +42,7 @@ export default function App() {
   const [resume, setResume] = useState<SavedGame | null>(null);
   const [achToast, setAchToast] = useState<Achievement | null>(null);
   const [dailyBoard, setDailyBoard] = useState<PlacedTile[] | null>(null);
+  const [gamesOpen, setGamesOpen] = useState(false);
 
   // Laufendes Spiel laden (für „Fortsetzen").
   useEffect(() => {
@@ -213,7 +215,7 @@ export default function App() {
       />
     );
   if (screen === 'settings')
-    return <SettingsScreen progress={progress} setSoundOn={p.setSoundOn} setNotify={p.setNotify} setShowFacts={p.setShowFacts} setAiLevel={p.setAiLevel} setLang={p.setLang} resetProgress={p.resetProgress} onBack={() => setScreen('menu')} />;
+    return <SettingsScreen progress={progress} setSoundOn={p.setSoundOn} setNotify={p.setNotify} setShowFacts={p.setShowFacts} setAiLevel={p.setAiLevel} setLang={p.setLang} resetProgress={p.resetProgress} go={(s) => setScreen(s as Screen)} onBack={() => setScreen('menu')} />;
   if (screen === 'stats') return <StatsScreen progress={progress} onBack={() => setScreen('menu')} />;
 
   // Spezialmodi. recordModeBest ist zugleich der Hook fürs Tages-Event:
@@ -261,70 +263,58 @@ export default function App() {
   const dailyDone = dailyDoneToday(progress.lastDailyChallenge);
   const connectLevel = progress.connectLevel;
   const eventDone = progress.lastEvent === todayStr();
+
+  const gameItems: GameItem[] = [
+    { id: 'solitaire', icon: <Tile face="char1" />, name: t('hub.solitaire'), sub: canResume ? t('hub.resume', { n: resume!.level }) : t('hub.solitaire.sub', { n: progress.level }), onClick: canResume ? startResume : startFresh },
+    { id: 'connect', icon: <span className="emoji">🔗</span>, name: t('menu.connect'), sub: t('hub.connect.sub'), badge: connectLevel > 1 ? 'Lv ' + connectLevel : undefined, onClick: () => setScreen('connect') },
+    { id: 'm4', icon: <Tile face="dragonR" />, name: t('menu.m4'), sub: t('hub.m4.sub'), onClick: () => setScreen('mahjong4') },
+    { id: 'riichi', icon: <Tile face="dragonG" />, name: t('menu.riichi'), sub: t('hub.riichi.sub'), onClick: () => setScreen('riichi') },
+    { id: 'more', icon: <span className="emoji">🎲</span>, name: t('hub.more'), sub: t('hub.more.sub'), onClick: () => setScreen('modes') },
+  ];
+
   return (
-    <div className="menu hub">
-      <div className="hub-title">
-        <div className="logo sm"><Tile face="dragonR" /></div>
-        <h1>Mahjong Royale</h1>
+    <div className="home">
+      <div className="home-top">
+        <button className="coin-pill" onClick={() => setScreen('shop')} aria-label={t('menu.shop')}>
+          <Icon name="coin" /> <span>{progress.coins}</span> <span className="plus">+</span>
+        </button>
+        <div className="home-actions">
+          <button className="home-rbtn" onClick={() => setScreen('themes')} aria-label={t('menu.design')}><Icon name="palette" size={20} /></button>
+          <button className="home-rbtn" onClick={() => setScreen('settings')} aria-label={t('menu.settings')}><Icon name="gear" size={20} /></button>
+        </div>
       </div>
 
-      <div className="menu-stats">
-        <span><Icon name="coin" /> {progress.coins}</span>
-        {progress.streak > 0 && <span><Icon name="flame" /> {progress.streak}</span>}
-        <span><Icon name="trophy" /> {progress.achievements.length}</span>
+      <div className="home-stage">
+        <div className="home-brand">
+          <div className="hb-sub">Mahjong</div>
+          <div className="hb-main">Royale</div>
+        </div>
+        <div className="home-tile"><Tile face="dragonG" /></div>
+
+        <div className="home-sides">
+          <button className="side" onClick={startDaily} disabled={dailyDone}>
+            <span className="side-emoji">📅{!dailyDone && <span className="side-dot" />}</span>
+            <span className="side-lbl">{t('home.daily')}</span>
+          </button>
+          <button className="side" onClick={() => setScreen(event.mode)}>
+            <span className="side-emoji">🎁</span>
+            <span className="side-lbl">{eventDone ? '✓ ' + t('event.title') : t('event.title')}</span>
+          </button>
+        </div>
       </div>
 
-      <div className="hub-grid">
-        <button className="hub-card feature c-gold" onClick={canResume ? startResume : startFresh}>
-          <span className="hub-face"><Tile face="char1" /></span>
-          <span className="hub-name">{t('hub.solitaire')}</span>
-          <span className="hub-sub">{canResume ? t('hub.resume', { n: resume!.level }) : t('hub.solitaire.sub', { n: progress.level })}</span>
-        </button>
-        <button className="hub-card c-sapphire" onClick={() => setScreen('connect')}>
-          <span className="hub-emoji">🔗</span>
-          <span className="hub-name">{t('menu.connect')}</span>
-          <span className="hub-sub">{t('hub.connect.sub')}</span>
-          {connectLevel > 1 && <span className="hub-badge">Lv {connectLevel}</span>}
-        </button>
-        <button className="hub-card c-ruby" onClick={() => setScreen('mahjong4')}>
-          <span className="hub-emoji">🀄</span>
-          <span className="hub-name">{t('menu.m4')}</span>
-          <span className="hub-sub">{t('hub.m4.sub')}</span>
-        </button>
-        <button className="hub-card c-emerald" onClick={() => setScreen('riichi')}>
-          <span className="hub-emoji">🎴</span>
-          <span className="hub-name">{t('menu.riichi')}</span>
-          <span className="hub-sub">{t('hub.riichi.sub')}</span>
-        </button>
-        <button className="hub-card c-magenta" onClick={startDaily} disabled={dailyDone}>
-          <span className="hub-emoji">🎁</span>
-          <span className="hub-name">{t('hub.daily')}</span>
-          <span className="hub-sub">{dailyDone ? '✓ ' + t('common.active') : t('hub.daily.sub')}</span>
-        </button>
-        <button className="hub-card wide c-gold" onClick={() => setScreen(event.mode)}>
-          <span className="hub-emoji">🏆</span>
-          <span className="hub-name">{t('event.title')}</span>
-          <span className="hub-sub">
-            {eventDone ? '✓ ' + t('common.active') : t('event.sub', { game: t(event.titleKey), n: event.bonus })}
+      <div className="home-bottom">
+        <button className="play-btn" onClick={canResume ? startResume : startFresh}>
+          <span className="play-tri">▶</span>
+          <span className="play-tx">
+            {canResume ? t('home.resume') : t('home.play')}
+            <small>{t('home.level', { n: progress.level })}</small>
           </span>
         </button>
-        <button className="hub-card wide c-violet" onClick={() => setScreen('modes')}>
-          <span className="hub-emoji">🎲</span>
-          <span className="hub-name">{t('hub.more')}</span>
-          <span className="hub-sub">{t('hub.more.sub')}</span>
-        </button>
+        <button className="allgames-btn" onClick={() => setGamesOpen(true)}>{t('home.allGames')} ›</button>
       </div>
 
-      <div className="menu-icons">
-        <button onClick={() => setScreen('shop')}><Icon name="cart" size={22} /><span>{t('menu.shop')}</span></button>
-        <button onClick={() => setScreen('themes')}><Icon name="palette" size={22} /><span>{t('menu.design')}</span></button>
-        <button onClick={() => setScreen('achievements')}><Icon name="trophy" size={22} /><span>{t('menu.achievements')}</span></button>
-        <button onClick={() => setScreen('stats')}><Icon name="chart" size={22} /><span>{t('menu.stats')}</span></button>
-        <button onClick={() => setScreen('settings')}><Icon name="gear" size={22} /><span>{t('menu.settings')}</span></button>
-        <button onClick={() => setScreen('howto')}><Icon name="help" size={22} /><span>{t('menu.help')}</span></button>
-      </div>
-
-      <div className="credit">v1.0 · Mahjong Royale</div>
+      {gamesOpen && <GamesSheet items={gameItems} onClose={() => setGamesOpen(false)} />}
       {achToast && <AchToast a={achToast} />}
     </div>
   );

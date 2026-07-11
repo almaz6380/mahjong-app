@@ -31,6 +31,7 @@ export function SettingsScreen({
   setAiLevel,
   setLang,
   resetProgress,
+  go,
   onBack,
 }: {
   progress: Progress;
@@ -40,6 +41,7 @@ export function SettingsScreen({
   setAiLevel: (l: 'easy' | 'normal' | 'hard') => void;
   setLang: (l: 'de' | 'en' | '') => void;
   resetProgress: () => void;
+  go: (screen: string) => void;
   onBack: () => void;
 }) {
   const [confirm, setConfirm] = useState(false);
@@ -57,6 +59,12 @@ export function SettingsScreen({
     <div className="app screen">
       <ScreenHeader title={t('set.title')} onBack={onBack} />
       <div className="screen-body">
+        <div className="set-nav">
+          <button onClick={() => go('stats')}><Icon name="chart" size={20} /><span>{t('menu.stats')}</span><i className="chev">›</i></button>
+          <button onClick={() => go('achievements')}><Icon name="trophy" size={20} /><span>{t('menu.achievements')}</span><i className="chev">›</i></button>
+          <button onClick={() => go('shop')}><Icon name="cart" size={20} /><span>{t('menu.shop')}</span><i className="chev">›</i></button>
+          <button onClick={() => go('howto')}><Icon name="help" size={20} /><span>{t('menu.help')}</span><i className="chev">›</i></button>
+        </div>
         <div className="row">
           <span>{t('set.sound')}</span>
           <button
