@@ -490,6 +490,73 @@ body {
   from { opacity: 0; transform: translateY(12px) scale(0.97); }
   to { opacity: 1; transform: none; }
 }
+
+/* „Wusstest du?“-Karte zwischen den Runden */
+.fact-card {
+  position: relative;
+  width: min(420px, 94%);
+  min-height: 260px;
+  padding: 26px 24px 30px;
+  border-radius: var(--r-lg);
+  background: linear-gradient(160deg, #12402f 0%, #0c2b22 55%, #0a2019 100%);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  animation: cardin 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.fact-cat {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #34d399;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  margin-bottom: 16px;
+}
+.fact-quote {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.4;
+  font-weight: 700;
+  color: #eafff5;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
+}
+.fact-tile {
+  position: absolute;
+  right: 18px;
+  bottom: 26px;
+  width: 40px;
+  height: 52px;
+  opacity: 0.9;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4));
+  transform: rotate(8deg);
+}
+.fact-tile svg { width: 100%; height: 100%; }
+.fact-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.fact-bar-fill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.6);
+  animation: factbar 2.2s linear forwards;
+}
+@keyframes factbar {
+  from { width: 0; }
+  to { width: 100%; }
+}
 .card .logo {
   width: 60px;
   height: 60px;

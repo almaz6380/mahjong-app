@@ -5,6 +5,7 @@ import { Icon } from '../../ui/Icon';
 import { t } from '../../i18n';
 import { playTap, playMatch, playWin, playInvalid } from '../../audio/sound';
 import { maybeShowInterstitialModes } from '../../ads/admob';
+import { presentFact } from '../../ui/FactHost';
 import type { ModeProps } from '../types';
 
 type Size = 'easy' | 'normal' | 'hard';
@@ -139,7 +140,7 @@ export function MemoryScreen({ api, onExit }: ModeProps) {
             <div className="logo">🎉</div>
             <h2>{t('mode.won')}</h2>
             <p>{moves} {t('mode.moves')}{newBest ? ' · ' + t('mode.newBest') : ''}</p>
-            <button className="big-btn" onClick={() => restart(size)}>{t('mode.again')}</button>
+            <button className="big-btn" onClick={() => presentFact().then(() => restart(size))}>{t('mode.again')}</button>
           </div>
         </div>
       )}

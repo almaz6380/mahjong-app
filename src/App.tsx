@@ -26,6 +26,7 @@ import { setSoundEnabled } from './audio/sound';
 import { setLanguage, detectLang, t } from './i18n';
 import { setAdsRemoved } from './ads/admob';
 import { setupDailyReminder } from './notify';
+import { setFactsEnabled } from './ui/FactHost';
 import type { PlacedTile } from './game/engine';
 
 type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop' | 'modes' | 'memory' | 'merge' | 'sudoku' | 'match3' | 'tilematch' | 'blitz' | 'dimensions' | 'connect' | 'riichi';
@@ -62,6 +63,9 @@ export default function App() {
   useEffect(() => {
     if (progress) setupDailyReminder(progress.notify, progress.lang === 'en' ? 'en' : 'de');
   }, [progress?.notify]);
+  useEffect(() => {
+    if (progress) setFactsEnabled(progress.showFacts);
+  }, [progress?.showFacts]);
 
   // Erfolge automatisch freischalten.
   useEffect(() => {
@@ -209,7 +213,7 @@ export default function App() {
       />
     );
   if (screen === 'settings')
-    return <SettingsScreen progress={progress} setSoundOn={p.setSoundOn} setNotify={p.setNotify} setAiLevel={p.setAiLevel} setLang={p.setLang} resetProgress={p.resetProgress} onBack={() => setScreen('menu')} />;
+    return <SettingsScreen progress={progress} setSoundOn={p.setSoundOn} setNotify={p.setNotify} setShowFacts={p.setShowFacts} setAiLevel={p.setAiLevel} setLang={p.setLang} resetProgress={p.resetProgress} onBack={() => setScreen('menu')} />;
   if (screen === 'stats') return <StatsScreen progress={progress} onBack={() => setScreen('menu')} />;
 
   // Spezialmodi. recordModeBest ist zugleich der Hook fürs Tages-Event:

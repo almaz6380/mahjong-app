@@ -27,6 +27,7 @@ export function SettingsScreen({
   progress,
   setSoundOn,
   setNotify,
+  setShowFacts,
   setAiLevel,
   setLang,
   resetProgress,
@@ -35,6 +36,7 @@ export function SettingsScreen({
   progress: Progress;
   setSoundOn: (on: boolean) => void;
   setNotify: (on: boolean) => void;
+  setShowFacts: (on: boolean) => void;
   setAiLevel: (l: 'easy' | 'normal' | 'hard') => void;
   setLang: (l: 'de' | 'en' | '') => void;
   resetProgress: () => void;
@@ -71,6 +73,16 @@ export function SettingsScreen({
             className={'toggle' + (progress.notify ? ' on' : '')}
             onClick={() => setNotify(!progress.notify)}
             aria-label={t('set.notify')}
+          >
+            <span className="knob" />
+          </button>
+        </div>
+        <div className="row">
+          <span>{t('set.facts')}</span>
+          <button
+            className={'toggle' + (progress.showFacts ? ' on' : '')}
+            onClick={() => setShowFacts(!progress.showFacts)}
+            aria-label={t('set.facts')}
           >
             <span className="knob" />
           </button>

@@ -8,6 +8,7 @@ import { BOOSTER_COST, type BoosterType, type Progress } from '../game/progress'
 import { DAILY_REWARD } from '../game/daily';
 import { saveSession, clearSession } from '../game/session';
 import { maybeShowInterstitial, showRewarded } from '../ads/admob';
+import { presentFact } from './FactHost';
 import { playTap, playMatch, playInvalid, playWin } from '../audio/sound';
 import { t } from '../i18n';
 import type { PlacedTile } from '../game/engine';
@@ -130,6 +131,7 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
 
   const nextLevel = useCallback(async () => {
     await maybeShowInterstitial(level, progress.totalWins);
+    await presentFact(); // kurze Infokarte vor der nächsten Runde
     api.advanceLevel(); // Parent remountet mit Level+1
   }, [level, progress.totalWins, api]);
 

@@ -4,6 +4,7 @@ import { Icon } from '../../ui/Icon';
 import { t } from '../../i18n';
 import { playTap, playMatch, playInvalid, playWin } from '../../audio/sound';
 import { maybeShowInterstitialModes, showRewarded } from '../../ads/admob';
+import { presentFact } from '../../ui/FactHost';
 import { newBoard, findMatches, swapped, adjacent, resolve, anyValidMove, ROWS, COLS, MOVES, type Grid } from './logic';
 import type { ModeProps } from '../types';
 
@@ -97,7 +98,7 @@ export function Match3Screen({ api, onExit }: ModeProps) {
             <button className="big-btn ghost solid" onClick={extraMoves}>
               <span className="btn-ico"><Icon name="video" size={16} /> +5 {t('mode.moves')}</span>
             </button>
-            <button className="big-btn" onClick={restart}>{t('mode.again')}</button>
+            <button className="big-btn" onClick={() => presentFact().then(() => restart())}>{t('mode.again')}</button>
           </div>
         </div>
       )}

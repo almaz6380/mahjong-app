@@ -4,6 +4,7 @@ import { Icon } from '../../ui/Icon';
 import { t } from '../../i18n';
 import { playTap, playMatch, playInvalid, playWin } from '../../audio/sound';
 import { maybeShowInterstitialModes, showRewarded } from '../../ads/admob';
+import { presentFact } from '../../ui/FactHost';
 import type { ModeProps } from '../types';
 import {
   makeBoard, isFree, canMatch, removePair, isWon, findHint, hasMoves,
@@ -118,7 +119,7 @@ export function DimensionsScreen({ api, onExit }: ModeProps) {
           <div className="card">
             <div className="logo">🎉</div>
             <h2>{t('dim.cleared')}</h2>
-            <button className="big-btn" onClick={() => restart(level + 1)}>{t('tm.next')}</button>
+            <button className="big-btn" onClick={() => presentFact().then(() => restart(level + 1))}>{t('tm.next')}</button>
             <button className="text-btn" onClick={onExit}>{t('common.toMenu')}</button>
           </div>
         </div>

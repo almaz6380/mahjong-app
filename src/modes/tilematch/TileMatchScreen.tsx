@@ -4,6 +4,7 @@ import { Icon } from '../../ui/Icon';
 import { t } from '../../i18n';
 import { playTap, playMatch, playWin, playInvalid } from '../../audio/sound';
 import { maybeShowInterstitialModes, showRewarded } from '../../ads/admob';
+import { presentFact } from '../../ui/FactHost';
 import type { ModeProps } from '../types';
 import {
   makeBoard, isFree, pick as pickTile, isWon, isLost, undo as undoMove,
@@ -133,7 +134,7 @@ export function TileMatchScreen({ api, onExit }: ModeProps) {
             <div className="logo">🎉</div>
             <h2>{t('tm.cleared')}</h2>
             <p className="coins-won"><Icon name="coin" size={24} /> +{coins}</p>
-            <button className="big-btn" onClick={() => restart(level + 1)}>{t('tm.next')}</button>
+            <button className="big-btn" onClick={() => presentFact().then(() => restart(level + 1))}>{t('tm.next')}</button>
             <button className="text-btn" onClick={onExit}>{t('common.toMenu')}</button>
           </div>
         </div>
@@ -147,7 +148,7 @@ export function TileMatchScreen({ api, onExit }: ModeProps) {
             <button className="big-btn ghost solid" onClick={doRemoveThree}>
               <span className="btn-ico"><Icon name="video" size={16} /> {t('tm.free3')}</span>
             </button>
-            <button className="big-btn" onClick={() => restart(level)}>{t('mode.again')}</button>
+            <button className="big-btn" onClick={() => presentFact().then(() => restart(level))}>{t('mode.again')}</button>
             <button className="text-btn" onClick={onExit}>{t('common.toMenu')}</button>
           </div>
         </div>

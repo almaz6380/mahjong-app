@@ -6,12 +6,14 @@ import { initAds } from './ads/admob'
 import { initIAP } from './store/iap'
 import { TileDefs } from './ui/Tile'
 import { AppBackground } from './ui/AppBackground'
+import { FactHost } from './ui/FactHost'
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <TileDefs />
     <AppBackground />
     <App />
+    <FactHost />
   </React.StrictMode>,
 )
 

@@ -4,6 +4,7 @@ import { Icon } from '../../ui/Icon';
 import { t } from '../../i18n';
 import { playMatch, playInvalid, playTap, playWin } from '../../audio/sound';
 import { maybeShowInterstitialModes } from '../../ads/admob';
+import { presentFact } from '../../ui/FactHost';
 import { useGame } from '../../game/useGame';
 import type { ModeProps } from '../types';
 
@@ -122,7 +123,7 @@ export function BlitzScreen({ api, onExit }: ModeProps) {
             <p className="coins-won">{t('blitz.score', { n: score })}</p>
             {newBest ? <p style={{ color: 'var(--accent)', marginTop: -6 }}>{t('mode.newBest')}</p>
               : <p style={{ color: 'var(--muted)', marginTop: -6 }}>{t('mode.best', { n: best })}</p>}
-            <button className="big-btn" onClick={restart}>{t('mode.again')}</button>
+            <button className="big-btn" onClick={() => presentFact().then(() => restart())}>{t('mode.again')}</button>
             <button className="text-btn" onClick={onExit}>{t('common.toMenu')}</button>
           </div>
         </div>

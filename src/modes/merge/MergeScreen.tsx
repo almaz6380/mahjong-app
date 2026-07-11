@@ -4,6 +4,7 @@ import { Icon } from '../../ui/Icon';
 import { t } from '../../i18n';
 import { playTap, playMatch, playWin } from '../../audio/sound';
 import { maybeShowInterstitialModes, showRewarded } from '../../ads/admob';
+import { presentFact } from '../../ui/FactHost';
 import { newGame, move, spawn, canMove, SIZE, type Grid, type Dir } from './logic';
 import type { ModeProps } from '../types';
 
@@ -126,7 +127,7 @@ export function MergeScreen({ api, onExit }: ModeProps) {
             <h2>{t('mode.gameOver')}</h2>
             <p className="coins-won">{score}</p>
             {newBest && <p style={{ color: 'var(--accent)', marginTop: -8 }}>{t('mode.newBest')}</p>}
-            <button className="big-btn" onClick={restart}>{t('mode.again')}</button>
+            <button className="big-btn" onClick={() => presentFact().then(() => restart())}>{t('mode.again')}</button>
           </div>
         </div>
       )}

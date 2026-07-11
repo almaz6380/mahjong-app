@@ -4,6 +4,7 @@ import { Icon } from '../../ui/Icon';
 import { t } from '../../i18n';
 import { playTap, playMatch, playInvalid, playWin } from '../../audio/sound';
 import { maybeShowInterstitialModes, showRewarded } from '../../ads/admob';
+import { presentFact } from '../../ui/FactHost';
 import { buildDeck } from '../../game/tiles';
 import { connectConfig } from './levels';
 import { makeBoard, canConnect, findAnyPair, removePair, isCleared, shuffleRemaining, EMPTY, type Board } from './connect';
@@ -192,7 +193,7 @@ export function ConnectScreen(props: ConnectProps) {
             </div>
             <h2>{t('connect.cleared')}</h2>
             <p className="coins-won"><Icon name="coin" size={24} /> +{result.coins}</p>
-            <button className="big-btn" onClick={() => restart(level + 1)}>{t('connect.next')}</button>
+            <button className="big-btn" onClick={() => presentFact().then(() => restart(level + 1))}>{t('connect.next')}</button>
             <button className="text-btn" onClick={props.onExit}>{t('common.toMenu')}</button>
           </div>
         </div>

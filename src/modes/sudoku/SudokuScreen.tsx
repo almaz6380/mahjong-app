@@ -4,6 +4,7 @@ import { Icon } from '../../ui/Icon';
 import { t } from '../../i18n';
 import { playTap, playInvalid, playWin } from '../../audio/sound';
 import { maybeShowInterstitialModes, showRewarded } from '../../ads/admob';
+import { presentFact } from '../../ui/FactHost';
 import { generate, canPlace, isComplete, type Board, type Difficulty, type Puzzle } from './logic';
 import type { ModeProps } from '../types';
 
@@ -119,7 +120,7 @@ export function SudokuScreen({ api, onExit }: ModeProps) {
           <div className="card">
             <div className="logo">🎉</div>
             <h2>{t('mode.won')}</h2>
-            <button className="big-btn" onClick={() => restart(difficulty)}>{t('mode.again')}</button>
+            <button className="big-btn" onClick={() => presentFact().then(() => restart(difficulty))}>{t('mode.again')}</button>
           </div>
         </div>
       )}

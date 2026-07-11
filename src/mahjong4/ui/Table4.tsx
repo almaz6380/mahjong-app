@@ -8,6 +8,7 @@ import { type Difficulty } from '../ai';
 import { Tile } from '../../ui/Tile';
 import { Icon } from '../../ui/Icon';
 import { t } from '../../i18n';
+import { presentFact } from '../../ui/FactHost';
 
 const WINDS = ['東', '南', '西', '北'];
 const WIND_KEYS = ['m4.east', 'm4.south', 'm4.west', 'm4.north'];
@@ -259,7 +260,7 @@ export function Table4({
                 </div>
               </>
             )}
-            <button className="big-btn" onClick={g4.continueHand}>{t('common.next')}</button>
+            <button className="big-btn" onClick={() => presentFact().then(g4.continueHand)}>{t('common.next')}</button>
           </div>
         </div>
       )}

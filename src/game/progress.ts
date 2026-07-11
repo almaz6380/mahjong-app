@@ -29,6 +29,7 @@ export interface Progress {
   lang: 'de' | 'en' | ''; // '' = automatisch (Systemsprache)
   seenM4Tutorial: boolean;
   notify: boolean; // tägliche Erinnerung an
+  showFacts: boolean; // „Wusstest du?“-Karten zwischen den Runden
   lastEvent: string; // 'YYYY-M-D' des zuletzt eingelösten Tages-Events
   tileSkin: string; // gewähltes Stein-Design
   ownedSkins: string[];
@@ -63,6 +64,7 @@ const DEFAULT: Progress = {
   lang: '',
   seenM4Tutorial: false,
   notify: true,
+  showFacts: true,
   lastEvent: '',
   tileSkin: 'ivory',
   ownedSkins: ['ivory'],
@@ -229,6 +231,15 @@ export function useProgress() {
     [persist],
   );
 
+  const setShowFacts = useCallback(
+    (on: boolean) => {
+      const s = stateRef.current;
+      if (!s) return;
+      persist({ ...s, showFacts: on });
+    },
+    [persist],
+  );
+
   // Tages-Event-Bonus einlösen (max. 1×/Tag; selbst-abgesichert via Ref).
   const claimEvent = useCallback(
     (bonus: number): boolean => {
@@ -390,6 +401,7 @@ export function useProgress() {
     advanceLevel,
     setSoundOn,
     setNotify,
+    setShowFacts,
     claimEvent,
     setAiLevel,
     resetProgress,
