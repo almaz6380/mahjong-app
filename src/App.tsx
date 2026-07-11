@@ -7,7 +7,7 @@ import { RiichiTable } from './mahjong4/ui/RiichiTable';
 import { GamesSheet, type GameItem } from './ui/GamesSheet';
 import { DailyIcon } from './ui/DailyIcon';
 import { EventIcon } from './ui/EventIcon';
-import { ClassicTile } from './ui/ClassicTile';
+import { HeroTile3D } from './ui/HeroTile3D';
 import { SettingsScreen, HowToScreen, ThemesScreen, AchievementsScreen, ShopScreen, StatsScreen } from './ui/Screens';
 import { ModesScreen } from './modes/ModesScreen';
 import { MemoryScreen } from './modes/memory/MemoryScreen';
@@ -292,7 +292,7 @@ export default function App() {
           <div className="hb-sub">Mahjong</div>
           <div className="hb-main">Royale</div>
         </div>
-        <div className="home-tile"><ClassicTile /></div>
+        <div className="home-tile"><HeroTile3D /></div>
 
         <div className="home-sides">
           <button className="side" onClick={startDaily} disabled={dailyDone}>
