@@ -5,7 +5,7 @@ import { Tile } from './ui/Tile';
 import { Table4 } from './mahjong4/ui/Table4';
 import { RiichiTable } from './mahjong4/ui/RiichiTable';
 import { GamesSheet, type GameItem } from './ui/GamesSheet';
-import { CalendarIcon } from './ui/CalendarIcon';
+import { DailyIcon } from './ui/DailyIcon';
 import { SettingsScreen, HowToScreen, ThemesScreen, AchievementsScreen, ShopScreen, StatsScreen } from './ui/Screens';
 import { ModesScreen } from './modes/ModesScreen';
 import { MemoryScreen } from './modes/memory/MemoryScreen';
@@ -294,7 +294,7 @@ export default function App() {
 
         <div className="home-sides">
           <button className="side" onClick={startDaily} disabled={dailyDone}>
-            <span className="side-emoji side-cal"><CalendarIcon />{!dailyDone && <span className="side-dot" />}</span>
+            <span className="side-emoji side-daily"><DailyIcon />{!dailyDone && <span className="side-dot" />}</span>
             <span className="side-lbl">{t('home.daily')}</span>
           </button>
           <button className="side" onClick={() => setScreen(event.mode)}>
