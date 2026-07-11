@@ -7,16 +7,16 @@
 }
 
 :root {
-  /* Dark-Premium-Tokens */
-  --bg: #0e1015;
-  --bg-2: #151a23;
-  --surface: rgba(255, 255, 255, 0.055);
-  --surface-2: rgba(255, 255, 255, 0.1);
-  --line: rgba(255, 255, 255, 0.1);
-  --text: #eef1f5;
-  --muted: rgba(238, 241, 245, 0.58);
-  --accent: #f3c14e; /* wird von Themes überschrieben */
-  --accent-ink: #201a08;
+  /* Natürliche Dunkel-Jade-Tokens (Mahjong-Tisch-Look) */
+  --bg: #103227;
+  --bg-2: #164132;
+  --surface: rgba(244, 236, 216, 0.06);
+  --surface-2: rgba(244, 236, 216, 0.11);
+  --line: rgba(244, 236, 216, 0.12);
+  --text: #f4ecd8;
+  --muted: rgba(244, 236, 216, 0.6);
+  --accent: #35a06d; /* Jade; wird von Themes überschrieben */
+  --accent-ink: #ffffff;
   --danger: #ef5b52;
 
   /* Filz (Spielfläche) – von Themes gesetzt */
@@ -45,9 +45,9 @@ body {
   font-family: 'Inter var', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: var(--text);
   background:
-    radial-gradient(140% 100% at 50% -10%, #1a2230, transparent 60%),
-    radial-gradient(120% 80% at 50% 120%, #05070b, transparent 55%),
-    linear-gradient(180deg, #10131b, #0a0c11);
+    radial-gradient(140% 100% at 50% -10%, #1a5540, transparent 60%),
+    radial-gradient(120% 80% at 50% 120%, #06201a, transparent 55%),
+    linear-gradient(180deg, #12402f, #0a251c);
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
@@ -68,20 +68,20 @@ body {
   filter: blur(60px);
   opacity: 0.5;
 }
-.app-bg-glow-1 { /* Gold oben */
+.app-bg-glow-1 { /* Jade oben */
   top: -18%; left: 50%; transform: translateX(-50%);
   width: 90vw; height: 60vh;
-  background: radial-gradient(closest-side, rgba(245, 179, 1, 0.28), transparent);
+  background: radial-gradient(closest-side, rgba(90, 185, 130, 0.22), transparent);
 }
-.app-bg-glow-2 { /* Jade links unten */
+.app-bg-glow-2 { /* Tiefes Jade links unten */
   bottom: -14%; left: -18%;
   width: 70vw; height: 55vh;
-  background: radial-gradient(closest-side, rgba(34, 196, 168, 0.24), transparent);
+  background: radial-gradient(closest-side, rgba(34, 196, 168, 0.20), transparent);
 }
-.app-bg-glow-3 { /* Violett rechts */
+.app-bg-glow-3 { /* Warmes Holz/Bambus rechts */
   top: 24%; right: -22%;
   width: 70vw; height: 55vh;
-  background: radial-gradient(closest-side, rgba(139, 92, 246, 0.22), transparent);
+  background: radial-gradient(closest-side, rgba(200, 150, 80, 0.14), transparent);
 }
 /* Großer, leuchtender Mahjong-Stein als Wasserzeichen */
 .app-bg-tile {
@@ -91,7 +91,7 @@ body {
   width: min(96vw, 620px);
   height: auto;
   opacity: 0.14;
-  filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 40px rgba(245, 179, 1, 0.25));
+  filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 40px rgba(90, 185, 130, 0.28));
 }
 .app-bg-tile .tileface {
   width: 100%;
@@ -607,7 +607,7 @@ body {
 .side { background: none; border: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 4px 8px; }
 .side:disabled { opacity: 0.55; }
 .side-emoji { position: relative; font-size: 40px; line-height: 1; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.18)); }
-.side-daily svg { width: 48px; height: 48px; display: block; }
+.side-daily svg, .side-event svg { width: 48px; height: 48px; display: block; }
 .side-dot { position: absolute; top: -2px; right: -4px; width: 10px; height: 10px; border-radius: 50%; background: #e0503f; border: 2px solid #164e39; }
 .side-lbl {
   font-size: 12.5px; font-weight: 800; color: #fff; padding: 4px 12px; border-radius: 9px;
@@ -703,7 +703,7 @@ body {
   color: rgba(255, 255, 255, 0.16);
 }
 .stars .star.on {
-  color: var(--accent);
+  color: #f5b301;
   filter: drop-shadow(0 0 12px rgba(243, 193, 78, 0.6));
   animation: pop 0.35s ease;
 }
@@ -722,7 +722,7 @@ body {
   gap: 8px;
 }
 .coins-won .doubled {
-  color: var(--accent);
+  color: #f5b301;
 }
 
 /* ---------- Unter-Screens ---------- */

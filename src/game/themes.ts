@@ -14,7 +14,7 @@ export const THEMES: Theme[] = [
     label: 'theme.classic',
     cost: 0,
     swatch: '#0f4a37',
-    vars: { '--felt': '#0b3d2e', '--felt-2': '#0f4a37', '--accent': '#f5b301' },
+    vars: { '--felt': '#0b3d2e', '--felt-2': '#0f4a37', '--accent': '#35a06d' },
   },
   {
     id: 'midnight',

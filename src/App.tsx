@@ -6,6 +6,7 @@ import { Table4 } from './mahjong4/ui/Table4';
 import { RiichiTable } from './mahjong4/ui/RiichiTable';
 import { GamesSheet, type GameItem } from './ui/GamesSheet';
 import { DailyIcon } from './ui/DailyIcon';
+import { EventIcon } from './ui/EventIcon';
 import { SettingsScreen, HowToScreen, ThemesScreen, AchievementsScreen, ShopScreen, StatsScreen } from './ui/Screens';
 import { ModesScreen } from './modes/ModesScreen';
 import { MemoryScreen } from './modes/memory/MemoryScreen';
@@ -298,7 +299,7 @@ export default function App() {
             <span className="side-lbl">{t('home.daily')}</span>
           </button>
           <button className="side" onClick={() => setScreen(event.mode)}>
-            <span className="side-emoji">🎁</span>
+            <span className="side-emoji side-event"><EventIcon /></span>
             <span className="side-lbl">{eventDone ? '✓ ' + t('event.title') : t('event.title')}</span>
           </button>
         </div>
