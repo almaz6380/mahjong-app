@@ -1,9 +1,10 @@
 # Mahjong Royale (mahjong-app)
 
-Spielesammlung mit Startbildschirm als **Spiele-Hub**: Mahjong Solitaire, **Mahjong Connect**
-(Lianliankan), 4-Spieler-Modus und 4 Bonus-Spiele; dazu wählbare Stein-Designs (Skins) und ein
-leuchtender Riesen-Stein als App-Hintergrund. Vite + React + TypeScript, verpackt mit Capacitor
-für iOS und Android. Sprache im Projekt/mit dem Nutzer: **Deutsch**.
+Spielesammlung mit **minimalistischer Startseite** (ein großer Play-Button + drehender 3D-Stein,
+alle Modi hinter „Alle Spiele"): Mahjong Solitaire, **Mahjong Connect** (Lianliankan), 4-Spieler,
+**Riichi** (japanisch) und mehrere Bonus-Spiele; dazu wählbare Stein-Designs (Skins), **natürlicher
+Jade-Look** app-weit und „Wusstest du?"-Infokarten zwischen den Runden. Vite + React + TypeScript,
+verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: **Deutsch**.
 
 ## Befehle
 
@@ -16,12 +17,21 @@ für iOS und Android. Sprache im Projekt/mit dem Nutzer: **Deutsch**.
 ## Architektur (Kurzüberblick)
 
 - `src/engine.ts`, `src/layouts.ts` — Solitaire-Kern; jedes Board rückwärts konstruiert = garantiert lösbar
-- `src/mahjong4/` — 4-Spieler-Modus (Hongkong vereinfacht, KI per Shanten-Heuristik)
-- `src/modes/connect/` — **Mahjong Connect** (BFS-Pfad ≤2 Kurven, garantiert lösbar via Auto-Mischen);
-  Hub-Spiel, Fortschritt in `progress.connectLevel`
-- `src/modes/` — Bonus-Spiele (2048, Match-3, Memory, Steine-Sudoku), gemeinsame `ModeApi` in types.ts
-- `src/ui/AppBackground.tsx` — globaler Hintergrund (leuchtender Riesen-Stein), in main.tsx gemountet;
-  `src/game/themes.ts` — Hintergrund-Themes + Stein-Skins (`applySkin`/`TILE_SKINS`)
+- `src/mahjong4/` — 4-Spieler-Modus (Hongkong, KI per Shanten-Heuristik) **und Riichi**: `riichi.ts`
+  (Yaku/Han/Fu/Dora-Wertung), `riichiGame.ts`+`useRiichi.ts` (Ablauf, geschlossene Variante),
+  `ui/RiichiTable.tsx`; HK-Tisch `ui/Table4.tsx`
+- `src/modes/connect/` — **Mahjong Connect** (BFS-Pfad ≤2 Kurven, garantiert lösbar via Auto-Mischen),
+  Fortschritt in `progress.connectLevel`
+- `src/modes/` — Bonus-Spiele (2048, Match-3, Memory, Sudoku, Tile Match, Zeit-Blitz, 3D-Dimensions),
+  gemeinsame `ModeApi` in types.ts
+- **Startseite:** minimales Layout in `src/App.tsx` (Play-Button, Seiten-Symbole `DailyIcon`/`EventIcon`,
+  „Alle Spiele"-Sheet `src/ui/GamesSheet.tsx`); drehender 3D-Stein `src/ui/HeroTile3D.tsx` (CSS-3D-
+  Schicht-Extrusion). **Natürlicher Jade-Look** global über `:root`-Tokens + `.home*`/`.hero3d-*` in `src/styles.css`
+- `src/ui/FactHost.tsx` + `src/game/facts.ts` — „Wusstest du?"-Infokarten zwischen Runden (`presentFact()`,
+  Schalter `progress.showFacts`)
+- `src/ui/AppBackground.tsx` — globaler Hintergrund (Jade-Glows + Riesen-Stein), in main.tsx gemountet;
+  `src/game/themes.ts` — Themes + Stein-Skins (`applySkin`/`TILE_SKINS`); App-Icon/Splash via
+  `@capacitor/assets generate` aus `assets/icon-*`/`splash*`
 - `src/ads/admob.ts` — **`USE_TEST_ADS`-Flag**: `false` = echte Anzeigen (Launch), `true` = Google-Test-IDs.
   Prod-IDs siehe `admob-ids.md`. Der Bundler eliminiert den jeweils inaktiven ID-Block!
   Check im fertigen Build: `grep 3940256099942544` (Test-ID) im entpackten JS-Bundle → darf im Release NICHT vorkommen.
@@ -46,7 +56,7 @@ Build bricht mit „Failed to apply patch" ab → einmalig ohne Cache deployen
 - **Git-Autor muss 63almaz80@gmail.com sein** (celorenz1234@… blockiert Vercel-Deploys!)
 - Web zeigt keine echten Ads/IAP — beides nur nativ.
 
-## Native Builds (Launch-Rezept, verifiziert 6.7.2026)
+## Native Builds (Launch-Rezept, verifiziert 12.7.2026)
 
 Vorher immer: `npm run build && npx cap sync`, Build-Nummern erhöhen
 (iOS: `CURRENT_PROJECT_VERSION` in project.pbxproj ×2 Stellen; Android: `versionCode` in app/build.gradle).
@@ -74,4 +84,8 @@ minSdk 23 / compileSdk+targetSdk 35 (Billing-Lib 9 + Play-Pflicht). AAB lädt de
 - Name „Mahjong Royale", appId `com.mahjongroyale.app`, ASC-App-ID 6787721454, Team JU8STVD4SJ
 - AdMob-Publisher pub-8860791993288062 (Konto 63almaz80@gmail.com), IDs in `admob-ids.md`
 - Store-Texte/Screenshots/Rezepte in `store/` (texts.md)
-- Beide Stores am 6.7.2026 mit v1.0 eingereicht (iOS Build 2, Android versionCode 3)
+- Ersteinreichung 6.7.2026 (iOS Build 2 / Android vc3); **iOS wegen 4.3(a) „Design: Spam" abgelehnt**.
+- **Neu eingereicht 12.7.2026, v1.0 — iOS Build 10 / Android versionCode 11**: mit Riichi, natürlichem
+  Jade-Look, drehendem 3D-Stein, neuem Icon/Splash, neuen Screenshots (iPhone+iPad / Handy+Tablet),
+  differenzierter Beschreibung + Reviewer-Antwort im Resolution Center gegen 4.3a. Store-Assets in
+  `~/Desktop/mahjong-*export*` (Icon 512, Feature 1024×500, AAB, Screenshots).
