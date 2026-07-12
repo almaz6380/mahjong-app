@@ -49,6 +49,7 @@ const D: Record<string, Entry> = {
   'menu.help': { de: 'Hilfe', en: 'Help' },
 
   // Tages-Belohnung
+  'menu.reward': { de: 'Belohnung', en: 'Reward' },
   'daily.title': { de: 'Tägliche Belohnung', en: 'Daily reward' },
   'daily.streak': { de: 'Tag {n} in Folge!', en: 'Day {n} in a row!' },
   'daily.claim': { de: 'Abholen', en: 'Claim' },

@@ -11,8 +11,9 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
 - `npm run dev` — Dev-Server
 - `npm run build` — Web-Bundle nach `dist/`
 - `npx cap sync` — dist/ + Plugins nach ios/ und android/ kopieren (nach jedem Build vor nativen Builds!)
-- Web-Smoke-Test: puppeteer-core + System-Chrome (devDep). Achtung: Tagesbelohnungs-Overlay
-  zuerst wegklicken; Headless-Chrome startet englisch (i18n-Auto-Erkennung).
+- Web-Smoke-Test: puppeteer-core + System-Chrome (devDep). Achtung: Headless-Chrome startet
+  englisch (i18n-Auto-Erkennung). Die Tagesbelohnung erscheint NICHT mehr automatisch —
+  sie öffnet nur über das Truhen-Symbol auf der Startseite (Punkt = noch nicht abgeholt).
 
 ## Architektur (Kurzüberblick)
 

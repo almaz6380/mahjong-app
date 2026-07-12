@@ -49,6 +49,10 @@ let adsRemoved = false;
 export function setAdsRemoved(removed: boolean) {
   adsRemoved = removed;
   if (removed && ready) {
+    if (bannerRetryTimer) {
+      clearTimeout(bannerRetryTimer);
+      bannerRetryTimer = null;
+    }
     AdMob.removeBanner?.().catch?.(() => {});
   }
 }
@@ -57,6 +61,7 @@ export function setAdsRemoved(removed: boolean) {
 let AdMob: any = null;
 let BannerAdPosition: any = null;
 let BannerAdSize: any = null;
+let BannerAdPluginEvents: any = null;
 let RewardAdPluginEvents: any = null;
 let ready = false;
 
@@ -116,13 +121,40 @@ export async function initAds(): Promise<void> {
   AdMob = mod.AdMob;
   BannerAdPosition = mod.BannerAdPosition;
   BannerAdSize = mod.BannerAdSize;
+  BannerAdPluginEvents = mod.BannerAdPluginEvents;
   RewardAdPluginEvents = mod.RewardAdPluginEvents;
 
   await runConsentFlow();
 
   await AdMob.initialize({ initializeForTesting: USE_TEST_ADS });
   ready = true;
+
+  // Ohne Füllung (z.B. neues AdMob-Konto, kein Netz) bliebe der reservierte
+  // Banner-Platz als weißer Streifen stehen → Platz freigeben und später neu
+  // versuchen. Lädt ein Banner, ist die Fläche echte Werbung statt Leerraum.
+  AdMob.addListener(BannerAdPluginEvents.Loaded, () => {
+    bannerRetryMs = BANNER_RETRY_START_MS;
+  });
+  AdMob.addListener(BannerAdPluginEvents.FailedToLoad, () => {
+    AdMob.removeBanner?.().catch?.(() => {});
+    scheduleBannerRetry();
+  });
+
   await showBanner();
+}
+
+const BANNER_RETRY_START_MS = 30_000;
+const BANNER_RETRY_MAX_MS = 300_000;
+let bannerRetryMs = BANNER_RETRY_START_MS;
+let bannerRetryTimer: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleBannerRetry() {
+  if (bannerRetryTimer) return;
+  bannerRetryTimer = setTimeout(() => {
+    bannerRetryTimer = null;
+    showBanner();
+  }, bannerRetryMs);
+  bannerRetryMs = Math.min(bannerRetryMs * 2, BANNER_RETRY_MAX_MS);
 }
 
 export async function showBanner(): Promise<void> {

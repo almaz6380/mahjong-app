@@ -16,7 +16,8 @@ export interface Progress {
   boosters: Record<BoosterType, number>;
   bestStars: Record<number, number>; // level -> beste Sternzahl
   streak: number;
-  lastPlayedDate: string; // 'YYYY-MM-DD'
+  lastPlayedDate: string; // 'YYYY-M-D' des letzten App-Starts (zählt den Streak)
+  lastRewardClaim: string; // 'YYYY-M-D' der zuletzt abgeholten Tagesbelohnung
   totalWins: number;
   // v0.3
   soundOn: boolean;
@@ -53,6 +54,7 @@ const DEFAULT: Progress = {
   bestStars: {},
   streak: 0,
   lastPlayedDate: '',
+  lastRewardClaim: '',
   totalWins: 0,
   soundOn: true,
   removeAds: false,
@@ -113,19 +115,26 @@ export function useProgress() {
         try {
           const parsed = JSON.parse(value);
           loaded = { ...DEFAULT, ...parsed, stats: { ...DEFAULT.stats, ...(parsed.stats ?? {}) } };
+          // Migration: früher markierte erst das Abholen den Tag (lastPlayedDate).
+          if (parsed.lastRewardClaim === undefined) loaded.lastRewardClaim = loaded.lastPlayedDate;
         } catch {
           loaded = DEFAULT;
         }
       }
-      stateRef.current = loaded;
-      setState(loaded);
 
-      // Tägliche Belohnung: neuer Tag?
+      // Streak zählt konsekutive Tage mit App-Start — unabhängig vom Abholen,
+      // damit ein übersehenes Belohnungs-Icon den Streak nicht bricht.
       const today = todayStr();
       if (loaded.lastPlayedDate !== today) {
         const streak = loaded.lastPlayedDate === yesterdayStr() ? loaded.streak + 1 : 1;
-        const coins = Math.min(20 + (streak - 1) * 10, 100);
-        setPendingDaily({ coins, streak });
+        loaded = { ...loaded, streak, lastPlayedDate: today };
+      }
+      persist(loaded);
+
+      // Belohnung des Tages noch nicht abgeholt → Punkt am Icon (kein Auto-Popup).
+      if (loaded.lastRewardClaim !== today) {
+        const coins = Math.min(20 + (loaded.streak - 1) * 10, 100);
+        setPendingDaily({ coins, streak: loaded.streak });
       }
     });
     return () => {
@@ -139,8 +148,7 @@ export function useProgress() {
     persist({
       ...s,
       coins: s.coins + pendingDaily.coins,
-      streak: pendingDaily.streak,
-      lastPlayedDate: todayStr(),
+      lastRewardClaim: todayStr(),
     });
     setPendingDaily(null);
   }, [pendingDaily, persist]);

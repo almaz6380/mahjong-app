@@ -7,6 +7,7 @@ import { RiichiTable } from './mahjong4/ui/RiichiTable';
 import { GamesSheet, type GameItem } from './ui/GamesSheet';
 import { DailyIcon } from './ui/DailyIcon';
 import { EventIcon } from './ui/EventIcon';
+import { RewardIcon } from './ui/RewardIcon';
 import { HeroTile3D } from './ui/HeroTile3D';
 import { SettingsScreen, HowToScreen, ThemesScreen, AchievementsScreen, ShopScreen, StatsScreen } from './ui/Screens';
 import { ModesScreen } from './modes/ModesScreen';
@@ -46,6 +47,7 @@ export default function App() {
   const [achToast, setAchToast] = useState<Achievement | null>(null);
   const [dailyBoard, setDailyBoard] = useState<PlacedTile[] | null>(null);
   const [gamesOpen, setGamesOpen] = useState(false);
+  const [showDailyReward, setShowDailyReward] = useState(false);
 
   // Laufendes Spiel laden (für „Fortsetzen").
   useEffect(() => {
@@ -98,27 +100,6 @@ export default function App() {
 
   // Sprache synchron setzen, bevor Kinder rendern (t() liest modulglobal).
   setLanguage(progress.lang === 'de' || progress.lang === 'en' ? progress.lang : detectLang());
-
-  // --- Tägliche Belohnung (Vorrang) ---
-  if (pendingDaily) {
-    return (
-      <div className="menu">
-        <div className="overlay">
-          <div className="card">
-            <div className="logo">🎁</div>
-            <h2>{t('daily.title')}</h2>
-            <p>
-              {t('daily.streak', { n: pendingDaily.streak })}{pendingDaily.streak > 1 && ' 🔥'}
-            </p>
-            <p className="coins-won"><Icon name="coin" size={24} /> +{pendingDaily.coins}</p>
-            <button className="big-btn" onClick={claimDaily}>
-              {t('daily.claim')}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const api = {
     useBooster: p.useBooster,
@@ -299,6 +280,10 @@ export default function App() {
             <span className="side-emoji side-daily"><DailyIcon />{!dailyDone && <span className="side-dot" />}</span>
             <span className="side-lbl">{t('home.daily')}</span>
           </button>
+          <button className="side" onClick={() => setShowDailyReward(true)} disabled={!pendingDaily}>
+            <span className="side-emoji side-reward"><RewardIcon />{pendingDaily && <span className="side-dot" />}</span>
+            <span className="side-lbl">{pendingDaily ? t('menu.reward') : '✓ ' + t('menu.reward')}</span>
+          </button>
           <button className="side" onClick={() => setScreen(event.mode)}>
             <span className="side-emoji side-event"><EventIcon /></span>
             <span className="side-lbl">{eventDone ? '✓ ' + t('event.title') : t('event.title')}</span>
@@ -318,6 +303,29 @@ export default function App() {
       </div>
 
       {gamesOpen && <GamesSheet items={gameItems} onClose={() => setGamesOpen(false)} />}
+
+      {/* Tagesbelohnung: öffnet nur über das Truhen-Symbol, nie automatisch. */}
+      {showDailyReward && pendingDaily && (
+        <div className="overlay" onClick={() => setShowDailyReward(false)}>
+          <div className="card" onClick={(e) => e.stopPropagation()}>
+            <div className="logo"><RewardIcon size={60} /></div>
+            <h2>{t('daily.title')}</h2>
+            <p>
+              {t('daily.streak', { n: pendingDaily.streak })}{pendingDaily.streak > 1 && ' 🔥'}
+            </p>
+            <p className="coins-won"><Icon name="coin" size={24} /> +{pendingDaily.coins}</p>
+            <button
+              className="big-btn"
+              onClick={() => {
+                claimDaily();
+                setShowDailyReward(false);
+              }}
+            >
+              {t('daily.claim')}
+            </button>
+          </div>
+        </div>
+      )}
       {achToast && <AchToast a={achToast} />}
     </div>
   );
