@@ -188,3 +188,24 @@ This updated build adds an original link-style mode "Mahjong Connect" (connect m
 of 7 distinct mahjong games (Connect, Solitaire, 4-player mahjong, 2048, Match-3, Pairs, Sudoku),
 not a single solitaire title. No account or login required. IAPs: remove_ads + 3 coin packs.
 Ads via AdMob after ATT/UMP consent.
+
+# === Update Build 11 (iOS) / versionCode 12 (Android) — bereit, wartet auf Review-Ergebnis ===
+
+## Stand (12.7.2026)
+- Artefakte fertig auf ~/Desktop: MahjongRoyale-ios-1.0-b11.ipa + MahjongRoyale-android-1.0-vc12.aab
+- Wird eingereicht, SOBALD das Review von Build 10 / vc11 abgeschlossen ist (nicht vorher tauschen)
+- Version bleibt 1.0 solange die eingereichte 1.0 nicht freigegeben ist; nach Freigabe ggf. als 1.0.1
+
+## Änderungen in diesem Build
+- Tagesbelohnung erscheint nicht mehr automatisch als Popup beim Start; stattdessen Truhen-Symbol
+  mit rotem Punkt auf der Startseite (Karte öffnet per Tipp; Tipp daneben schließt)
+- Tages-Streak zählt jetzt das tägliche Öffnen der App — nicht mehr das Abholen (kein Streak-Verlust,
+  wenn man die Truhe übersieht)
+- Fix: weißer Balken am unteren Rand, wenn AdMob keinen Banner liefert (Platz wird sofort
+  freigegeben und später erneut angefragt)
+
+## Versionstext („Was ist neu")
+DE: Feinschliff: Die tägliche Belohnung wartet jetzt dezent als Schatztruhe auf der Startseite —
+kein Popup mehr beim Start. Außerdem kleinere Anzeige-Verbesserungen. Viel Spaß! 🀄
+EN: Polish: your daily reward now waits as a treasure chest on the home screen — no more popup at
+launch. Plus minor display improvements. Have fun! 🀄
