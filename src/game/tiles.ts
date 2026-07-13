@@ -13,7 +13,9 @@ export type TileGroup =
   | 'wind'
   | 'dragon'
   | 'flower'
-  | 'season';
+  | 'season'
+  | 'myth'
+  | 'treasure';
 
 export interface TileFace {
   id: string;
@@ -24,7 +26,23 @@ export interface TileFace {
 
 const cp = (code: number) => String.fromCodePoint(code);
 
-export function buildDeck(): TileFace[] {
+// Neue Serien (Entwurf 3): Mythen (龍/鳳/麒/龜) und Schätze (Laterne/Fächer/
+// Münze/Glücksknoten). Jede Sorte 4× mit eigenem matchKey; sie kommen nur in
+// größere Boards (siehe deckForCount), damit kleine Level klassisch bleiben.
+const MYTHS: [string, string][] = [
+  ['myth1', '龍'],
+  ['myth2', '鳳'],
+  ['myth3', '麒'],
+  ['myth4', '龜'],
+];
+const TREASURES: [string, string][] = [
+  ['treasure1', '🏮'],
+  ['treasure2', '🪭'],
+  ['treasure3', '🪙'],
+  ['treasure4', '🪢'],
+];
+
+export function buildDeck(withSeries = false): TileFace[] {
   const faces: TileFace[] = [];
 
   const push4 = (id: string, glyph: string, group: TileGroup, matchKey = id) => {
@@ -53,14 +71,23 @@ export function buildDeck(): TileFace[] {
   for (let i = 0; i < 4; i++)
     faces.push({ id: `season${i + 1}`, glyph: cp(0x1f026 + i), matchKey: 'season', group: 'season' });
 
-  return faces; // = 144 Steine
+  if (withSeries) {
+    for (const [id, glyph] of MYTHS) push4(id, glyph, 'myth');
+    for (const [id, glyph] of TREASURES) push4(id, glyph, 'treasure');
+  }
+
+  return faces; // 144 Steine, mit Serien 176
 }
 
+// Ab dieser Boardgröße mischen die neuen Serien mit.
+const SERIES_MIN_TILES = 80;
+
 // Deck passend zur Steinzahl eines Layouts.
-//  - n <= 144: das volle 144er-Deck (generateBoard nutzt nur n/2 Paare -> volle Varianz).
-//  - n  > 144: Deck erweitern (paarweise), damit große Boards genug Steine haben.
+//  - kleine Boards: klassisches 144er-Deck (generateBoard nutzt nur n/2 Paare).
+//  - ab 80 Steinen: + Mythen/Schätze (mehr Abwechslung auf großen Boards).
+//  - n > Deck: Deck paarweise erweitern, damit große Boards genug Steine haben.
 export function deckForCount(n: number): TileFace[] {
-  const base = buildDeck();
+  const base = buildDeck(n >= SERIES_MIN_TILES);
   if (n <= base.length) return base;
   const out = base.slice();
   for (let i = 0; out.length < n; i++) out.push(base[i]); // fügt ganze 4er-Gruppen -> Paarzahl bleibt gerade

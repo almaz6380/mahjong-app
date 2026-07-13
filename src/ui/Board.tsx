@@ -13,8 +13,8 @@ interface Props {
 
 const TW = 44; // Stein-Breite
 const TH = 58; // Stein-Höhe
-const DX = 5; // horizontaler 3D-Versatz pro Ebene
-const DY = 7; // vertikaler 3D-Versatz pro Ebene
+const DX = 7; // horizontaler 3D-Versatz pro Ebene
+const DY = 10; // vertikaler 3D-Versatz pro Ebene
 
 export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -65,7 +65,7 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
             const free = freeSet.has(t.key);
             const isHint = hintPair && (hintPair[0] === t.key || hintPair[1] === t.key);
             const cls =
-              'tile' +
+              'tile solid' +
               (free ? ' free' : ' blocked') +
               (selected === t.key ? ' selected' : '') +
               (isHint ? ' hint' : '');
@@ -83,7 +83,7 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
                 onClick={() => onTile(t.key)}
                 aria-label={t.face.id}
               >
-                <Tile face={t.face.id} />
+                <Tile face={t.face.id} solid />
               </button>
             );
           })}
@@ -91,7 +91,7 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
         {fading.map((f) => (
           <div
             key={`fade-${f.key}`}
-            className="tile removing"
+            className="tile solid removing"
             style={{
               left: f.col * TW + f.layer * DX,
               top: f.row * TH - f.layer * DY + maxLayer * DY,
@@ -100,7 +100,7 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
               zIndex: 99999,
             }}
           >
-            <Tile face={f.faceId} />
+            <Tile face={f.faceId} solid />
           </div>
         ))}
         </div>

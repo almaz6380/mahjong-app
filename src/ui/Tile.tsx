@@ -2,7 +2,7 @@
 // Nimmt entweder eine Solitaire-id ('char3','bam5','cir7','windE','dragonR','flower1','season2')
 // oder einen 4-Spieler-Code ('m3','s5','p7','z1','z5','f1','g1') und zeichnet Korpus + Motiv.
 
-type Suit = 'man' | 'sou' | 'pin' | 'wind' | 'dragon' | 'flower' | 'season';
+type Suit = 'man' | 'sou' | 'pin' | 'wind' | 'dragon' | 'flower' | 'season' | 'myth' | 'treasure';
 interface Face { suit: Suit; rank: number }
 
 export function normalizeFace(key: string): Face {
@@ -26,6 +26,8 @@ export function normalizeFace(key: string): Face {
   if (key.startsWith('dragon')) return { suit: 'dragon', rank: { R: 1, G: 2, H: 3 }[key.slice(6)] ?? 1 };
   if (key.startsWith('flower')) return { suit: 'flower', rank: +key.slice(6) };
   if (key.startsWith('season')) return { suit: 'season', rank: +key.slice(6) };
+  if (key.startsWith('myth')) return { suit: 'myth', rank: +key.slice(4) };
+  if (key.startsWith('treasure')) return { suit: 'treasure', rank: +key.slice(8) };
   return { suit: 'man', rank: 1 };
 }
 
@@ -54,6 +56,12 @@ export function TileDefs() {
           <stop offset="0" stopColor="#6ff0da" />
           <stop offset="0.5" stopColor="#22c4a8" />
           <stop offset="1" stopColor="#0f8f7c" />
+        </linearGradient>
+        {/* Elfenbein-Seitenfläche (3D-Korpus, solide Steine) */}
+        <linearGradient id="tside" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#d9c9a3" />
+          <stop offset="0.7" stopColor="#bfae85" />
+          <stop offset="1" stopColor="#a3906a" />
         </linearGradient>
       </defs>
     </svg>
@@ -235,6 +243,71 @@ function motif(f: Face): React.ReactNode {
       </g>
     );
   }
+  if (suit === 'myth') {
+    // Mythen-Serie: kolorierte CJK-Glyphen mit Gold-Akzenten (Entwurf 3).
+    const M: [string, string][] = [
+      ['龍', '#e0483d'], // Drache
+      ['鳳', '#c9962a'], // Phönix
+      ['麒', '#22b06a'], // Qilin
+      ['龜', '#2f7ff2'], // Schildkröte
+    ];
+    const [ch, c] = M[(rank - 1) % 4];
+    return (
+      <g>
+        <path d="M30 11 l3.5 5 h-7 z" fill="url(#gold)" />
+        <text
+          x="30" y="53" textAnchor="middle"
+          fontFamily="'Songti SC','Songti TC','STSong','Noto Serif CJK SC','Noto Serif SC',serif"
+          fontSize="33" fontWeight="700" fill={c}
+        >{ch}</text>
+        <path d="M30 66 l3 4 -3 4 -3 -4 z" fill="url(#gold)" opacity="0.9" />
+      </g>
+    );
+  }
+  if (suit === 'treasure') {
+    if (rank === 1) {
+      // Laterne
+      return (
+        <g>
+          <line x1="30" y1="12" x2="30" y2="18" stroke="#8a6a20" strokeWidth="2" />
+          <rect x="20" y="16" width="20" height="5" rx="2" fill="url(#gold)" />
+          <ellipse cx="30" cy="40" rx="14" ry="18" fill="#e0483d" stroke="rgba(0,0,0,.25)" />
+          <path d="M22 26 q8 -4 16 0 M20 40 h20 M22 54 q8 4 16 0" stroke="rgba(255,235,200,.55)" strokeWidth="1.5" fill="none" />
+          <rect x="21" y="57" width="18" height="5" rx="2" fill="url(#gold)" />
+          <line x1="30" y1="62" x2="30" y2="69" stroke="#a52a1d" strokeWidth="2.5" />
+        </g>
+      );
+    }
+    if (rank === 2) {
+      // Fächer
+      return (
+        <g>
+          <path d="M30 62 L13 32 A 20 20 0 0 1 47 32 Z" fill="#f3e3c2" stroke="#8a6a20" strokeWidth="1.5" />
+          <path d="M30 62 L21 27 M30 62 L30 22 M30 62 L39 27" stroke="#e0483d" strokeWidth="2" fill="none" />
+          <circle cx="30" cy="62" r="3.5" fill="url(#gold)" />
+        </g>
+      );
+    }
+    if (rank === 3) {
+      // Münze
+      return (
+        <g>
+          <circle cx="30" cy="40" r="17" fill="url(#gold)" stroke="#8a6a20" strokeWidth="1.5" />
+          <rect x="24.5" y="34.5" width="11" height="11" fill="#f6efe0" stroke="#8a6a20" strokeWidth="1.5" />
+        </g>
+      );
+    }
+    // Glücksknoten
+    return (
+      <g>
+        <g stroke="#e0483d" strokeWidth="3" fill="none">
+          <rect x="19" y="27" width="16" height="16" transform="rotate(45 27 35)" />
+          <rect x="25" y="37" width="16" height="16" transform="rotate(45 33 45)" />
+        </g>
+        <path d="M30 58 l0 10 M26 64 l8 0" stroke="#e0483d" strokeWidth="2" />
+      </g>
+    );
+  }
   // Blumen / Jahreszeiten – helle eigene Icons.
   const color = suit === 'flower' ? '#e857a6' : '#f5a623';
   const petals = suit === 'flower';
@@ -263,8 +336,24 @@ function motif(f: Face): React.ReactNode {
   );
 }
 
-export function Tile({ face, className }: { face: string; className?: string }) {
+export function Tile({ face, className, solid }: { face: string; className?: string; solid?: boolean }) {
   const f = normalizeFace(face);
+  if (solid) {
+    // 3D-Korpus (Entwurf 3): sichtbare Elfenbein-Seitenfläche unten links +
+    // Schlagschatten. Die Deckfläche liegt bei (9,3) in Originalgröße 54×72;
+    // CSS (.tile.solid) mappt genau sie auf das Button-Raster, der Korpus
+    // ragt optisch in die Nachbarzellen (Überstand links/unten).
+    return (
+      <svg className={'tileface' + (className ? ' ' + className : '')} viewBox="0 0 66 92" preserveAspectRatio="xMidYMid meet">
+        <rect x="1" y="17" width="55" height="72" rx="10" fill="#000" opacity="0.3" />
+        <rect x="3" y="12" width="54" height="72" rx="10" fill="url(#tside)" />
+        <rect x="3" y="12" width="54" height="72" rx="10" fill="none" stroke="rgba(0,0,0,.28)" strokeWidth="0.8" />
+        <g transform="translate(6 0)">
+          <TileBody>{motif(f)}</TileBody>
+        </g>
+      </svg>
+    );
+  }
   return (
     <svg className={'tileface' + (className ? ' ' + className : '')} viewBox="0 0 60 80" preserveAspectRatio="xMidYMid meet">
       <TileBody>{motif(f)}</TileBody>

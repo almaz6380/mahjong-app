@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { deckForCount } from './tiles';
-import { LAYOUTS } from './layouts';
+import { getLayout } from './layouts';
 import {
   buildNeighbors,
   generateBoard,
@@ -20,14 +20,26 @@ interface GameOptions {
 }
 
 export function useGame(initialLayout = 'classic', opts: GameOptions = {}) {
-  const nbRef = useRef<Neighbors>(buildNeighbors(LAYOUTS[initialLayout].cells));
+  // Beim Fortsetzen die Nachbarschaft aus den GESPEICHERTEN Steinen bauen
+  // (nach Layout-Index sortiert = key-Reihenfolge). So bleibt eine alte
+  // Session auch dann korrekt, wenn sich die Level-Rampe geändert hat.
+  const nbRef = useRef<Neighbors>(
+    buildNeighbors(
+      opts.initial?.tiles
+        ? opts.initial.tiles
+            .slice()
+            .sort((a, b) => a.key - b.key)
+            .map((t) => ({ col: t.col, row: t.row, layer: t.layer }))
+        : getLayout(initialLayout).cells,
+    ),
+  );
   const optsRef = useRef(opts);
   optsRef.current = opts;
 
   const [tiles, setTiles] = useState<PlacedTile[]>(
     () =>
       opts.initial?.tiles ??
-      generateBoard(LAYOUTS[initialLayout].cells, nbRef.current, deckForCount(LAYOUTS[initialLayout].cells.length)),
+      generateBoard(getLayout(initialLayout).cells, nbRef.current, deckForCount(getLayout(initialLayout).cells.length)),
   );
   const [selected, setSelected] = useState<number | null>(null);
   const [history, setHistory] = useState<[number, number][]>([]);
@@ -121,7 +133,7 @@ export function useGame(initialLayout = 'classic', opts: GameOptions = {}) {
   );
 
   const newGame = useCallback((layoutName = initialLayout) => {
-    const lay = LAYOUTS[layoutName] ?? LAYOUTS[initialLayout];
+    const lay = getLayout(layoutName);
     nbRef.current = buildNeighbors(lay.cells);
     setTiles(generateBoard(lay.cells, nbRef.current, deckForCount(lay.cells.length)));
     setSelected(null);

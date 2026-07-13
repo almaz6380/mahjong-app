@@ -365,6 +365,33 @@ body {
   height: 100%;
   display: block;
 }
+/* 3D-Korpus: Die SVG-Deckfläche (54×72 bei Offset 9/3 im 66×92-viewBox) wird
+   exakt aufs Button-Raster gelegt; Seitenfläche + Schatten ragen optisch in
+   die Nachbarzellen (links/unten). Prozentwerte = viewBox-Verhältnisse. */
+.tile.solid .tileface {
+  position: relative;
+  width: 122.223%;   /* 66/54 */
+  height: 127.778%;  /* 92/72 */
+  left: -16.667%;    /* 9/54 */
+  top: -4.167%;      /* 3/72 */
+}
+/* Auswahl/Tipp-Rahmen beim 3D-Stein auf den Button (= Deckfläche) statt aufs
+   überstehende SVG legen. */
+.tile.solid.selected .tileface,
+.tile.solid.hint .tileface {
+  outline: none;
+}
+.tile.solid.selected {
+  outline: 3px solid var(--accent);
+  outline-offset: -1px;
+  border-radius: 8px;
+}
+.tile.solid.hint {
+  outline: 3px solid #56c8ff;
+  outline-offset: -1px;
+  border-radius: 8px;
+  animation: hintpulse 0.7s ease-in-out infinite alternate;
+}
 .tile.blocked {
   filter: brightness(0.8) saturate(0.9);
   cursor: default;

@@ -18,6 +18,11 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
 ## Architektur (Kurzüberblick)
 
 - `src/engine.ts`, `src/layouts.ts` — Solitaire-Kern; jedes Board rückwärts konstruiert = garantiert lösbar
+- `src/game/figures.ts` — **Figuren-Generator**: 29 Grundformen × Größe × Höhenprofil × Aushöhlung
+  = 1026 einzigartige, deterministische Level-Boards (`layoutForLevel`; Namen `fig-<n>`, i18n `fig.*`).
+  Klassische Layouts (mini/classic/…) nur noch für Tages-Challenge & Zeit-Blitz. Steine im Solitaire
+  mit 3D-Korpus (`<Tile solid>`, CSS `.tile.solid`); ab 80 Steinen mischen die Serien **Mythen**
+  (龍鳳麒龜) & **Schätze** (Laterne/Fächer/Münze/Knoten) ins Deck (`deckForCount`).
 - `src/mahjong4/` — 4-Spieler-Modus (Hongkong, KI per Shanten-Heuristik) **und Riichi**: `riichi.ts`
   (Yaku/Han/Fu/Dora-Wertung), `riichiGame.ts`+`useRiichi.ts` (Ablauf, geschlossene Variante),
   `ui/RiichiTable.tsx`; HK-Tisch `ui/Table4.tsx`

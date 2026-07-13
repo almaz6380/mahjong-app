@@ -2,6 +2,10 @@
 // Spalte = Zeichen-Index, Zeile = Zeilen-Index, Ebene = Array-Index.
 // Neue Layouts (z. B. eine echte "Schildkröte" mit Halb-Offsets) lassen sich
 // hier einfach ergänzen. Wichtig: Gesamtzahl muss GERADE sein (Paare!).
+// Die Level-Boards kommen seit v1.1 aus dem Figuren-Generator (figures.ts);
+// die Layouts hier dienen noch der Tages-Challenge und dem Zeit-Blitz.
+
+import { figureByName, figureForLevel } from './figures';
 
 export interface Cell {
   col: number;
@@ -157,13 +161,15 @@ export const LAYOUTS: Record<string, Layout> = {
   turtle: { name: 'turtle', label: 'layout.turtle', cells: TURTLE },
 };
 
-// Schwierigkeitsrampe: welches Layout gehört zu welchem Level?
-//  Level 1–2:  Mini (schneller Einstieg)
-//  Level 3–6:  Klassisch
-//  Level 7+:   Pyramide / Schildkröte im Wechsel (endlos)
+// Layout per Name auflösen: klassische Namen (mini/classic/...) oder
+// Generator-Figuren ('fig-<n>', siehe figures.ts).
+export function getLayout(name: string): Layout {
+  return figureByName(name) ?? LAYOUTS[name] ?? LAYOUTS.classic;
+}
+
+// Schwierigkeitsrampe: die Level laufen durch alle Generator-Figuren
+// (klein & flach zuerst, groß & hoch später; >1000 einzigartige Boards).
+// Die klassischen Layouts oben bleiben für Tages-Challenge & Zeit-Blitz.
 export function layoutForLevel(level: number): Layout {
-  if (level <= 2) return LAYOUTS.mini;
-  if (level <= 6) return LAYOUTS.classic;
-  const hard = [LAYOUTS.pyramid, LAYOUTS.turtle];
-  return hard[(level - 7) % hard.length];
+  return figureForLevel(level);
 }
