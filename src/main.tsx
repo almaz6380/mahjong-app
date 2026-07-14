@@ -7,6 +7,11 @@ import { initIAP } from './store/iap'
 import { TileDefs } from './ui/Tile'
 import { AppBackground } from './ui/AppBackground'
 import { FactHost } from './ui/FactHost'
+import homeTemple from './assets/home-temple.webp'
+import emblemShield from './assets/emblem-shield.webp'
+import symbolZhong from './assets/symbol-zhong.webp'
+import { nextFact } from './game/facts'
+import { detectLang } from './i18n'
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -16,6 +21,60 @@ createRoot(document.getElementById('root')!).render(
     <FactHost />
   </React.StrictMode>,
 )
+
+// ---- Ladebildschirm: kritische Bilder vorladen, Balken füllen, dann ausblenden ----
+;(() => {
+  const splash = document.getElementById('splash')
+  if (!splash) return
+  const fill = document.getElementById('splash-bar-fill')
+  const tipEl = document.getElementById('splash-tip')
+  const lang = detectLang()
+
+  const showTip = () => {
+    if (!tipEl) return
+    tipEl.style.opacity = '0'
+    setTimeout(() => {
+      const f = nextFact()
+      tipEl.textContent = lang === 'en' ? f.en : f.de
+      tipEl.style.opacity = '1'
+    }, 200)
+  }
+  showTip()
+  const tipTimer = window.setInterval(showTip, 2600)
+
+  const assets = [homeTemple, emblemShield, symbolZhong, '/splash.webp']
+  let done = 0
+  const bump = () => {
+    done++
+    if (fill) fill.style.width = Math.round((done / assets.length) * 100) + '%'
+  }
+  const preload = Promise.all(
+    assets.map(
+      (src) =>
+        new Promise<void>((res) => {
+          const img = new Image()
+          img.onload = img.onerror = () => {
+            bump()
+            res()
+          }
+          img.src = src
+        }),
+    ),
+  )
+
+  const MIN_MS = 1400
+  const started = performance.now()
+  const finish = () => {
+    window.clearInterval(tipTimer)
+    splash.classList.add('hide')
+    setTimeout(() => splash.remove(), 500)
+  }
+  // Nach Vorladen + Mindestdauer ausblenden; Sicherheits-Timeout bei hängendem Bild.
+  Promise.race([preload, new Promise((r) => setTimeout(r, 5000))]).then(() => {
+    const wait = Math.max(0, MIN_MS - (performance.now() - started))
+    setTimeout(finish, wait)
+  })
+})()
 
 // Ads & Käufe nur auf nativen Plattformen; im Browser passiert hier nichts.
 initAds().catch((e) => console.warn('AdMob init übersprungen:', e))
