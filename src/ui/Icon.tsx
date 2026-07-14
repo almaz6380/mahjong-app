@@ -1,5 +1,6 @@
-// Schlanke Inline-SVG-Icons. Farbige (Münze/Flamme/Pokal) sind selbst gefärbt,
-// der Rest erbt die Textfarbe (currentColor).
+// Schlanke Inline-SVG-Icons. Der Rest erbt die Textfarbe (currentColor).
+// Die Münze ist ein freigestelltes Bild (Gemini) – erscheint überall gleich.
+import coinImg from '../assets/coin.webp';
 
 type Name =
   | 'coin' | 'flame' | 'trophy' | 'gear' | 'help' | 'cart' | 'palette'
@@ -9,15 +10,7 @@ export function Icon({ name, size = 18 }: { name: Name; size?: number }) {
   const s = { width: size, height: size, display: 'block', flex: 'none' } as const;
   switch (name) {
     case 'coin':
-      return (
-        <svg viewBox="0 0 24 24" style={s} aria-hidden>
-          <circle cx="12" cy="12" r="10" fill="#f3c14e" />
-          <circle cx="12" cy="12" r="10" fill="none" stroke="#c8971f" strokeWidth="1.4" />
-          <circle cx="12" cy="12" r="6.6" fill="none" stroke="#c8971f" strokeWidth="1.2" opacity="0.7" />
-          <path d="M9 8.5h4a2.3 2.3 0 010 4.6H10.4V16" fill="none" stroke="#8a6512" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-          <ellipse cx="9" cy="7.6" rx="2.6" ry="1.3" fill="#fff" opacity="0.5" />
-        </svg>
-      );
+      return <img src={coinImg} alt="" aria-hidden style={{ ...s, objectFit: 'contain' }} draggable={false} />;
     case 'flame':
       return (
         <svg viewBox="0 0 24 24" style={s} aria-hidden>
