@@ -38,7 +38,13 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   **Bild-Extraktions-Pipeline** (für Stein-Designs aus Gemini): Python-venv mit Pillow/numpy,
   Magenta-Hintergrund per Farb-Key entfernen bzw. nur das Symbol per Rot-Key aus der Mittelzone ziehen,
   auf Silhouette croppen, als WebP mit Alpha ablegen (Rezept im Session-Verlauf; Gemini-Vorgabe:
-  ein Stein pro Bild auf **reinem Magenta #FF00FF**). **Startseiten-Hintergrund** = asiatisches
+  ein Stein pro Bild auf **reinem Magenta #FF00FF**). **Freigestellte Gemini-Symbole** (Extraktion:
+  Magenta-Key `min(R,B)-G`, auf Silhouette croppen, Sternchen mit weg): Münze `coin.webp` (Icon 'coin',
+  überall), Truhe `reward-chest.webp` (RewardIcon), Geschenk `event-gift.webp` (EventIcon), Drachen-Wappen
+  `emblem-shield.webp` (DailyIcon + HeroTile3D-Rückseite), sowie die 8 Icons der „Alle Spiele"-Liste
+  `game-*.webp` (in App.tsx `gameItems`, CSS `.game-ico .game-img`). **Nächster Schritt (offen):**
+  die 42 klassischen Board-Steine per Gemini ersetzen (Prompts im Session-Verlauf; erst Winde+Drachen testen).
+  **Startseiten-Hintergrund** = asiatisches
   Tempel-Motiv (`src/assets/home-temple.webp`), animierte Sakura-Blüten darüber.
   **WICHTIG — Safe-Area-Falle (viel Debugging gekostet):** iOS füllt den unteren Streifen
   (Home-Indikator/Safari-Leiste, ~100+ CSS-px) NUR mit einer Hintergrund-*Farbe*, NIE mit einem
