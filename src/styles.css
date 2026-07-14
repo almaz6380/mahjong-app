@@ -52,9 +52,9 @@ html {
 body {
   font-family: 'Inter var', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: var(--text);
-  background:
-    radial-gradient(130% 80% at 50% -12%, rgba(40, 115, 82, 0.22), transparent 58%),
-    #123f2e;
+  /* transparent: Grundfarbe liegt auf html (#123f2e). So kann die fixe Tempel-
+     Ebene (.home-bg, z-index:-1) auf der Startseite durchscheinen. */
+  background: transparent;
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
@@ -870,12 +870,29 @@ body {
   color: #f4ecd8;
   padding: calc(env(safe-area-inset-top) + 14px) calc(env(safe-area-inset-right) + 16px)
            calc(env(safe-area-inset-bottom) + 18px) calc(env(safe-area-inset-left) + 16px);
-  /* Einheitliche Jade-Grundfarbe (= html/body); nur oben ein dezenter Glow hinter
-     dem Titel (additiv, verläuft in genau die Grundfarbe). Kein unteres Vignette,
-     kein vertikaler Verlauf -> gleichmäßiger Ton bis in die Safe-Area. */
-  background:
-    radial-gradient(95% 50% at 50% 4%, rgba(45, 120, 88, 0.34), transparent 70%),
-    #123f2e;
+  /* Hintergrund liefert die fixe Vollbild-Ebene .home-bg (Tempel-Motiv). */
+  background: transparent;
+}
+/* Asiatischer Tempel-Hintergrund der Startseite: fixe Vollbild-Ebene, deckt auch
+   die Safe-Area (Home-Indikator) ab. Dezentes Dunkel-Overlay oben/unten für die
+   Lesbarkeit von Titel und Buttons. Animierte Sakura-Blüten liegen darüber. */
+/* Auf der Startseite deckt der Tempel alles ab -> globalen Jade-Hintergrund
+   (AppBackground) dort ausblenden, damit er die Tempel-Ebene nicht überdeckt. */
+body:has(.home) .app-bg {
+  display: none;
+}
+.home-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-color: #121f1e;
+  background-image:
+    linear-gradient(180deg, rgba(8, 16, 15, 0.34) 0%, rgba(8, 16, 15, 0) 20%,
+      rgba(8, 16, 15, 0) 54%, rgba(8, 16, 15, 0.62) 100%),
+    url('./assets/home-temple.webp');
+  background-size: cover, cover;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
 }
 .home-top { display: flex; align-items: center; justify-content: space-between; }
 .coin-pill {
