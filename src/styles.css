@@ -97,6 +97,263 @@ body {
   width: 100%;
   height: auto;
 }
+/* Sumi-e-Tuschmotiv (SumiE.tsx) – sehr dezent hinter allem */
+.sumie {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 62vh;
+  opacity: 0.11;
+}
+.sumie svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------- Sakura-Blüten (Sakura.tsx) ---------- */
+.sakura {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 3;
+}
+.sakura-petal {
+  position: absolute;
+  top: -24px;
+  display: block;
+  opacity: 0.85;
+  animation-name: sakura-fall, sakura-sway;
+  animation-timing-function: linear, ease-in-out;
+  animation-iteration-count: infinite, infinite;
+}
+.sakura-petal svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+@keyframes sakura-fall {
+  0% { transform: translateY(-4vh) rotate(0deg); }
+  100% { transform: translateY(110vh) rotate(300deg); }
+}
+@keyframes sakura-sway {
+  0%, 100% { margin-left: 0; }
+  50% { margin-left: var(--drift, 30px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sakura { display: none; }
+}
+
+/* ---------- Sieg-Zeremonie: Ensō + 福 + Hanko (WinCeremony.tsx) ---------- */
+.ceremony {
+  position: relative;
+  width: 116px;
+  height: 116px;
+  margin: 0 auto 4px;
+}
+.ceremony .enso {
+  width: 100%;
+  height: 100%;
+}
+.enso-stroke {
+  stroke-dasharray: 300;
+  stroke-dashoffset: 300;
+  animation: enso-draw 0.9s ease-out forwards;
+}
+@keyframes enso-draw {
+  to { stroke-dashoffset: 0; }
+}
+.ceremony .fu {
+  opacity: 0;
+  animation: fu-in 0.5s ease-out 0.7s forwards;
+}
+@keyframes fu-in {
+  0% { opacity: 0; transform: scale(1.25); transform-origin: 60px 60px; }
+  100% { opacity: 1; transform: scale(1); transform-origin: 60px 60px; }
+}
+.hanko-stamp {
+  position: absolute;
+  right: -14px;
+  bottom: -4px;
+  width: 40px;
+  height: 40px;
+  border-radius: 9px;
+  background: linear-gradient(180deg, #d0453a, #a52a1d);
+  border: 2px solid rgba(120, 20, 10, 0.7);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4), inset 0 0 6px rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-8deg);
+  opacity: 0;
+  animation: hanko-in 0.28s cubic-bezier(0.2, 1.6, 0.4, 1) 1.15s forwards;
+}
+.hanko-num {
+  font-family: 'Songti SC', 'STSong', serif;
+  font-weight: 700;
+  font-size: 17px;
+  color: #ffe8dd;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+}
+@keyframes hanko-in {
+  0% { opacity: 0; transform: rotate(-8deg) scale(1.7); }
+  70% { opacity: 1; transform: rotate(-8deg) scale(0.94); }
+  100% { opacity: 1; transform: rotate(-8deg) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .enso-stroke { animation: none; stroke-dashoffset: 0; }
+  .ceremony .fu { animation: none; opacity: 1; }
+  .hanko-stamp { animation: none; opacity: 1; }
+}
+
+/* ---------- Saison-Fest-Banner (Startseite) ---------- */
+.fest-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(230, 183, 74, 0.45);
+  background: linear-gradient(135deg, rgba(165, 42, 29, 0.55), rgba(230, 183, 74, 0.18));
+  color: var(--text, #f4ecd8);
+  cursor: pointer;
+  text-align: left;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.3);
+}
+.fest-emoji { font-size: 26px; }
+.fest-tx { flex: 1; display: flex; flex-direction: column; font-weight: 700; font-size: 15px; }
+.fest-tx small { font-weight: 500; font-size: 12px; opacity: 0.85; }
+.fest-go { font-size: 22px; opacity: 0.7; }
+
+/* ---------- Zen ---------- */
+.zen-quote {
+  color: var(--muted, #a9c4b3);
+  font-style: italic;
+  margin: 2px 0 12px;
+}
+
+/* ---------- Pagoden-Aufstieg ---------- */
+.pagoda-body { overflow-y: auto; }
+.pagoda-roof { width: 200px; margin: 4px auto -6px; }
+.pagoda-tower {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(340px, 92%);
+  margin: 0 auto 24px;
+}
+.pagoda-floor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  color: var(--text, #f4ecd8);
+  cursor: pointer;
+  text-align: left;
+}
+.pagoda-floor.locked { opacity: 0.38; cursor: default; }
+.pagoda-floor.done { opacity: 0.65; }
+.pagoda-floor.current {
+  border-color: var(--accent, #35a06d);
+  box-shadow: 0 0 0 2px rgba(53, 160, 109, 0.35), 0 10px 24px rgba(0, 0, 0, 0.3);
+}
+.pagoda-floor.milestone { border-color: rgba(230, 183, 74, 0.55); }
+.pf-num {
+  min-width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #d0453a, #a52a1d);
+  font-family: 'Songti SC', 'STSong', serif;
+  font-weight: 700;
+  color: #ffe8dd;
+}
+.pagoda-floor.done .pf-num { background: linear-gradient(180deg, #2f8f63, #1c6b47); }
+.pf-label { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.pf-bonus { display: inline-flex; align-items: center; gap: 4px; color: #e6b74a; font-size: 12px; font-weight: 700; }
+
+/* ---------- Mythen-Album ---------- */
+.album-hint {
+  width: min(360px, 92%);
+  margin: 4px auto 14px;
+  color: var(--muted, #a9c4b3);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}
+.album-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(380px, 94%);
+  margin: 0 auto 24px;
+}
+.album-card {
+  display: flex;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  text-align: left;
+}
+.album-card.complete { border-color: rgba(230, 183, 74, 0.55); }
+.album-tile { width: 46px; flex: none; }
+.album-tile .tileface { width: 100%; height: auto; }
+.album-tile.unknown { filter: brightness(0.25) saturate(0); }
+.album-info { flex: 1; min-width: 0; }
+.album-name { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+.album-text { font-size: 12px; color: var(--muted, #a9c4b3); line-height: 1.45; }
+.album-meter {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 8px 0 5px;
+  overflow: hidden;
+}
+.album-meter-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #35a06d, #e6b74a); }
+.album-count { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted, #a9c4b3); }
+.album-claim {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(230, 183, 74, 0.6);
+  background: rgba(230, 183, 74, 0.16);
+  color: #e6b74a;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+}
+.album-claimed { color: var(--accent, #35a06d); font-weight: 700; }
+
+/* Hanko-Chip: Level-Nummer als kleines Siegel im Spiel-Header */
+.hanko-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 5px;
+  margin-right: 8px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #d0453a, #a52a1d);
+  border: 1.5px solid rgba(120, 20, 10, 0.7);
+  color: #ffe8dd;
+  font-family: 'Songti SC', 'STSong', serif;
+  font-size: 14px;
+  font-weight: 700;
+  transform: rotate(-4deg);
+  vertical-align: -4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+}
 
 /* ---------- gemeinsame Bausteine ---------- */
 .big-btn {
@@ -504,6 +761,7 @@ body {
   to { opacity: 1; }
 }
 .card {
+  position: relative;
   width: min(360px, 94%);
   background: linear-gradient(180deg, var(--bg-2), #0f131b);
   border: 1px solid var(--line);
@@ -512,6 +770,16 @@ body {
   text-align: center;
   box-shadow: var(--sh-2);
   animation: cardin 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+/* Washi-Papier: feines Tuschekorn auf Karten/Overlays (SVG-Turbulenz, kein Asset) */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='w'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='7'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0'/></filter><rect width='140' height='140' filter='url(%23w)'/></svg>");
 }
 @keyframes cardin {
   from { opacity: 0; transform: translateY(12px) scale(0.97); }

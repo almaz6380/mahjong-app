@@ -19,6 +19,11 @@ import { TileMatchScreen } from './modes/tilematch/TileMatchScreen';
 import { BlitzScreen } from './modes/blitz/BlitzScreen';
 import { DimensionsScreen } from './modes/dimensions/DimensionsScreen';
 import { ConnectScreen } from './modes/connect/ConnectScreen';
+import { ZenScreen } from './modes/zen/ZenScreen';
+import { PagodaScreen, PAGODA_FLOORS } from './modes/pagoda/PagodaScreen';
+import { FestivalScreen } from './modes/festival/FestivalScreen';
+import { AlbumScreen } from './ui/AlbumScreen';
+import { activeFestival } from './game/festivals';
 import { useProgress } from './game/progress';
 import { layoutForLevel } from './game/layouts';
 import { applyTheme, applySkin } from './game/themes';
@@ -32,9 +37,11 @@ import { setLanguage, detectLang, t } from './i18n';
 import { setAdsRemoved } from './ads/admob';
 import { setupDailyReminder } from './notify';
 import { setFactsEnabled } from './ui/FactHost';
+import { Sakura } from './ui/Sakura';
+import { setAmbientLevel } from './ui/SumiE';
 import type { PlacedTile } from './game/engine';
 
-type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop' | 'modes' | 'memory' | 'merge' | 'sudoku' | 'match3' | 'tilematch' | 'blitz' | 'dimensions' | 'connect' | 'riichi';
+type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop' | 'modes' | 'memory' | 'merge' | 'sudoku' | 'match3' | 'tilematch' | 'blitz' | 'dimensions' | 'connect' | 'riichi' | 'zen' | 'pagoda' | 'album' | 'festival';
 
 export default function App() {
   const p = useProgress();
@@ -58,6 +65,11 @@ export default function App() {
   useEffect(() => {
     if (progress) applyTheme(progress.theme);
   }, [progress?.theme]);
+
+  // Sumi-e-Hintergrundmotiv an den Level-Fortschritt koppeln.
+  useEffect(() => {
+    if (progress) setAmbientLevel(progress.level);
+  }, [progress?.level]);
   useEffect(() => {
     if (progress) applySkin(progress.tileSkin);
   }, [progress?.tileSkin]);
@@ -108,6 +120,7 @@ export default function App() {
     recordWin: p.recordWin,
     advanceLevel: p.advanceLevel,
     completeDailyChallenge: p.completeDailyChallenge,
+    bumpAlbum: p.bumpAlbum,
   };
 
   const exitToMenu = () => {
@@ -235,6 +248,29 @@ export default function App() {
         onExit={() => setScreen('menu')}
       />
     );
+  if (screen === 'zen') return <ZenScreen onExit={() => setScreen('menu')} />;
+  if (screen === 'pagoda')
+    return (
+      <PagodaScreen
+        floor={progress.pagodaFloor}
+        addCoins={p.addCoins}
+        spendCoins={p.spendCoins}
+        recordPagoda={p.recordPagoda}
+        onExit={() => setScreen('menu')}
+      />
+    );
+  if (screen === 'album')
+    return <AlbumScreen progress={progress} claimAlbum={p.claimAlbum} onBack={() => setScreen('menu')} />;
+  if (screen === 'festival') {
+    const fest = activeFestival();
+    if (!fest) {
+      setScreen('menu');
+      return null;
+    }
+    return (
+      <FestivalScreen fest={fest} claimFestival={p.claimFestival} spendCoins={p.spendCoins} onExit={() => setScreen('menu')} />
+    );
+  }
   if (screen === 'howto') return <HowToScreen onBack={() => setScreen('menu')} />;
   if (screen === 'themes')
     return <ThemesScreen progress={progress} purchaseTheme={p.purchaseTheme} selectTheme={p.selectTheme} purchaseSkin={p.purchaseSkin} selectSkin={p.selectSkin} onBack={() => setScreen('menu')} />;
@@ -247,17 +283,22 @@ export default function App() {
   const dailyDone = dailyDoneToday(progress.lastDailyChallenge);
   const connectLevel = progress.connectLevel;
   const eventDone = progress.lastEvent === todayStr();
+  const fest = activeFestival();
 
   const gameItems: GameItem[] = [
     { id: 'solitaire', icon: <Tile face="char1" />, name: t('hub.solitaire'), sub: canResume ? t('hub.resume', { n: resume!.level }) : t('hub.solitaire.sub', { n: progress.level }), onClick: canResume ? startResume : startFresh },
     { id: 'connect', icon: <span className="emoji">🔗</span>, name: t('menu.connect'), sub: t('hub.connect.sub'), badge: connectLevel > 1 ? 'Lv ' + connectLevel : undefined, onClick: () => setScreen('connect') },
     { id: 'm4', icon: <Tile face="dragonR" />, name: t('menu.m4'), sub: t('hub.m4.sub'), onClick: () => setScreen('mahjong4') },
     { id: 'riichi', icon: <Tile face="dragonG" />, name: t('menu.riichi'), sub: t('hub.riichi.sub'), onClick: () => setScreen('riichi') },
+    { id: 'zen', icon: <span className="emoji">🧘</span>, name: t('menu.zen'), sub: t('hub.zen.sub'), onClick: () => setScreen('zen') },
+    { id: 'pagoda', icon: <span className="emoji">🏯</span>, name: t('menu.pagoda'), sub: t('hub.pagoda.sub'), badge: progress.pagodaFloor > 1 ? `${Math.min(progress.pagodaFloor, PAGODA_FLOORS)}/${PAGODA_FLOORS}` : undefined, onClick: () => setScreen('pagoda') },
+    { id: 'album', icon: <Tile face="myth1" />, name: t('menu.album'), sub: t('hub.album.sub'), onClick: () => setScreen('album') },
     { id: 'more', icon: <span className="emoji">🎲</span>, name: t('hub.more'), sub: t('hub.more.sub'), onClick: () => setScreen('modes') },
   ];
 
   return (
     <div className="home">
+      <Sakura />
       <div className="home-top">
         <button className="coin-pill" onClick={() => setScreen('shop')} aria-label={t('menu.shop')}>
           <Icon name="coin" /> <span>{progress.coins}</span> <span className="plus">+</span>
@@ -292,6 +333,16 @@ export default function App() {
       </div>
 
       <div className="home-bottom">
+        {fest && (
+          <button className="fest-banner" onClick={() => setScreen('festival')}>
+            <span className="fest-emoji">{fest.emoji}</span>
+            <span className="fest-tx">
+              {t(fest.titleKey)}
+              <small>{progress.lastFestival === todayStr() ? '✓ ' + t('fest.sub.done') : t('fest.sub', { n: fest.bonus })}</small>
+            </span>
+            <span className="fest-go">›</span>
+          </button>
+        )}
         <button className="play-btn" onClick={canResume ? startResume : startFresh}>
           <span className="play-tri">▶</span>
           <span className="play-tx">

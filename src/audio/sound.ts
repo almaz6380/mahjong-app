@@ -50,8 +50,20 @@ export function playInvalid() {
   tone(150, 0.13, 'square', 0.1);
 }
 export function playWin() {
-  [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, 0.22, 'triangle', 0.18, i * 0.1));
+  // Windspiel: helle, lang ausklingende Glasklänge (pentatonisch)
+  [1318.51, 1567.98, 1975.53, 2637.02, 2093.0].forEach((f, i) => {
+    tone(f, 1.1, 'sine', 0.10, i * 0.14);
+    tone(f * 2.76, 0.5, 'sine', 0.03, i * 0.14); // metallischer Oberton
+  });
   haptic('medium');
+}
+
+// Koto-Akzent beim Levelstart: kurze gezupfte Pentatonik (D–F–G–A).
+export function playKoto() {
+  [293.66, 349.23, 392.0, 440.0].forEach((f, i) => {
+    tone(f, 0.5, 'triangle', 0.12, i * 0.12);
+    tone(f * 2, 0.22, 'sine', 0.05, i * 0.12); // Anschlag-Brillanz
+  });
 }
 
 // --- Haptik (nur nativ) ----------------------------------------------------

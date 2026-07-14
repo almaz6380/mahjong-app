@@ -35,6 +35,11 @@ export interface Progress {
   tileSkin: string; // gewähltes Stein-Design
   ownedSkins: string[];
   connectLevel: number; // höchstes freigeschaltetes Mahjong-Connect-Level
+  // v1.1 „Asia-Premium"
+  pagodaFloor: number; // aktuelle Etage im Pagoden-Aufstieg (1 = ganz unten)
+  album: Record<string, number>; // Mythen/Schätze: gesammelte Paare je Stein-ID
+  albumClaimed: string[]; // bereits belohnte Album-Einträge
+  lastFestival: string; // 'YYYY-M-D' des zuletzt eingelösten Fest-Bonus
   stats: {
     bestTimeMs: number; // schnellstes Solitaire-Level (0 = noch keins)
     dailies: number; // erledigte Tages-Challenges
@@ -71,6 +76,10 @@ const DEFAULT: Progress = {
   tileSkin: 'ivory',
   ownedSkins: ['ivory'],
   connectLevel: 1,
+  pagodaFloor: 1,
+  album: {},
+  albumClaimed: [],
+  lastFestival: '',
   stats: { bestTimeMs: 0, dailies: 0, m4Hands: 0, m4Wins: 0, m4BestFaan: 0, modeBest: {} },
 };
 
@@ -310,6 +319,50 @@ export function useProgress() {
     [persist],
   );
 
+  // Pagoden-Etage freischalten (höchste erreichte Etage).
+  const recordPagoda = useCallback(
+    (floor: number) => {
+      const s = stateRef.current;
+      if (!s || floor <= s.pagodaFloor) return;
+      persist({ ...s, pagodaFloor: floor, lastPlayedDate: todayStr() });
+    },
+    [persist],
+  );
+
+  // Mythen/Schätze-Paare fürs Album zählen (Stein-IDs eines entfernten Paars).
+  const bumpAlbum = useCallback(
+    (ids: string[]) => {
+      const s = stateRef.current;
+      if (!s || ids.length === 0) return;
+      const album = { ...s.album };
+      for (const id of ids) album[id] = (album[id] ?? 0) + 1;
+      persist({ ...s, album });
+    },
+    [persist],
+  );
+
+  // Album-Belohnung abholen (einmal je Eintrag).
+  const claimAlbum = useCallback(
+    (id: string, reward: number): boolean => {
+      const s = stateRef.current;
+      if (!s || s.albumClaimed.includes(id)) return false;
+      persist({ ...s, coins: s.coins + reward, albumClaimed: [...s.albumClaimed, id] });
+      return true;
+    },
+    [persist],
+  );
+
+  // Fest-Bonus einlösen (max. 1×/Tag während eines Saison-Fests).
+  const claimFestival = useCallback(
+    (bonus: number): boolean => {
+      const s = stateRef.current;
+      if (!s || s.lastFestival === todayStr()) return false;
+      persist({ ...s, coins: s.coins + bonus, lastFestival: todayStr() });
+      return true;
+    },
+    [persist],
+  );
+
   // Connect-Level freischalten (höchstes erreichtes Level).
   const recordConnect = useCallback(
     (level: number) => {
@@ -418,6 +471,10 @@ export function useProgress() {
     purchaseSkin,
     selectSkin,
     recordConnect,
+    recordPagoda,
+    bumpAlbum,
+    claimAlbum,
+    claimFestival,
     setRemoveAds,
     unlockAchievements,
     completeDailyChallenge,

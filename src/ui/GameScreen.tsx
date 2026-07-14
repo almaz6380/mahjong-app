@@ -9,7 +9,10 @@ import { DAILY_REWARD } from '../game/daily';
 import { saveSession, clearSession } from '../game/session';
 import { maybeShowInterstitial, showRewarded } from '../ads/admob';
 import { presentFact } from './FactHost';
-import { playTap, playMatch, playInvalid, playWin } from '../audio/sound';
+import { WinCeremony } from './WinCeremony';
+import { Sakura } from './Sakura';
+import { setAmbientLevel } from './SumiE';
+import { playTap, playMatch, playInvalid, playWin, playKoto } from '../audio/sound';
 import { t } from '../i18n';
 import type { PlacedTile } from '../game/engine';
 
@@ -20,6 +23,7 @@ interface Api {
   recordWin: (level: number, stars: number, coins: number, elapsedMs?: number) => void;
   advanceLevel: () => void;
   completeDailyChallenge: (coins: number) => void;
+  bumpAlbum: (ids: string[]) => void;
 }
 
 interface Props {
@@ -43,7 +47,14 @@ const BOOSTER_LABEL: Record<BoosterType, string> = {
 export function GameScreen({ mode, level, layoutName, layoutLabel, initial, progress, api, onExit, onNewRound }: Props) {
   const game = useGame(layoutName, {
     onSelect: playTap,
-    onMatch: playMatch,
+    onMatch: (a, b) => {
+      playMatch();
+      // Mythen/Schätze-Paare fürs Album zählen.
+      const ids = [a, b]
+        .map((x) => x?.face.id ?? '')
+        .filter((id) => id.startsWith('myth') || id.startsWith('treasure'));
+      if (ids.length) api.bumpAlbum(ids);
+    },
     onInvalid: playInvalid,
     onWin: playWin,
     initial,
@@ -52,6 +63,13 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
   const [purchase, setPurchase] = useState<BoosterType | null>(null);
   const [win, setWin] = useState<{ stars: number; coins: number; doubled: boolean } | null>(null);
   const winHandled = useRef(false);
+
+  // Levelstart: Sumi-e-Motiv aktualisieren + Koto-Akzent (nicht beim Fortsetzen).
+  useEffect(() => {
+    if (mode === 'level') setAmbientLevel(level);
+    if (!initial) playKoto();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const doAction = useCallback(
     (t: BoosterType) => {
@@ -145,7 +163,10 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
           <Icon name="chevron" />
         </button>
         <div className="hud-center">
-          <div className="level">{title}</div>
+          <div className="level">
+            {mode === 'level' && <span className="hanko-chip">{level}</span>}
+            {mode === 'daily' ? title : t('game.levelWord')}
+          </div>
           <div className="sub">{t('game.pairs', { layout: t(layoutLabel), n: game.remaining / 2 })}</div>
         </div>
         <div className="coins"><Icon name="coin" /> {progress.coins}</div>
@@ -207,7 +228,9 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
 
       {win && (
         <div className="overlay">
+          <Sakura />
           <div className="card">
+            <WinCeremony level={mode === 'level' ? level : undefined} />
             <div className="stars">
               {[1, 2, 3].map((s) => (
                 <span key={s} className={s <= win.stars ? 'star on' : 'star'}>

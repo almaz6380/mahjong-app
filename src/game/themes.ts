@@ -44,6 +44,28 @@ export const THEMES: Theme[] = [
     swatch: '#0d5b57',
     vars: { '--felt': '#083b39', '--felt-2': '#0d5b57', '--accent': '#4fe0c0' },
   },
+  // Asia-Serie (13.7.2026): Lack & Gold, Seidenpapier, Lampion-Nacht
+  {
+    id: 'lackrot',
+    label: 'theme.lackrot',
+    cost: 900,
+    swatch: '#6e1f16',
+    vars: { '--felt': '#3f100c', '--felt-2': '#6e1f16', '--accent': '#e6b74a' },
+  },
+  {
+    id: 'seide',
+    label: 'theme.seide',
+    cost: 800,
+    swatch: '#6e6248',
+    vars: { '--felt': '#453d2e', '--felt-2': '#6e6248', '--accent': '#d9c9a3' },
+  },
+  {
+    id: 'lampion',
+    label: 'theme.lampion',
+    cost: 1000,
+    swatch: '#232752',
+    vars: { '--felt': '#14162e', '--felt-2': '#232752', '--accent': '#ff9d4d' },
+  },
 ];
 
 // --- Stein-Designs (Skins) --------------------------------------------------

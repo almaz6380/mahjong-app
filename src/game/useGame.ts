@@ -12,7 +12,8 @@ import {
 } from './engine';
 
 interface GameOptions {
-  onMatch?: () => void;
+  // Bekommt die beiden entfernten Steine (z. B. fürs Mythen-Album).
+  onMatch?: (a?: PlacedTile, b?: PlacedTile) => void;
   onInvalid?: () => void;
   onSelect?: () => void;
   onWin?: () => void;
@@ -123,7 +124,7 @@ export function useGame(initialLayout = 'classic', opts: GameOptions = {}) {
         );
         setHistory((h) => [...h, [selected, key]]);
         setSelected(null);
-        optsRef.current.onMatch?.();
+        optsRef.current.onMatch?.(s, t);
       } else {
         setSelected(key); // Auswahl umschalten
         optsRef.current.onInvalid?.();
