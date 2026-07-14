@@ -66,6 +66,12 @@ export default function App() {
     if (progress) applyTheme(progress.theme);
   }, [progress?.theme]);
 
+  // Startseiten-Klasse an <html> setzen: steuert den Tempel-Hintergrund und die
+  // dazu passende Safe-Area-Farbe zuverlässig (ohne :has()).
+  useEffect(() => {
+    document.documentElement.classList.toggle('on-home', screen === 'menu');
+  }, [screen]);
+
   // Sumi-e-Hintergrundmotiv an den Level-Fortschritt koppeln.
   useEffect(() => {
     if (progress) setAmbientLevel(progress.level);

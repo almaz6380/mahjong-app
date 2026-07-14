@@ -49,9 +49,9 @@ body,
 html {
   background-color: #123f2e;
 }
-/* Auf der Startseite füllt html den unteren Safe-Area-Streifen in exakt der
-   dunklen Bildunterrand-Farbe -> nahtlos mit dem Tempel-Motiv (kein heller Balken). */
-html:has(.home) {
+/* Auf der Startseite (Klasse via JS an <html>) füllt html den unteren Safe-Area-
+   Streifen in exakt der dunklen Bildunterrand-Farbe -> nahtlos mit dem Tempel. */
+html.on-home {
   background-color: #121e1d;
 }
 body {
@@ -883,7 +883,7 @@ body {
    Lesbarkeit von Titel und Buttons. Animierte Sakura-Blüten liegen darüber. */
 /* Auf der Startseite deckt der Tempel alles ab -> globalen Jade-Hintergrund
    (AppBackground) dort ausblenden, damit er die Tempel-Ebene nicht überdeckt. */
-body:has(.home) .app-bg {
+html.on-home .app-bg {
   display: none;
 }
 .home-bg {
