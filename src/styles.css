@@ -52,7 +52,7 @@ html {
 /* Auf der Startseite füllt html den unteren Safe-Area-Streifen in exakt der
    dunklen Bildunterrand-Farbe -> nahtlos mit dem Tempel-Motiv (kein heller Balken). */
 html:has(.home) {
-  background-color: #121f1e;
+  background-color: #121e1d;
 }
 body {
   font-family: 'Inter var', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -888,20 +888,19 @@ body:has(.home) .app-bg {
 }
 .home-bg {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  /* Über den unteren Rand + Safe-Area hinaus, damit das Bild WIRKLICH bis ganz
-     unten (Home-Indikator) durchläuft und keine flache Leiste sichtbar wird. */
-  height: calc(100% + env(safe-area-inset-bottom, 0px) + 90px);
+  inset: 0;
   z-index: -1;
-  background-color: #121f1e;
+  /* Füllfarbe = tatsächliche Bildunterkante. Bild UNTEN verankert, sodass diese
+     dunkle Kante genau am Bildschirmboden liegt und die Safe-Area-Füllung (gleiche
+     Farbe) nahtlos anschließt. Nur oben eine leichte Abdunklung (Titel-Lesbarkeit);
+     unten KEINE, damit die Bildkante nicht dunkler als die Füllfarbe wird. */
+  background-color: #121e1d;
   background-image:
-    linear-gradient(180deg, rgba(8, 16, 15, 0.22) 0%, rgba(8, 16, 15, 0) 16%,
-      rgba(8, 16, 15, 0) 78%, rgba(8, 16, 15, 0.22) 100%),
+    linear-gradient(180deg, rgba(8, 16, 15, 0.24) 0%, rgba(8, 16, 15, 0) 18%,
+      rgba(8, 16, 15, 0) 100%),
     url('./assets/home-temple.webp');
   background-size: cover, cover;
-  background-position: center top, center top;
+  background-position: center bottom, center bottom;
   background-repeat: no-repeat, no-repeat;
 }
 .home-top { display: flex; align-items: center; justify-content: space-between; }
