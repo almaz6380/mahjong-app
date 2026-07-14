@@ -62,7 +62,7 @@ createRoot(document.getElementById('root')!).render(
     ),
   )
 
-  const MIN_MS = 1400
+  const MIN_MS = 2400
   const started = performance.now()
   const finish = () => {
     window.clearInterval(tipTimer)
