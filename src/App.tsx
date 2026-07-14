@@ -304,7 +304,6 @@ export default function App() {
 
   return (
     <div className="home">
-      <div className="home-bg" aria-hidden />
       <Sakura />
       <div className="home-top">
         <button className="coin-pill" onClick={() => setScreen('shop')} aria-label={t('menu.shop')}>

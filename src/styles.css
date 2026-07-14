@@ -49,10 +49,19 @@ body,
 html {
   background-color: #123f2e;
 }
-/* Auf der Startseite (Klasse via JS an <html>) füllt html den unteren Safe-Area-
-   Streifen in exakt der dunklen Bildunterrand-Farbe -> nahtlos mit dem Tempel. */
+/* Tempel-Hintergrund der Startseite direkt auf dem WURZEL-Element (html): dessen
+   Hintergrund wird bei iOS auf die GANZE Fläche inkl. Safe-Area (Home-Indikator)
+   propagiert -> das Bild läuft garantiert bis ganz unten, kein Farbstreifen.
+   Nur oben eine leichte Abdunklung (Titel-Lesbarkeit). */
 html.on-home {
   background-color: #121e1d;
+  background-image:
+    linear-gradient(180deg, rgba(8, 16, 15, 0.26) 0%, rgba(8, 16, 15, 0) 20%,
+      rgba(8, 16, 15, 0) 100%),
+    url('./assets/home-temple.webp');
+  background-size: cover, cover;
+  background-position: center bottom, center bottom;
+  background-repeat: no-repeat, no-repeat;
 }
 body {
   font-family: 'Inter var', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -885,23 +894,6 @@ body {
    (AppBackground) dort ausblenden, damit er die Tempel-Ebene nicht überdeckt. */
 html.on-home .app-bg {
   display: none;
-}
-.home-bg {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  /* Füllfarbe = tatsächliche Bildunterkante. Bild UNTEN verankert, sodass diese
-     dunkle Kante genau am Bildschirmboden liegt und die Safe-Area-Füllung (gleiche
-     Farbe) nahtlos anschließt. Nur oben eine leichte Abdunklung (Titel-Lesbarkeit);
-     unten KEINE, damit die Bildkante nicht dunkler als die Füllfarbe wird. */
-  background-color: #121e1d;
-  background-image:
-    linear-gradient(180deg, rgba(8, 16, 15, 0.24) 0%, rgba(8, 16, 15, 0) 18%,
-      rgba(8, 16, 15, 0) 100%),
-    url('./assets/home-temple.webp');
-  background-size: cover, cover;
-  background-position: center bottom, center bottom;
-  background-repeat: no-repeat, no-repeat;
 }
 .home-top { display: flex; align-items: center; justify-content: space-between; }
 .coin-pill {
