@@ -16,7 +16,6 @@ const FRONT = (
       </linearGradient>
     </defs>
     <rect x="0" y="0" width="60" height="80" fill="url(#hero3dBody)" />
-    <rect x="8" y="7" width="44" height="8" rx="4" fill="#ffffff" opacity="0.5" />
     <image href={symbolZhong} x="11" y="15" width="38" height="50" preserveAspectRatio="xMidYMid meet" />
   </svg>
 );
