@@ -46,6 +46,8 @@ function sideColor(t: number): string {
 export function HeroTile3D() {
   const D = 36; // Tiefe (px)
   const L = 28; // Ebenen
+  const W = 150; // Breite  (muss zu .hero3d-layer passen)
+  const H = 200; // Höhe
   const step = D / (L - 1);
   const layers = Array.from({ length: L }, (_, i) => {
     const z = -D / 2 + i * step;
@@ -61,11 +63,32 @@ export function HeroTile3D() {
       </div>
     );
   });
+
+  // Elfenbein-Rahmen aus vier ECHTEN Seitenflächen (quer zu den Ebenen).
+  // Die Ebenen-Extrusion verschwindet exakt im Kantenmoment der Drehung
+  // (alle Ebenen stehen in Blickrichtung -> kurz „schwarz"); der Rahmen steht
+  // senkrecht dazu und ist genau dann voll sichtbar. Leicht eingerückt (INSET),
+  // damit seine Ecken in Schrägansichten nicht aus der runden Silhouette ragen.
+  const INSET = 9;
+  const rims: CSSProperties[] = [
+    // rechts / links (Fläche: Tiefe × Höhe)
+    { width: D, height: H - 2 * INSET, left: (W - D) / 2, top: INSET, transform: `rotateY(90deg) translateZ(${W / 2}px)` },
+    { width: D, height: H - 2 * INSET, left: (W - D) / 2, top: INSET, transform: `rotateY(-90deg) translateZ(${W / 2}px)` },
+    // oben / unten (Fläche: Breite × Tiefe)
+    { width: W - 2 * INSET, height: D, left: INSET, top: (H - D) / 2, transform: `rotateX(90deg) translateZ(${H / 2}px)` },
+    { width: W - 2 * INSET, height: D, left: INSET, top: (H - D) / 2, transform: `rotateX(-90deg) translateZ(${H / 2}px)` },
+  ];
+
   return (
     <div className="hero3d-scene">
       <div className="hero3d-wrap">
         <div className="hero3d-tilt">
-          <div className="hero3d-box">{layers}</div>
+          <div className="hero3d-box">
+            {rims.map((style, i) => (
+              <div key={`rim-${i}`} className="hero3d-rim" style={style} />
+            ))}
+            {layers}
+          </div>
         </div>
       </div>
     </div>
