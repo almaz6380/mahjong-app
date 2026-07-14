@@ -1001,6 +1001,7 @@ html.on-home .app-bg {
   box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.7), 0 3px 8px rgba(0, 0, 0, 0.12); font-size: 22px;
 }
 .game-ico svg { width: 90%; height: 90%; }
+.game-ico .game-img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .game-tx { display: flex; flex-direction: column; gap: 1px; }
 .game-tx b { font-size: 15.5px; color: #33260f; }
 .game-tx span { font-size: 12.5px; color: rgba(58, 44, 23, 0.6); }

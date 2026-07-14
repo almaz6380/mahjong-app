@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { GameScreen } from './ui/GameScreen';
 import { Icon } from './ui/Icon';
-import { Tile } from './ui/Tile';
 import { Table4 } from './mahjong4/ui/Table4';
 import { RiichiTable } from './mahjong4/ui/RiichiTable';
 import { GamesSheet, type GameItem } from './ui/GamesSheet';
@@ -37,6 +36,14 @@ import { setLanguage, detectLang, t } from './i18n';
 import { setAdsRemoved } from './ads/admob';
 import { setupDailyReminder } from './notify';
 import { setFactsEnabled } from './ui/FactHost';
+import gameSolitaire from './assets/game-solitaire.webp';
+import gameConnect from './assets/game-connect.webp';
+import gameM4 from './assets/game-m4.webp';
+import gameRiichi from './assets/game-riichi.webp';
+import gameZen from './assets/game-zen.webp';
+import gamePagoda from './assets/game-pagoda.webp';
+import gameAlbum from './assets/game-album.webp';
+import gameMore from './assets/game-more.webp';
 import { Sakura } from './ui/Sakura';
 import { setAmbientLevel } from './ui/SumiE';
 import type { PlacedTile } from './game/engine';
@@ -292,14 +299,14 @@ export default function App() {
   const fest = activeFestival();
 
   const gameItems: GameItem[] = [
-    { id: 'solitaire', icon: <Tile face="char1" />, name: t('hub.solitaire'), sub: canResume ? t('hub.resume', { n: resume!.level }) : t('hub.solitaire.sub', { n: progress.level }), onClick: canResume ? startResume : startFresh },
-    { id: 'connect', icon: <span className="emoji">🔗</span>, name: t('menu.connect'), sub: t('hub.connect.sub'), badge: connectLevel > 1 ? 'Lv ' + connectLevel : undefined, onClick: () => setScreen('connect') },
-    { id: 'm4', icon: <Tile face="dragonR" />, name: t('menu.m4'), sub: t('hub.m4.sub'), onClick: () => setScreen('mahjong4') },
-    { id: 'riichi', icon: <Tile face="dragonG" />, name: t('menu.riichi'), sub: t('hub.riichi.sub'), onClick: () => setScreen('riichi') },
-    { id: 'zen', icon: <span className="emoji">🧘</span>, name: t('menu.zen'), sub: t('hub.zen.sub'), onClick: () => setScreen('zen') },
-    { id: 'pagoda', icon: <span className="emoji">🏯</span>, name: t('menu.pagoda'), sub: t('hub.pagoda.sub'), badge: progress.pagodaFloor > 1 ? `${Math.min(progress.pagodaFloor, PAGODA_FLOORS)}/${PAGODA_FLOORS}` : undefined, onClick: () => setScreen('pagoda') },
-    { id: 'album', icon: <Tile face="myth1" />, name: t('menu.album'), sub: t('hub.album.sub'), onClick: () => setScreen('album') },
-    { id: 'more', icon: <span className="emoji">🎲</span>, name: t('hub.more'), sub: t('hub.more.sub'), onClick: () => setScreen('modes') },
+    { id: 'solitaire', icon: <img className="game-img" src={gameSolitaire} alt="" />, name: t('hub.solitaire'), sub: canResume ? t('hub.resume', { n: resume!.level }) : t('hub.solitaire.sub', { n: progress.level }), onClick: canResume ? startResume : startFresh },
+    { id: 'connect', icon: <img className="game-img" src={gameConnect} alt="" />, name: t('menu.connect'), sub: t('hub.connect.sub'), badge: connectLevel > 1 ? 'Lv ' + connectLevel : undefined, onClick: () => setScreen('connect') },
+    { id: 'm4', icon: <img className="game-img" src={gameM4} alt="" />, name: t('menu.m4'), sub: t('hub.m4.sub'), onClick: () => setScreen('mahjong4') },
+    { id: 'riichi', icon: <img className="game-img" src={gameRiichi} alt="" />, name: t('menu.riichi'), sub: t('hub.riichi.sub'), onClick: () => setScreen('riichi') },
+    { id: 'zen', icon: <img className="game-img" src={gameZen} alt="" />, name: t('menu.zen'), sub: t('hub.zen.sub'), onClick: () => setScreen('zen') },
+    { id: 'pagoda', icon: <img className="game-img" src={gamePagoda} alt="" />, name: t('menu.pagoda'), sub: t('hub.pagoda.sub'), badge: progress.pagodaFloor > 1 ? `${Math.min(progress.pagodaFloor, PAGODA_FLOORS)}/${PAGODA_FLOORS}` : undefined, onClick: () => setScreen('pagoda') },
+    { id: 'album', icon: <img className="game-img" src={gameAlbum} alt="" />, name: t('menu.album'), sub: t('hub.album.sub'), onClick: () => setScreen('album') },
+    { id: 'more', icon: <img className="game-img" src={gameMore} alt="" />, name: t('hub.more'), sub: t('hub.more.sub'), onClick: () => setScreen('modes') },
   ];
 
   return (
