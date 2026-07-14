@@ -64,20 +64,46 @@ export function HeroTile3D() {
     );
   });
 
-  // Elfenbein-Rahmen aus vier ECHTEN Seitenflächen (quer zu den Ebenen).
+  // Elfenbein-Wand ENTLANG DER RUNDEN SILHOUETTE (quer zu den Ebenen).
   // Die Ebenen-Extrusion verschwindet exakt im Kantenmoment der Drehung
-  // (alle Ebenen stehen in Blickrichtung -> kurz „schwarz"); der Rahmen steht
-  // senkrecht dazu und ist genau dann voll sichtbar. Leicht eingerückt (INSET),
-  // damit seine Ecken in Schrägansichten nicht aus der runden Silhouette ragen.
-  const INSET = 9;
-  const rims: CSSProperties[] = [
-    // rechts / links (Fläche: Tiefe × Höhe)
-    { width: D, height: H - 2 * INSET, left: (W - D) / 2, top: INSET, transform: `rotateY(90deg) translateZ(${W / 2}px)` },
-    { width: D, height: H - 2 * INSET, left: (W - D) / 2, top: INSET, transform: `rotateY(-90deg) translateZ(${W / 2}px)` },
-    // oben / unten (Fläche: Breite × Tiefe)
-    { width: W - 2 * INSET, height: D, left: INSET, top: (H - D) / 2, transform: `rotateX(90deg) translateZ(${H / 2}px)` },
-    { width: W - 2 * INSET, height: D, left: INSET, top: (H - D) / 2, transform: `rotateX(-90deg) translateZ(${H / 2}px)` },
+  // (alle Ebenen stehen in Blickrichtung -> kurz „schwarz"); die Wand steht
+  // senkrecht dazu und ist genau dann voll sichtbar. Damit die Kanten RUND
+  // bleiben, folgt sie dem Umriss: 4 gerade Stücke + 6 Bogensegmente je Ecke.
+  const R = 19; // muss zum border-radius von .hero3d-layer passen
+  // Segment: Breite w, Mittelpunkt (px,py) relativ zur Box-Mitte, Drehung a in der Deckfläche.
+  const segs: { w: number; px: number; py: number; a: number }[] = [
+    { w: H - 2 * R, px: -W / 2, py: 0, a: 90 }, // links
+    { w: H - 2 * R, px: W / 2, py: 0, a: 90 }, // rechts
+    { w: W - 2 * R, px: 0, py: -H / 2, a: 0 }, // oben
+    { w: W - 2 * R, px: 0, py: H / 2, a: 0 }, // unten
   ];
+  const CORNERS: [number, number, number][] = [
+    [-W / 2 + R, -H / 2 + R, 180], // oben links (Bogen 180°->270°)
+    [W / 2 - R, -H / 2 + R, 270], // oben rechts
+    [W / 2 - R, H / 2 - R, 0], // unten rechts
+    [-W / 2 + R, H / 2 - R, 90], // unten links
+  ];
+  const STEPS = 6;
+  const STEP = 90 / STEPS;
+  const chord = 2 * R * Math.sin((STEP * Math.PI) / 360) + 1; // +1px gegen Haarfugen
+  for (const [cx, cy, start] of CORNERS) {
+    for (let i = 0; i < STEPS; i++) {
+      const phi = ((start + STEP * (i + 0.5)) * Math.PI) / 180;
+      segs.push({
+        w: chord,
+        px: cx + R * Math.cos(phi),
+        py: cy + R * Math.sin(phi),
+        a: (phi * 180) / Math.PI + 90,
+      });
+    }
+  }
+  const rims: CSSProperties[] = segs.map(({ w, px, py, a }) => ({
+    width: w,
+    height: D,
+    left: W / 2 - w / 2,
+    top: H / 2 - D / 2,
+    transform: `translate3d(${px}px, ${py}px, 0) rotateZ(${a}deg) rotateX(90deg)`,
+  }));
 
   return (
     <div className="hero3d-scene">
