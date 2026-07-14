@@ -3,6 +3,9 @@
 // selbst UND lässt sich per Finger/Maus frei drehen (mit Ausschwung). Reines
 // CSS-3D, kein 3D-Framework.
 import { useEffect, useRef, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+import symbolZhong from '../assets/symbol-zhong.webp';
+
+// Vorderseite: Elfenbein-Korpus (wie gehabt) + freigestelltes Gemini-Zeichen 中.
 const FRONT = (
   <svg viewBox="0 0 60 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -14,10 +17,7 @@ const FRONT = (
     </defs>
     <rect x="0" y="0" width="60" height="80" fill="url(#hero3dBody)" />
     <rect x="8" y="7" width="44" height="8" rx="4" fill="#ffffff" opacity="0.5" />
-    <g fill="#c62828">
-      <rect x="18.4" y="29" width="23.2" height="24" rx="2.2" fill="none" stroke="#c62828" strokeWidth="4.3" />
-      <rect x="27.5" y="19.6" width="5" height="42.8" rx="1.6" />
-    </g>
+    <image href={symbolZhong} x="11" y="15" width="38" height="50" preserveAspectRatio="xMidYMid meet" />
   </svg>
 );
 
