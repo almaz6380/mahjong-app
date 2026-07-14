@@ -41,19 +41,20 @@ body,
   height: 100%;
   margin: 0;
 }
-/* Durchgehende Grundfarbe auf html: NUR eine background-COLOR (kein Verlaufsbild)
-   wird bei iOS auf die ganze Fläche inkl. unterem Safe-Area-Bereich (Home-
-   Indikator) propagiert. Der body-Verlauf endet unten in exakt dieser Farbe
-   (#08201a, kein Vignette-Radial mehr unten) -> nahtloser Übergang, kein Weiß. */
+/* EINHEITLICHE Grundfarbe überall (kein vertikaler Verlauf mehr): html und body
+   tragen exakt dieselbe Jade-Farbe. So ist der ganze Hintergrund inkl. unterem
+   Safe-Area-Bereich (Home-Indikator) ein einziger, gleichmäßiger Ton – kein
+   dunkleres Band, kein Weiß. Ein sehr dezenter Glow oben (rein additiv, verläuft
+   in genau diese Grundfarbe) gibt etwas Tiefe, ohne einen Übergang zu erzeugen. */
 html {
-  background-color: #08201a;
+  background-color: #123f2e;
 }
 body {
   font-family: 'Inter var', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: var(--text);
   background:
-    radial-gradient(140% 100% at 50% -10%, #1a5540, transparent 60%),
-    linear-gradient(180deg, #12402f 0%, #0a251c 82%, #08201a 100%);
+    radial-gradient(130% 80% at 50% -12%, rgba(40, 115, 82, 0.22), transparent 58%),
+    #123f2e;
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
@@ -869,10 +870,12 @@ body {
   color: #f4ecd8;
   padding: calc(env(safe-area-inset-top) + 14px) calc(env(safe-area-inset-right) + 16px)
            calc(env(safe-area-inset-bottom) + 18px) calc(env(safe-area-inset-left) + 16px);
+  /* Einheitliche Jade-Grundfarbe (= html/body); nur oben ein dezenter Glow hinter
+     dem Titel (additiv, verläuft in genau die Grundfarbe). Kein unteres Vignette,
+     kein vertikaler Verlauf -> gleichmäßiger Ton bis in die Safe-Area. */
   background:
-    radial-gradient(95% 55% at 50% 6%, #1d5f46, transparent 72%),
-    radial-gradient(80% 45% at 50% 106%, #06231a, transparent 60%),
-    linear-gradient(180deg, #164e39, #0b2c20);
+    radial-gradient(95% 50% at 50% 4%, rgba(45, 120, 88, 0.34), transparent 70%),
+    #123f2e;
 }
 .home-top { display: flex; align-items: center; justify-content: space-between; }
 .coin-pill {
