@@ -39,11 +39,17 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   Magenta-Hintergrund per Farb-Key entfernen bzw. nur das Symbol per Rot-Key aus der Mittelzone ziehen,
   auf Silhouette croppen, als WebP mit Alpha ablegen (Rezept im Session-Verlauf; Gemini-Vorgabe:
   ein Stein pro Bild auf **reinem Magenta #FF00FF**). **Startseiten-Hintergrund** = asiatisches
-  Tempel-Motiv (`src/assets/home-temple.webp`) als fixe Vollbild-Ebene `.home-bg` (z-index:-1, deckt
-  Safe-Area ab, Dunkel-Overlay oben/unten für Lesbarkeit); animierte Sakura-Blüten liegen darüber.
-  Wichtig: `body { background: transparent }` (Grundfarbe `#123f2e` nur auf html), sonst überdeckt
-  body die Tempel-Ebene; `body:has(.home) .app-bg { display:none }` blendet die globale Jade-Ebene
-  nur auf der Startseite aus. Andere Screens: html-Jade `#123f2e` + `src/ui/AppBackground.tsx`
+  Tempel-Motiv (`src/assets/home-temple.webp`), animierte Sakura-Blüten darüber.
+  **WICHTIG — Safe-Area-Falle (viel Debugging gekostet):** iOS füllt den unteren Streifen
+  (Home-Indikator/Safari-Leiste, ~100+ CSS-px) NUR mit einer Hintergrund-*Farbe*, NIE mit einem
+  fixen oder Root-Hintergrund*bild*. Finale Lösung: (1) Bild liegt auf `html.on-home` (Root-Element),
+  (2) die Klasse `on-home` wird per `useEffect(screen)` an `<html>` gesetzt (NICHT `:has()` — griff
+  auf dem Gerät nicht!), (3) `html.on-home` background-color = `#121e1d`, und (4) der **Bildunterrand
+  ist bewusst in genau dieses #121e1d ausgelaufen** (in der webp eingebacken), damit Bildkante =
+  Streifenfarbe = nahtlos. `body { background: transparent }` (Grundfarbe `#123f2e` nur auf html),
+  sonst überdeckt body den Root-Hintergrund; `html.on-home .app-bg { display:none }`. Andere Screens:
+  html-Jade `#123f2e` + `src/ui/AppBackground.tsx`. Bild-Verarbeitung (Sternchen entfernen, Rand
+  auslaufen) via Python-venv/Pillow im Session-Scratchpad.
 - `src/ui/FactHost.tsx` + `src/game/facts.ts` — „Wusstest du?"-Infokarten zwischen Runden (`presentFact()`,
   Schalter `progress.showFacts`)
 - **Asia-Premium (v1.1):** Sumi-e-Tuschmotive im Hintergrund (`src/ui/SumiE.tsx`, wechselt je 50 Level via
