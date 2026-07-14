@@ -41,18 +41,20 @@ body,
   height: 100%;
   margin: 0;
 }
-/* Grundfarbe auch auf html: füllt den unteren Safe-Area-Bereich (Home-Indikator)
-   im Web/Safari, sonst blitzt dort die weiße Standard-Seitenfläche durch. */
-html {
-  background: #0a251c;
-}
+/* Denselben Verlauf auf html UND body: html füllt den unteren Safe-Area-Bereich
+   (Home-Indikator) im Web/Safari nahtlos mit — sonst blitzt dort entweder Weiß
+   oder (bei flacher Farbe) ein abweichender Grünton durch. Beide gleich hoch
+   (height:100%), daher deckungsgleich. */
+html,
 body {
-  font-family: 'Inter var', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: var(--text);
   background:
     radial-gradient(140% 100% at 50% -10%, #1a5540, transparent 60%),
     radial-gradient(120% 80% at 50% 120%, #06201a, transparent 55%),
     linear-gradient(180deg, #12402f, #0a251c);
+}
+body {
+  font-family: 'Inter var', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text);
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
