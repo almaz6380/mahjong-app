@@ -903,6 +903,29 @@ body {
   content: ""; position: absolute; inset: -18% -30%; z-index: -1; border-radius: 50%;
   background: radial-gradient(circle, rgba(90, 160, 105, 0.30), transparent 68%);
 }
+/* Hero als freigestelltes Bild (drehbar/schwingend) */
+.herotile-scene {
+  perspective: 900px;
+  touch-action: none;
+  cursor: grab;
+  display: grid;
+  place-items: center;
+}
+.herotile-scene:active { cursor: grabbing; }
+.herotile-card {
+  transform-style: preserve-3d;
+  will-change: transform;
+  filter: drop-shadow(0 22px 26px rgba(4, 20, 14, 0.55));
+}
+.herotile-card img {
+  display: block;
+  height: min(46vh, 300px);
+  width: auto;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 /* Massiver 3D-Stein (Schicht-Extrusion, runde Kanten, volle Drehung) */
 .hero3d-scene { perspective: 900px; touch-action: none; cursor: grab; }
 .hero3d-scene:active { cursor: grabbing; }
