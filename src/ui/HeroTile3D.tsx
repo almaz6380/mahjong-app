@@ -1,7 +1,8 @@
 // Startseiten-Hero: massiver 3D-Mahjongstein (中) mit runden Kanten + Tiefe,
-// per Schicht-Extrusion (viele gestapelte runde Ebenen), volle Drehung um die
-// Diagonale. Reines CSS-3D, kein 3D-Framework.
-import { type CSSProperties, type ReactNode } from 'react';
+// per Schicht-Extrusion (viele gestapelte runde Ebenen). Dreht sich sanft von
+// selbst UND lässt sich per Finger/Maus frei drehen (mit Ausschwung). Reines
+// CSS-3D, kein 3D-Framework.
+import { useEffect, useRef, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 const FRONT = (
   <svg viewBox="0 0 60 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -105,11 +106,93 @@ export function HeroTile3D() {
     transform: `translate3d(${px}px, ${py}px, 0) rotateZ(${a}deg) rotateX(90deg)`,
   }));
 
+  const boxRef = useRef<HTMLDivElement>(null);
+  // Rotationszustand außerhalb des React-Renders (kein Re-Render pro Frame).
+  const st = useRef({
+    rotX: 12, // leichte Anfangs-Neigung (wie bisher)
+    rotY: 18,
+    velX: 0,
+    velY: 0,
+    dragging: false,
+    idleResumeAt: 0,
+    last: null as null | { x: number; y: number; t: number },
+  });
+
+  useEffect(() => {
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    let raf = 0;
+    let running = true;
+    const IDLE = reduce ? 0 : 0.6; // Grad/Frame je Achse in der Ruhe-Drehung
+
+    const frame = () => {
+      const s = st.current;
+      const el = boxRef.current;
+      if (!s.dragging) {
+        // Ausschwung nach dem Loslassen …
+        s.rotX += s.velX;
+        s.rotY += s.velY;
+        s.velX *= 0.94;
+        s.velY *= 0.94;
+        if (Math.abs(s.velX) < 0.01) s.velX = 0;
+        if (Math.abs(s.velY) < 0.01) s.velY = 0;
+        // … dann sanft zurück in die Ruhe-Drehung (nur wenn erlaubt).
+        const now = performance.now();
+        if (IDLE > 0 && s.velX === 0 && s.velY === 0 && now >= s.idleResumeAt) {
+          s.rotY += IDLE;
+          s.rotX += IDLE * 0.42;
+        }
+      }
+      if (s.rotX > 80) s.rotX = 80;
+      if (s.rotX < -80) s.rotX = -80;
+      if (el) el.style.transform = `rotateX(${s.rotX}deg) rotateY(${s.rotY}deg)`;
+      if (running) raf = requestAnimationFrame(frame);
+    };
+    raf = requestAnimationFrame(frame);
+    return () => {
+      running = false;
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  const onDown = (e: ReactPointerEvent) => {
+    const s = st.current;
+    s.dragging = true;
+    s.velX = 0;
+    s.velY = 0;
+    s.last = { x: e.clientX, y: e.clientY, t: performance.now() };
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+  };
+  const onMove = (e: ReactPointerEvent) => {
+    const s = st.current;
+    if (!s.dragging || !s.last) return;
+    const dx = e.clientX - s.last.x;
+    const dy = e.clientY - s.last.y;
+    s.rotY += dx * 0.5;
+    s.rotX -= dy * 0.5;
+    // Momentum aus der letzten Bewegung (pro Frame ~ dx*0.5).
+    s.velY = dx * 0.5;
+    s.velX = -dy * 0.5;
+    s.last = { x: e.clientX, y: e.clientY, t: performance.now() };
+  };
+  const onUp = (e: ReactPointerEvent) => {
+    const s = st.current;
+    s.dragging = false;
+    s.last = null;
+    s.idleResumeAt = performance.now() + 2500; // erst nach kurzer Ruhe weiterdrehen
+    (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+  };
+
   return (
-    <div className="hero3d-scene">
+    <div
+      className="hero3d-scene"
+      onPointerDown={onDown}
+      onPointerMove={onMove}
+      onPointerUp={onUp}
+      onPointerCancel={onUp}
+    >
       <div className="hero3d-wrap">
         <div className="hero3d-tilt">
-          <div className="hero3d-box">
+          <div className="hero3d-box" ref={boxRef}>
             {rims.map((style, i) => (
               <div key={`rim-${i}`} className="hero3d-rim" style={style} />
             ))}

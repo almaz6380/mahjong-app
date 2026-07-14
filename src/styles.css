@@ -895,12 +895,13 @@ body {
   background: radial-gradient(circle, rgba(90, 160, 105, 0.30), transparent 68%);
 }
 /* Massiver 3D-Stein (Schicht-Extrusion, runde Kanten, volle Drehung) */
-.hero3d-scene { perspective: 900px; }
-.hero3d-wrap { position: relative; filter: drop-shadow(0 20px 26px rgba(4, 20, 14, 0.5)); }
+.hero3d-scene { perspective: 900px; touch-action: none; cursor: grab; }
+.hero3d-scene:active { cursor: grabbing; }
+.hero3d-wrap { position: relative; filter: drop-shadow(0 20px 26px rgba(4, 20, 14, 0.5)); pointer-events: none; }
 .hero3d-tilt { transform-style: preserve-3d; transform: rotateX(16deg) rotateY(-12deg); }
 .hero3d-box {
   position: relative; width: 150px; height: 200px; transform-style: preserve-3d;
-  animation: heroSpin 6s linear infinite;
+  /* Drehung (Ruhe-Spin + Finger-Steuerung) setzt HeroTile3D.tsx per JS. */
 }
 .hero3d-layer {
   position: absolute; top: 0; left: 0; width: 150px; height: 200px;

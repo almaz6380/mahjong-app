@@ -32,7 +32,9 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   gemeinsame `ModeApi` in types.ts
 - **Startseite:** minimales Layout in `src/App.tsx` (Play-Button, Seiten-Symbole `DailyIcon`/`EventIcon`,
   „Alle Spiele"-Sheet `src/ui/GamesSheet.tsx`); drehender 3D-Stein `src/ui/HeroTile3D.tsx` (CSS-3D-
-  Schicht-Extrusion). **Natürlicher Jade-Look** global über `:root`-Tokens + `.home*`/`.hero3d-*` in `src/styles.css`
+  Schicht-Extrusion + runde Seitenwand; **Rotation per JS-rAF**: sanfte Ruhe-Drehung + Finger/Maus-
+  Drehung mit Ausschwung, Pointer-Events auf `.hero3d-scene`, `touch-action:none`). **Natürlicher
+  Jade-Look** global über `:root`-Tokens + `.home*`/`.hero3d-*` in `src/styles.css`
 - `src/ui/FactHost.tsx` + `src/game/facts.ts` — „Wusstest du?"-Infokarten zwischen Runden (`presentFact()`,
   Schalter `progress.showFacts`)
 - **Asia-Premium (v1.1):** Sumi-e-Tuschmotive im Hintergrund (`src/ui/SumiE.tsx`, wechselt je 50 Level via
