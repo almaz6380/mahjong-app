@@ -4,6 +4,7 @@
 // CSS-3D, kein 3D-Framework.
 import { useEffect, useRef, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import symbolZhong from '../assets/symbol-zhong.webp';
+import emblemShield from '../assets/emblem-shield.webp';
 
 // Vorderseite: Elfenbein-Korpus (wie gehabt) + freigestelltes Gemini-Zeichen 中.
 const FRONT = (
@@ -30,8 +31,7 @@ const BACK = (
     </defs>
     <rect x="0" y="0" width="60" height="80" fill="url(#hero3dDk)" />
     <rect x="5" y="5" width="50" height="70" rx="7" fill="none" stroke="rgba(244,236,216,0.14)" strokeWidth="1.4" />
-    <circle cx="30" cy="40" r="11" fill="none" stroke="rgba(244,236,216,0.20)" strokeWidth="2.2" />
-    <circle cx="30" cy="40" r="3.6" fill="rgba(244,236,216,0.22)" />
+    <image href={emblemShield} x="9" y="11" width="42" height="58" preserveAspectRatio="xMidYMid meet" />
   </svg>
 );
 
