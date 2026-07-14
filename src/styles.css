@@ -41,20 +41,19 @@ body,
   height: 100%;
   margin: 0;
 }
-/* Denselben Verlauf auf html UND body: html füllt den unteren Safe-Area-Bereich
-   (Home-Indikator) im Web/Safari nahtlos mit — sonst blitzt dort entweder Weiß
-   oder (bei flacher Farbe) ein abweichender Grünton durch. Beide gleich hoch
-   (height:100%), daher deckungsgleich. */
-html,
-body {
-  background:
-    radial-gradient(140% 100% at 50% -10%, #1a5540, transparent 60%),
-    radial-gradient(120% 80% at 50% 120%, #06201a, transparent 55%),
-    linear-gradient(180deg, #12402f, #0a251c);
+/* Durchgehende Grundfarbe auf html: NUR eine background-COLOR (kein Verlaufsbild)
+   wird bei iOS auf die ganze Fläche inkl. unterem Safe-Area-Bereich (Home-
+   Indikator) propagiert. Der body-Verlauf endet unten in exakt dieser Farbe
+   (#08201a, kein Vignette-Radial mehr unten) -> nahtloser Übergang, kein Weiß. */
+html {
+  background-color: #08201a;
 }
 body {
   font-family: 'Inter var', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: var(--text);
+  background:
+    radial-gradient(140% 100% at 50% -10%, #1a5540, transparent 60%),
+    linear-gradient(180deg, #12402f 0%, #0a251c 82%, #08201a 100%);
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
