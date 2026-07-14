@@ -49,6 +49,11 @@ body,
 html {
   background-color: #123f2e;
 }
+/* Auf der Startseite füllt html den unteren Safe-Area-Streifen in exakt der
+   dunklen Bildunterrand-Farbe -> nahtlos mit dem Tempel-Motiv (kein heller Balken). */
+html:has(.home) {
+  background-color: #121f1e;
+}
 body {
   font-family: 'Inter var', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: var(--text);
@@ -887,8 +892,8 @@ body:has(.home) .app-bg {
   z-index: -1;
   background-color: #121f1e;
   background-image:
-    linear-gradient(180deg, rgba(8, 16, 15, 0.34) 0%, rgba(8, 16, 15, 0) 20%,
-      rgba(8, 16, 15, 0) 54%, rgba(8, 16, 15, 0.62) 100%),
+    linear-gradient(180deg, rgba(8, 16, 15, 0.22) 0%, rgba(8, 16, 15, 0) 16%,
+      rgba(8, 16, 15, 0) 74%, rgba(8, 16, 15, 0.26) 100%),
     url('./assets/home-temple.webp');
   background-size: cover, cover;
   background-position: center, center;
