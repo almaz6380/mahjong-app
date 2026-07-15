@@ -14,7 +14,7 @@ interface Props {
 const TW = 44; // Stein-Breite
 const TH = 58; // Stein-Höhe
 const DX = 0; // kein horizontaler Versatz -> Frontansicht, Steine sauber senkrecht gestapelt
-const DY = 3.5; // vertikaler 3D-Versatz pro Ebene (= Korpus-Steindicke in Tile.tsx)
+const DY = 6; // vertikaler 3D-Versatz pro Ebene (= Korpus-Steindicke in Tile.tsx) – spürbare Tiefe
 
 export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -30,12 +30,14 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
   useLayoutEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
-    const PAD = 12;
+    const PAD = 8;
     const resize = () => {
       const r = el.getBoundingClientRect();
       if (r.width === 0 || r.height === 0) return;
       const s = Math.min((r.width - PAD) / boardW, (r.height - PAD) / boardH);
-      setScale(s > 0 ? Math.min(s, 1.7) : 1);
+      // Deckel hoch (1.7 -> 3.2): dünne Layouts (Stern etc.) füllen den Screen,
+      // Steine deutlich größer. Dichte Layouts sind ohnehin durch fit begrenzt.
+      setScale(s > 0 ? Math.min(s, 3.2) : 1);
     };
     resize();
     // ResizeObserver fängt Layout-Änderungen zuverlässig ab (Timing-sicher).

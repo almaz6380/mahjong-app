@@ -176,10 +176,10 @@ function TileTop() {
 }
 
 // 3D-Steindicke: Elfenbein-Seitenwand NUR unten (Frontansicht, kein seitlicher
-// Winkel), um +4.5 Einheiten ≈ 3.5px nach unten versetzt → überbrückt den
-// senkrechten Stapel-Versatz DY=3.5 (Board.tsx). Steine stapeln sauber senkrecht.
+// Winkel), um +7.5 Einheiten ≈ 6px nach unten versetzt → überbrückt den
+// senkrechten Stapel-Versatz DY=6 (Board.tsx). Spürbare, solide Tiefe.
 function TileSide() {
-  return <rect x="2" y="6.5" width="56" height="74" rx="6" fill="url(#tside)" stroke="rgba(60,45,15,.3)" strokeWidth="0.6" />;
+  return <rect x="2" y="9.5" width="56" height="74" rx="6" fill="url(#tside)" stroke="rgba(60,45,15,.32)" strokeWidth="0.6" />;
 }
 
 function motif(f: Face): React.ReactNode {
