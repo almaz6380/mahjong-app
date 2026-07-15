@@ -15,3 +15,7 @@ android/local.properties
 # Android-Signierung (niemals committen)
 android/upload-keystore.jks
 android/keystore.properties
+
+# Bild-Pipeline (venv + Gemini-Rohbilder, nicht ins Repo)
+.venv-img/
+gemini-in/
