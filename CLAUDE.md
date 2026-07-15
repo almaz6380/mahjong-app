@@ -67,8 +67,13 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   `tile-sou-stick.webp`, Vogel `tile-sou-bird.webp` (1-Bambus). Die **Anzahl 1–9 wird im Code zusammengesetzt**
   (`TokenImg` an den `PIN`/`SOU`-Positionen in `Tile.tsx`; ersetzt die alten SVG-Motive `Gem`/`Crystal`,
   Anzahl garantiert korrekt). `Gem`/`DOT_COLORS` bleiben nur noch für `PinDigit` (Sudoku).
-  **Nächster Schritt (offen):** Blumen (梅蘭菊竹) + Jahreszeiten (je 4) per Gemini als Motive ersetzen
-  (aktuell noch SVG in `Tile.tsx`).
+  **Blumen (梅蘭菊竹) + Jahreszeiten ersetzt:** `tile-flower-{plum,orchid,chrys,bamboo}.webp` (`FLOWER_IMG`) und
+  `tile-season-{spring,summer,autumn,winter}.webp` (`SEASON_IMG`) als freigestellte Gemini-Motive; `Numeral`
+  entfernt. **Damit sind alle 144er-Stein-Faces Gemini-Bilder** (nur Bonus-Serien Mythen/Schätze noch SVG in `motif`).
+  Freistellung dieser offenen Farb-Motive auf **pinkigem (nicht reinem) Magenta** per `--blank`-artigem
+  `--flower`-Modus: Magenta-Key `min(R,B)-G` + Rand-Flood-Fill (randverbundener BG) + „dunkel-pink"-Entfernung
+  (schattierter BG in Motiv-Öffnungen) + Grün-Despill an Kanten (gegen Un-Multiply-Saum). Bilder aus Chat ohne
+  Upload-Pfad: aus dem Sitzungs-JSONL (`~/.claude/projects/.../<id>.jsonl`, base64-`image`-Blocks) ziehen.
   **Startseiten-Hintergrund** = asiatisches
   Tempel-Motiv (`src/assets/home-temple.webp`), animierte Sakura-Blüten darüber.
   **WICHTIG — Safe-Area-Falle (viel Debugging gekostet):** iOS füllt den unteren Streifen

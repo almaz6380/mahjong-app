@@ -26,6 +26,10 @@ import flowerPlum from '../assets/tile-flower-plum.webp';
 import flowerOrchid from '../assets/tile-flower-orchid.webp';
 import flowerChrys from '../assets/tile-flower-chrys.webp';
 import flowerBamboo from '../assets/tile-flower-bamboo.webp';
+import seasonSpring from '../assets/tile-season-spring.webp';
+import seasonSummer from '../assets/tile-season-summer.webp';
+import seasonAutumn from '../assets/tile-season-autumn.webp';
+import seasonWinter from '../assets/tile-season-winter.webp';
 
 // Freigestellte Gemini-Symbole für Winde (東南西北) und Drachen (中/發/白).
 // Roter Drache = dasselbe 中 wie auf dem Drehstein (symbol-zhong).
@@ -35,6 +39,8 @@ const DRAGON_IMG: Record<number, string> = { 1: dragonRed, 2: dragonGreen, 3: dr
 const WAN_IMG: Record<number, string> = { 1: wan1, 2: wan2, 3: wan3, 4: wan4, 5: wan5, 6: wan6, 7: wan7, 8: wan8, 9: wan9 };
 // Blumen 梅蘭菊竹 (Pflaume/Orchidee/Chrysantheme/Bambus) – freigestellte Gemini-Motive.
 const FLOWER_IMG: Record<number, string> = { 1: flowerPlum, 2: flowerOrchid, 3: flowerChrys, 4: flowerBamboo };
+// Jahreszeiten (Frühling/Sommer/Herbst/Winter) – freigestellte Gemini-Motive.
+const SEASON_IMG: Record<number, string> = { 1: seasonSpring, 2: seasonSummer, 3: seasonAutumn, 4: seasonWinter };
 
 type Suit = 'man' | 'sou' | 'pin' | 'wind' | 'dragon' | 'flower' | 'season' | 'myth' | 'treasure';
 interface Face { suit: Suit; rank: number }
@@ -171,13 +177,6 @@ function TileSide() {
   return <rect x="2" y="6.5" width="56" height="74" rx="6" fill="url(#tside)" stroke="rgba(60,45,15,.3)" strokeWidth="0.6" />;
 }
 
-// Rangzahl im eigenen Stil (arabisch, kräftig) – ersetzt chinesische Ziffern.
-function Numeral({ n, x = 30, y = 34, size = 26, fill = '#1e2a44' }: { n: number; x?: number; y?: number; size?: number; fill?: string }) {
-  return (
-    <text x={x} y={y} textAnchor="middle" fontFamily="Inter, system-ui, sans-serif" fontSize={size} fontWeight="800" fill={fill}>{n}</text>
-  );
-}
-
 function motif(f: Face): React.ReactNode {
   const { suit, rank } = f;
   if (suit === 'pin') {
@@ -275,20 +274,8 @@ function motif(f: Face): React.ReactNode {
     // Blumen (梅蘭菊竹) – freigestelltes Gemini-Motiv.
     return <image href={FLOWER_IMG[rank] ?? flowerPlum} x="9" y="12" width="42" height="52" preserveAspectRatio="xMidYMid meet" />;
   }
-  // Jahreszeiten – vorerst SVG-Sonne (Gemini-Motive folgen).
-  const color = '#f5a623';
-  return (
-    <>
-      <g>
-        {Array.from({ length: 8 }, (_, i) => {
-          const a = (i * 45) * Math.PI / 180;
-          return <line key={i} x1={30 + Math.cos(a) * 11} y1={38 + Math.sin(a) * 11} x2={30 + Math.cos(a) * 18} y2={38 + Math.sin(a) * 18} stroke={color} strokeWidth="2.4" strokeLinecap="round" />;
-        })}
-        <circle cx="30" cy="38" r="10" fill={color} />
-      </g>
-      <Numeral n={rank} x={46} y={70} size={13} fill={color} />
-    </>
-  );
+  // Jahreszeiten (Frühling/Sommer/Herbst/Winter) – freigestelltes Gemini-Motiv.
+  return <image href={SEASON_IMG[rank] ?? seasonSpring} x="9" y="12" width="42" height="52" preserveAspectRatio="xMidYMid meet" />;
 }
 
 export function Tile({ face, className, solid }: { face: string; className?: string; solid?: boolean }) {
