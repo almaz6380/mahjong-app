@@ -69,7 +69,10 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   Anzahl garantiert korrekt). `Gem`/`DOT_COLORS` bleiben nur noch für `PinDigit` (Sudoku).
   **Blumen (梅蘭菊竹) + Jahreszeiten ersetzt:** `tile-flower-{plum,orchid,chrys,bamboo}.webp` (`FLOWER_IMG`) und
   `tile-season-{spring,summer,autumn,winter}.webp` (`SEASON_IMG`) als freigestellte Gemini-Motive; `Numeral`
-  entfernt. **Damit sind alle 144er-Stein-Faces Gemini-Bilder** (nur Bonus-Serien Mythen/Schätze noch SVG in `motif`).
+  entfernt. **Bonus-Serien ersetzt:** Mythen `tile-myth-{dragon,phoenix,qilin,turtle}.webp` (`MYTH_IMG`, Jade+Gold-
+  Kreaturen 龍鳳麒龜) und Schätze `tile-treasure-{lantern,fan,coin,knot}.webp` (`TREASURE_IMG`); `#gold`-Verlauf
+  entfernt. **Damit sind ALLE Stein-Faces (Standard + Bonus) freigestellte Gemini-Bilder** — `motif` in `Tile.tsx`
+  enthält keine gezeichneten Stein-Symbole mehr (nur noch `Gem` für Sudoku-`PinDigit`).
   Freistellung dieser offenen Farb-Motive auf **pinkigem (nicht reinem) Magenta** per `--blank`-artigem
   `--flower`-Modus: Magenta-Key `min(R,B)-G` + Rand-Flood-Fill (randverbundener BG) + „dunkel-pink"-Entfernung
   (schattierter BG in Motiv-Öffnungen) + Grün-Despill an Kanten (gegen Un-Multiply-Saum). Bilder aus Chat ohne

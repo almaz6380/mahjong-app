@@ -30,6 +30,14 @@ import seasonSpring from '../assets/tile-season-spring.webp';
 import seasonSummer from '../assets/tile-season-summer.webp';
 import seasonAutumn from '../assets/tile-season-autumn.webp';
 import seasonWinter from '../assets/tile-season-winter.webp';
+import mythDragon from '../assets/tile-myth-dragon.webp';
+import mythPhoenix from '../assets/tile-myth-phoenix.webp';
+import mythQilin from '../assets/tile-myth-qilin.webp';
+import mythTurtle from '../assets/tile-myth-turtle.webp';
+import treasureLantern from '../assets/tile-treasure-lantern.webp';
+import treasureFan from '../assets/tile-treasure-fan.webp';
+import treasureCoin from '../assets/tile-treasure-coin.webp';
+import treasureKnot from '../assets/tile-treasure-knot.webp';
 
 // Freigestellte Gemini-Symbole für Winde (東南西北) und Drachen (中/發/白).
 // Roter Drache = dasselbe 中 wie auf dem Drehstein (symbol-zhong).
@@ -41,6 +49,9 @@ const WAN_IMG: Record<number, string> = { 1: wan1, 2: wan2, 3: wan3, 4: wan4, 5:
 const FLOWER_IMG: Record<number, string> = { 1: flowerPlum, 2: flowerOrchid, 3: flowerChrys, 4: flowerBamboo };
 // Jahreszeiten (Frühling/Sommer/Herbst/Winter) – freigestellte Gemini-Motive.
 const SEASON_IMG: Record<number, string> = { 1: seasonSpring, 2: seasonSummer, 3: seasonAutumn, 4: seasonWinter };
+// Bonus-Serien (nur große Boards): Mythen 龍鳳麒龜, Schätze Laterne/Fächer/Münze/Knoten.
+const MYTH_IMG: Record<number, string> = { 1: mythDragon, 2: mythPhoenix, 3: mythQilin, 4: mythTurtle };
+const TREASURE_IMG: Record<number, string> = { 1: treasureLantern, 2: treasureFan, 3: treasureCoin, 4: treasureKnot };
 
 type Suit = 'man' | 'sou' | 'pin' | 'wind' | 'dragon' | 'flower' | 'season' | 'myth' | 'treasure';
 interface Face { suit: Suit; rank: number }
@@ -89,12 +100,6 @@ export function TileDefs() {
         <linearGradient id="tback" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#1a6b4f" />
           <stop offset="1" stopColor="#0f4531" />
-        </linearGradient>
-        {/* Gold (Krone) */}
-        <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#ffe07a" />
-          <stop offset="0.5" stopColor="#f5b301" />
-          <stop offset="1" stopColor="#c8890a" />
         </linearGradient>
         {/* Elfenbein-Deckfläche (aus dem Blankostein gesampelt) – harte, bündig
             kachelnde Basis, damit zwischen Steinen kein Filz durchscheint. */}
@@ -206,69 +211,12 @@ function motif(f: Face): React.ReactNode {
     return <SymbolImg href={DRAGON_IMG[rank] ?? dragonRed} />;
   }
   if (suit === 'myth') {
-    // Mythen-Serie: kolorierte CJK-Glyphen mit Gold-Akzenten (Entwurf 3).
-    const M: [string, string][] = [
-      ['龍', '#e0483d'], // Drache
-      ['鳳', '#c9962a'], // Phönix
-      ['麒', '#22b06a'], // Qilin
-      ['龜', '#2f7ff2'], // Schildkröte
-    ];
-    const [ch, c] = M[(rank - 1) % 4];
-    return (
-      <g>
-        <path d="M30 11 l3.5 5 h-7 z" fill="url(#gold)" />
-        <text
-          x="30" y="53" textAnchor="middle"
-          fontFamily="'Songti SC','Songti TC','STSong','Noto Serif CJK SC','Noto Serif SC',serif"
-          fontSize="33" fontWeight="700" fill={c}
-        >{ch}</text>
-        <path d="M30 66 l3 4 -3 4 -3 -4 z" fill="url(#gold)" opacity="0.9" />
-      </g>
-    );
+    // Mythen 龍鳳麒龜 – freigestellte Gemini-Motive (Jade+Gold-Kreaturen).
+    return <image href={MYTH_IMG[rank] ?? mythDragon} x="8" y="11" width="44" height="54" preserveAspectRatio="xMidYMid meet" />;
   }
   if (suit === 'treasure') {
-    if (rank === 1) {
-      // Laterne
-      return (
-        <g>
-          <line x1="30" y1="12" x2="30" y2="18" stroke="#8a6a20" strokeWidth="2" />
-          <rect x="20" y="16" width="20" height="5" rx="2" fill="url(#gold)" />
-          <ellipse cx="30" cy="40" rx="14" ry="18" fill="#e0483d" stroke="rgba(0,0,0,.25)" />
-          <path d="M22 26 q8 -4 16 0 M20 40 h20 M22 54 q8 4 16 0" stroke="rgba(255,235,200,.55)" strokeWidth="1.5" fill="none" />
-          <rect x="21" y="57" width="18" height="5" rx="2" fill="url(#gold)" />
-          <line x1="30" y1="62" x2="30" y2="69" stroke="#a52a1d" strokeWidth="2.5" />
-        </g>
-      );
-    }
-    if (rank === 2) {
-      // Fächer
-      return (
-        <g>
-          <path d="M30 62 L13 32 A 20 20 0 0 1 47 32 Z" fill="#f3e3c2" stroke="#8a6a20" strokeWidth="1.5" />
-          <path d="M30 62 L21 27 M30 62 L30 22 M30 62 L39 27" stroke="#e0483d" strokeWidth="2" fill="none" />
-          <circle cx="30" cy="62" r="3.5" fill="url(#gold)" />
-        </g>
-      );
-    }
-    if (rank === 3) {
-      // Münze
-      return (
-        <g>
-          <circle cx="30" cy="40" r="17" fill="url(#gold)" stroke="#8a6a20" strokeWidth="1.5" />
-          <rect x="24.5" y="34.5" width="11" height="11" fill="#f6efe0" stroke="#8a6a20" strokeWidth="1.5" />
-        </g>
-      );
-    }
-    // Glücksknoten
-    return (
-      <g>
-        <g stroke="#e0483d" strokeWidth="3" fill="none">
-          <rect x="19" y="27" width="16" height="16" transform="rotate(45 27 35)" />
-          <rect x="25" y="37" width="16" height="16" transform="rotate(45 33 45)" />
-        </g>
-        <path d="M30 58 l0 10 M26 64 l8 0" stroke="#e0483d" strokeWidth="2" />
-      </g>
-    );
+    // Schätze (Laterne/Fächer/Münze/Knoten) – freigestellte Gemini-Motive.
+    return <image href={TREASURE_IMG[rank] ?? treasureLantern} x="11" y="10" width="38" height="56" preserveAspectRatio="xMidYMid meet" />;
   }
   if (suit === 'flower') {
     // Blumen (梅蘭菊竹) – freigestelltes Gemini-Motiv.
