@@ -43,17 +43,27 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   überall), Truhe `reward-chest.webp` (RewardIcon), Geschenk `event-gift.webp` (EventIcon), Drachen-Wappen
   `emblem-shield.webp` (DailyIcon + HeroTile3D-Rückseite), sowie die 8 Icons der „Alle Spiele"-Liste
   `game-*.webp` (in App.tsx `gameItems`, CSS `.game-ico .game-img`).
-  **Board-Steine (Winde+Drachen) ersetzt:** die 4 Winde 東南西北 (`tile-wind-{e,s,w,n}.webp`, Onyx-Schwarz+Gold)
-  und die Drachen 發/白 (`tile-dragon-{green,white}.webp`, Jade/Slate + Gold); roter Drache 中 = Wiederverwendung
-  von `symbol-zhong.webp` (dasselbe 中 wie auf dem Drehstein). Eingebunden in `Tile.tsx` (`SymbolImg` als
-  `<image>` im Steinkorpus, `WIND_IMG`/`DRAGON_IMG`; ersetzt die alten abstrakten Raute/Flamme/Blatt/Stern-Motive).
-  **Extraktions-Skript** `scripts/extract_tiles.py` (venv `.venv-img`, Pillow/numpy/scipy): Magenta-Key
+  **Board-Steine (Winde+Drachen+Zahlen) ersetzt:** die 4 Winde 東南西北 (`tile-wind-{e,s,w,n}.webp`, Onyx-Schwarz+Gold),
+  die Drachen 發/白 (`tile-dragon-{green,white}.webp`, Jade/Slate + Gold; roter Drache 中 = Wiederverwendung von
+  `symbol-zhong.webp`, dasselbe 中 wie auf dem Drehstein) und die Zahlen 一萬…九萬 (`tile-wan-{1..9}.webp`, Ziffer blau
+  + 萬 rot; ersetzt das alte Royale-Kronen-Motiv). Eingebunden in `Tile.tsx` (`SymbolImg`/`WIND_IMG`/`DRAGON_IMG`/`WAN_IMG`
+  als `<image>` über der Deckfläche; ersetzt die abstrakten Raute/Flamme/Blatt/Stern/Krone-Motive).
+  **Stein-Optik (Blankostein):** Die Deckfläche ist ein freigestellter Gemini-**Blankostein** `tile-blank.webp`
+  (einfarbiges Premium-Elfenbein), Symbol liegt darüber (`TileFace`). Im Solitaire (`Tile solid`) darunter eine
+  abgedunkelte, 3px nach unten versetzte Kopie als **dünne Steindicke** (SVG-Filter `#tiledark`) + weicher
+  `drop-shadow` per CSS (`.tile.solid .tileface`, viewBox `0 0 60 82`, `preserveAspectRatio="none"`); ersetzt die
+  alte gemalte Seitenwand + hartes Schatten-Rechteck (wirkte „zu tief/billig"). Flache 4-Spieler-Steine = Deckfläche
+  ohne Korpus. Stapel-Versätze flacher: `Board.tsx` `DX=5/DY=7`.
+  **Extraktions-Skript** `scripts/extract_tiles.py` (venv `.venv-img`, Pillow/numpy/scipy): Symbole per Magenta-Key
   `min(R,B)-G` → weiche Alpha-Rampe → **alle** Zeichenteile behalten die ≥5% der größten Fläche sind (Sternchen
   raus, aber getrennte Radikale wie 北/發 bleiben!) → Kante ~4px erodieren (roter Gold/Magenta-Saum weg) →
-  Magenta-Un-Multiply (Farbentkontaminierung) → Silhouetten-Crop → WebP. Rohbilder in `gemini-in/` (gitignored),
-  Batch: `.venv-img/bin/python scripts/extract_tiles.py gemini-in/ src/assets/`; Assets danach kompakt
-  re-enkodieren (thumbnail 320px, WebP q88). **Nächster Schritt (offen):** die übrigen klassischen Steine
-  (Zahlen/Bambus/Kreise/Blumen/Jahreszeiten) per Gemini ersetzen (aktuell noch als SVG-Motive in `Tile.tsx`).
+  Magenta-Un-Multiply (Farbentkontaminierung) → Silhouetten-Crop → WebP. **Blankostein** per `--blank`: Key `B-G`
+  (Magenta+eingebackener Schatten haben viel Blau, Elfenbein nicht) → Grün-Despill → Ton auf mittleres Elfenbein
+  vereinheitlichen (einfarbig, Glanz bleibt). Rohbilder in `gemini-in/` (gitignored), Batch:
+  `.venv-img/bin/python scripts/extract_tiles.py gemini-in/ src/assets/`; Assets danach kompakt re-enkodieren
+  (thumbnail 320–360px, WebP q88). **Nächster Schritt (offen):** restliche klassische Steine
+  (Bambus/Kreise/Blumen/Jahreszeiten) per Gemini ersetzen — Kreise/Bambus als 1 Element + Anzahl im Code
+  zusammensetzen (aktuell noch SVG-Motive `Gem`/`Crystal` in `Tile.tsx`).
   **Startseiten-Hintergrund** = asiatisches
   Tempel-Motiv (`src/assets/home-temple.webp`), animierte Sakura-Blüten darüber.
   **WICHTIG — Safe-Area-Falle (viel Debugging gekostet):** iOS füllt den unteren Streifen

@@ -643,15 +643,17 @@ body {
   height: 100%;
   display: block;
 }
-/* 3D-Korpus: Die SVG-Deckfläche (54×72 bei Offset 9/3 im 66×92-viewBox) wird
-   exakt aufs Button-Raster gelegt; Seitenfläche + Schatten ragen optisch in
-   die Nachbarzellen (links/unten). Prozentwerte = viewBox-Verhältnisse. */
+/* 3D-Korpus: Blankostein-Deckfläche (54×72 bei Offset 3/3 im 60×82-viewBox) wird
+   exakt aufs Button-Raster gelegt (preserveAspectRatio="none"); die dünne
+   Steindicke ragt nach unten in die Nachbarzelle. Prozentwerte = viewBox-Verhältnisse.
+   Weicher Schlagschatten per drop-shadow (GPU-günstig, ersetzt hartes SVG-Rechteck). */
 .tile.solid .tileface {
   position: relative;
-  width: 122.223%;   /* 66/54 */
-  height: 127.778%;  /* 92/72 */
-  left: -16.667%;    /* 9/54 */
+  width: 111.111%;   /* 60/54 */
+  height: 113.889%;  /* 82/72 */
+  left: -5.556%;     /* 3/54 */
   top: -4.167%;      /* 3/72 */
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.45));
 }
 /* Auswahl/Tipp-Rahmen beim 3D-Stein auf den Button (= Deckfläche) statt aufs
    überstehende SVG legen. */

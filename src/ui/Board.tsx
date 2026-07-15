@@ -13,8 +13,8 @@ interface Props {
 
 const TW = 44; // Stein-Breite
 const TH = 58; // Stein-Höhe
-const DX = 7; // horizontaler 3D-Versatz pro Ebene
-const DY = 10; // vertikaler 3D-Versatz pro Ebene
+const DX = 5; // horizontaler 3D-Versatz pro Ebene (flach, zur dünnen Steindicke passend)
+const DY = 7; // vertikaler 3D-Versatz pro Ebene
 
 export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);

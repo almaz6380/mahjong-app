@@ -13,6 +13,13 @@ Verfahren:
 Aufruf:
   python extract_tiles.py <IN.png> <OUT.webp>
   python extract_tiles.py <in_ordner> <out_ordner>   # Batch (alle Bilder)
+  python extract_tiles.py --blank <IN.png> <OUT.webp>  # einfarbiger Blankostein
+
+--blank: Freistellung fuer den einfarbigen Elfenbein-Blankostein. Anders als bei
+Symbolen wird ueber key = B - G gekeyt (Magenta UND sein eingebackener Kontakt-
+schatten haben viel Blau, Elfenbein nicht), Gruen-Despill + staerkere Erosion
+gegen den Randsaum, und der Ton wird auf ein mittleres Elfenbein vereinheitlicht
+(Luminanz bleibt -> Glanz/Maserung erhalten, Farbe einfarbig).
 """
 import sys, os
 import numpy as np
@@ -76,7 +83,47 @@ def extract(in_path: str, out_path: str) -> None:
     print(f"  {os.path.basename(in_path)} -> {os.path.basename(out_path)}  ({w}x{h})")
 
 
+def extract_blank(in_path: str, out_path: str) -> None:
+    """Einfarbiger Elfenbein-Blankostein: B-G-Key, Gruen-Despill, Vereinheitlichung."""
+    img = Image.open(in_path).convert("RGB")
+    arr = np.asarray(img).astype(np.float32)
+    R, G, B = arr[..., 0], arr[..., 1], arr[..., 2]
+
+    key = B - G                                   # Magenta/Schatten: Blau >> Gruen
+    alpha = np.clip((45.0 - key) / (45.0 - 10.0), 0, 1)
+
+    solid = alpha > 0.5
+    labels, n = ndimage.label(solid)
+    if n > 1:                                     # nur der Stein, Schatten-Blob raus
+        sizes = ndimage.sum(np.ones_like(labels), labels, range(1, n + 1))
+        keep = int(np.argmax(sizes)) + 1
+        alpha[labels != keep] = 0.0
+    alpha = ndimage.grey_erosion(alpha, size=9)   # gruenen Saum ganz weg
+    alpha = ndimage.gaussian_filter(alpha, sigma=0.8)
+
+    out = arr.copy()
+    out[..., 1] = np.minimum(out[..., 1], np.maximum(out[..., 0], out[..., 2]))  # Gruen-Despill
+    m = alpha > 0.6
+    mean = out[m].mean(0)
+    lum = (0.299 * out[..., 0] + 0.587 * out[..., 1] + 0.114 * out[..., 2]) / 255.0
+    target = mean / (0.299 * mean[0] + 0.587 * mean[1] + 0.114 * mean[2])
+    out = np.clip(lum[..., None] * target * 255.0 * 0.5 + out * 0.5, 0, 255)     # einfarbig
+
+    rgba = np.dstack([out, alpha * 255.0]).astype(np.uint8)
+    ys, xs = np.where(alpha > 0.05)
+    if len(xs):
+        pad = 6
+        y0, y1 = max(ys.min() - pad, 0), min(ys.max() + pad + 1, arr.shape[0])
+        x0, x1 = max(xs.min() - pad, 0), min(xs.max() + pad + 1, arr.shape[1])
+        rgba = rgba[y0:y1, x0:x1]
+    Image.fromarray(rgba, "RGBA").save(out_path, "WEBP", lossless=True, quality=100)
+    h, w = rgba.shape[:2]
+    print(f"  [blank] {os.path.basename(in_path)} -> {os.path.basename(out_path)}  ({w}x{h})")
+
+
 def main() -> None:
+    if len(sys.argv) == 4 and sys.argv[1] == "--blank":
+        extract_blank(sys.argv[2], sys.argv[3]); return
     if len(sys.argv) != 3:
         print(__doc__); sys.exit(1)
     src, dst = sys.argv[1], sys.argv[2]

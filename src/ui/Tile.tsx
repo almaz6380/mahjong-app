@@ -18,6 +18,7 @@ import wan6 from '../assets/tile-wan-6.webp';
 import wan7 from '../assets/tile-wan-7.webp';
 import wan8 from '../assets/tile-wan-8.webp';
 import wan9 from '../assets/tile-wan-9.webp';
+import blankTile from '../assets/tile-blank.webp';
 
 // Freigestellte Gemini-Symbole für Winde (東南西北) und Drachen (中/發/白).
 // Roter Drache = dasselbe 中 wie auf dem Drehstein (symbol-zhong).
@@ -65,11 +66,6 @@ export function TileDefs() {
   return (
     <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden>
       <defs>
-        <linearGradient id="tbody" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#fffdf8" />
-          <stop offset="0.5" stopColor="#f6efe0" />
-          <stop offset="1" stopColor="#e6dcc5" />
-        </linearGradient>
         <linearGradient id="tback" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#1a6b4f" />
           <stop offset="1" stopColor="#0f4531" />
@@ -86,12 +82,10 @@ export function TileDefs() {
           <stop offset="0.5" stopColor="#22c4a8" />
           <stop offset="1" stopColor="#0f8f7c" />
         </linearGradient>
-        {/* Elfenbein-Seitenfläche (3D-Korpus, solide Steine) */}
-        <linearGradient id="tside" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#d9c9a3" />
-          <stop offset="0.7" stopColor="#bfae85" />
-          <stop offset="1" stopColor="#a3906a" />
-        </linearGradient>
+        {/* Korpus-Abdunklung: dunklere Kopie des Blankosteins als Steindicke. */}
+        <filter id="tiledark" x="-5%" y="-5%" width="110%" height="110%">
+          <feColorMatrix type="matrix" values="0.78 0 0 0 0  0 0.78 0 0 0  0 0 0.78 0 0  0 0 0 1 0" />
+        </filter>
       </defs>
     </svg>
   );
@@ -150,15 +144,16 @@ const SOU: Record<number, [number, number][]> = {
   9: [[18, 22], [30, 22], [42, 22], [18, 41], [30, 41], [42, 41], [18, 60], [30, 60], [42, 60]],
 };
 
-// Premium-Steinkorpus: weicher Schatten, Elfenbein-Körper, dezenter Goldrahmen, Glanzkante.
-function TileBody({ children }: { children: React.ReactNode }) {
+// Deckfläche = freigestellter Gemini-Blankostein (premium Elfenbein). Motiv liegt
+// darüber. `corpus` > 0 legt darunter eine abgedunkelte, nach unten versetzte Kopie
+// als dezente Steindicke (3D-Block) an.
+function TileFace({ children, corpus = 0 }: { children: React.ReactNode; corpus?: number }) {
   return (
     <>
-      <rect x="3" y="6" width="54" height="72" rx="10" fill="#000" opacity="0.2" />
-      <rect x="3" y="3" width="54" height="72" rx="10" fill="url(#tbody)" />
-      <rect x="5" y="5" width="50" height="68" rx="8" fill="none" stroke="rgba(245,179,1,.35)" strokeWidth="0.8" />
-      <rect x="3" y="3" width="54" height="72" rx="10" fill="none" stroke="rgba(0,0,0,.14)" />
-      <rect x="7" y="6" width="46" height="8" rx="4" fill="#fff" opacity="0.5" />
+      {corpus > 0 && (
+        <image href={blankTile} x="3" y={3 + corpus} width="54" height="72" preserveAspectRatio="none" filter="url(#tiledark)" />
+      )}
+      <image href={blankTile} x="3" y="3" width="54" height="72" preserveAspectRatio="none" />
       {children}
     </>
   );
@@ -297,24 +292,19 @@ function motif(f: Face): React.ReactNode {
 export function Tile({ face, className, solid }: { face: string; className?: string; solid?: boolean }) {
   const f = normalizeFace(face);
   if (solid) {
-    // 3D-Korpus (Entwurf 3): sichtbare Elfenbein-Seitenfläche unten links +
-    // Schlagschatten. Die Deckfläche liegt bei (9,3) in Originalgröße 54×72;
-    // CSS (.tile.solid) mappt genau sie auf das Button-Raster, der Korpus
-    // ragt optisch in die Nachbarzellen (Überstand links/unten).
+    // Blankostein-Deckfläche (bei 3,3 Größe 54×72) + dünne Steindicke darunter
+    // (corpus 3px nach unten). Weicher Schatten kommt per CSS (.tile.solid).
+    // preserveAspectRatio="none": viewBox mappt exakt aufs Element, CSS
+    // (.tile.solid .tileface) legt die 54×72-Deckfläche aufs Button-Raster.
     return (
-      <svg className={'tileface' + (className ? ' ' + className : '')} viewBox="0 0 66 92" preserveAspectRatio="xMidYMid meet">
-        <rect x="1" y="17" width="55" height="72" rx="10" fill="#000" opacity="0.3" />
-        <rect x="3" y="12" width="54" height="72" rx="10" fill="url(#tside)" />
-        <rect x="3" y="12" width="54" height="72" rx="10" fill="none" stroke="rgba(0,0,0,.28)" strokeWidth="0.8" />
-        <g transform="translate(6 0)">
-          <TileBody>{motif(f)}</TileBody>
-        </g>
+      <svg className={'tileface' + (className ? ' ' + className : '')} viewBox="0 0 60 82" preserveAspectRatio="none">
+        <TileFace corpus={3}>{motif(f)}</TileFace>
       </svg>
     );
   }
   return (
     <svg className={'tileface' + (className ? ' ' + className : '')} viewBox="0 0 60 80" preserveAspectRatio="xMidYMid meet">
-      <TileBody>{motif(f)}</TileBody>
+      <TileFace>{motif(f)}</TileFace>
     </svg>
   );
 }
