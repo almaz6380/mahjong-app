@@ -18,7 +18,7 @@ import wan6 from '../assets/tile-wan-6.webp';
 import wan7 from '../assets/tile-wan-7.webp';
 import wan8 from '../assets/tile-wan-8.webp';
 import wan9 from '../assets/tile-wan-9.webp';
-import blankTile from '../assets/tile-blank.webp';
+import blankTile from '../assets/tile-face.webp';
 
 // Freigestellte Gemini-Symbole für Winde (東南西北) und Drachen (中/發/白).
 // Roter Drache = dasselbe 中 wie auf dem Drehstein (symbol-zhong).
@@ -84,10 +84,9 @@ export function TileDefs() {
         </linearGradient>
         {/* Elfenbein-Deckfläche (aus dem Blankostein gesampelt) – harte, bündig
             kachelnde Basis, damit zwischen Steinen kein Filz durchscheint. */}
-        <linearGradient id="tbody" x1="0" y1="0" x2="0.15" y2="1">
-          <stop offset="0" stopColor="#f4ecd6" />
-          <stop offset="0.55" stopColor="#ebdfc2" />
-          <stop offset="1" stopColor="#dccdaa" />
+        <linearGradient id="tbody" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#ece2c7" />
+          <stop offset="1" stopColor="#e6dabb" />
         </linearGradient>
         {/* Elfenbein-Seitenwand (3D-Steindicke, etwas dunkler). */}
         <linearGradient id="tside" x1="0" y1="0" x2="0" y2="1">

@@ -653,7 +653,6 @@ body {
   height: 119.444%;  /* 86/72 */
   left: -14.815%;    /* (3-(-5))/54 */
   top: -4.167%;      /* 3/72 */
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4));
 }
 /* Auswahl/Tipp-Rahmen beim 3D-Stein auf den Button (= Deckfläche) statt aufs
    überstehende SVG legen. */
