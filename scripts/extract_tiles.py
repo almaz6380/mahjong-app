@@ -20,6 +20,7 @@ from PIL import Image
 from scipy import ndimage
 
 LOW, HIGH = 45, 120      # key < LOW -> voll opak, key > HIGH -> voll transparent
+ERODE = 9                # Kante um ~4px einschrumpfen (sauber, kein Farbsaum)
 PAD_FRAC = 0.04          # Rand um die Silhouette (Anteil der laengeren Kante)
 
 
@@ -31,23 +32,34 @@ def extract(in_path: str, out_path: str) -> None:
     key = np.minimum(R, B) - G                       # Magenta gross, Symbol klein
     alpha = np.clip((HIGH - key) / (HIGH - LOW), 0, 1)  # 1=Symbol, 0=Hintergrund
 
-    # nur die groesste zusammenhaengende Flaeche (Symbol) behalten
+    # Fremdblobs (Funkel-Sternchen) verwerfen, ABER alle echten Zeichenteile
+    # behalten: Zeichen wie 北/發 bestehen aus mehreren getrennten Strichgruppen.
+    # Regel: alles kleiner als STRAY_FRAC der groessten Flaeche fliegt raus.
+    STRAY_FRAC = 0.05
     solid = alpha > 0.5
     labels, n = ndimage.label(solid)
     if n > 1:
         sizes = ndimage.sum(np.ones_like(labels), labels, range(1, n + 1))
-        keep = int(np.argmax(sizes)) + 1
-        biggest = labels == keep
-        # kleine Fremdblobs (Sternchen) komplett verwerfen
-        stray = solid & ~biggest
-        alpha[stray] = 0.0
+        cutoff = sizes.max() * STRAY_FRAC
+        for lbl, sz in enumerate(sizes, start=1):
+            if sz < cutoff:
+                alpha[labels == lbl] = 0.0
 
-    # Magenta-Despill: an halbtransparenten Kanten R/B Richtung G ziehen
-    edge = (alpha > 0.02) & (alpha < 0.98)
-    out = arr.copy()
-    r, g, b = out[..., 0], out[..., 1], out[..., 2]
-    r[edge] = np.minimum(r[edge], np.maximum(g[edge], b[edge]))
-    b[edge] = np.minimum(b[edge], np.maximum(g[edge], r[edge]))
+    # Kante einschrumpfen: der Gold->Magenta-Uebergang erzeugt orange/rote
+    # Pixel, die der Key faelschlich behaelt -> duennen Randring wegerodieren,
+    # danach leicht glaetten fuer saubere Anti-Aliasing-Kante.
+    alpha = ndimage.grey_erosion(alpha, size=ERODE)
+    alpha = ndimage.gaussian_filter(alpha, sigma=0.8)
+
+    # Magenta-Entkontaminierung (Un-Multiply): beobachtete Farbe
+    #   C = a*F + (1-a)*BG   mit BG = reines Magenta (255,0,255)
+    # -> echte Vordergrundfarbe  F = (C - (1-a)*BG) / a
+    # entfernt den rosa Saum an den weichen Kanten sauber.
+    BG = np.array([255.0, 0.0, 255.0], dtype=np.float32)
+    a = alpha[..., None]
+    safe = np.maximum(a, 1e-3)
+    F = (arr - (1.0 - a) * BG) / safe
+    out = np.clip(F, 0, 255)
 
     rgba = np.dstack([out, alpha * 255.0]).astype(np.uint8)
 

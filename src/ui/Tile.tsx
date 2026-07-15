@@ -2,8 +2,26 @@
 // Nimmt entweder eine Solitaire-id ('char3','bam5','cir7','windE','dragonR','flower1','season2')
 // oder einen 4-Spieler-Code ('m3','s5','p7','z1','z5','f1','g1') und zeichnet Korpus + Motiv.
 
+import windE from '../assets/tile-wind-e.webp';
+import windS from '../assets/tile-wind-s.webp';
+import windW from '../assets/tile-wind-w.webp';
+import windN from '../assets/tile-wind-n.webp';
+import dragonGreen from '../assets/tile-dragon-green.webp';
+import dragonWhite from '../assets/tile-dragon-white.webp';
+import dragonRed from '../assets/symbol-zhong.webp';
+
+// Freigestellte Gemini-Symbole für Winde (東南西北) und Drachen (中/發/白).
+// Roter Drache = dasselbe 中 wie auf dem Drehstein (symbol-zhong).
+const WIND_IMG: Record<number, string> = { 1: windE, 2: windS, 3: windW, 4: windN };
+const DRAGON_IMG: Record<number, string> = { 1: dragonRed, 2: dragonGreen, 3: dragonWhite };
+
 type Suit = 'man' | 'sou' | 'pin' | 'wind' | 'dragon' | 'flower' | 'season' | 'myth' | 'treasure';
 interface Face { suit: Suit; rank: number }
+
+// Zeichen-Bild mittig im Steinkörper (Box um (30,40) im 60×80-Korpus).
+function SymbolImg({ href }: { href: string }) {
+  return <image href={href} x="13" y="16" width="34" height="48" preserveAspectRatio="xMidYMid meet" />;
+}
 
 export function normalizeFace(key: string): Face {
   // 4-Spieler-Codes
@@ -109,16 +127,6 @@ function Crown({ cx, cy, s = 1 }: { cx: number; cy: number; s?: number }) {
   );
 }
 
-// Facettierte Raute (Basis für Winde/Drachen-Sigille).
-function Diamond({ cx, cy, r, c }: { cx: number; cy: number; r: number; c: string }) {
-  return (
-    <g>
-      <polygon points={`${cx},${cy - r} ${cx + r * 0.8},${cy} ${cx},${cy + r} ${cx - r * 0.8},${cy}`} fill={c} stroke="rgba(0,0,0,.3)" strokeWidth="0.8" strokeLinejoin="round" />
-      <polygon points={`${cx},${cy - r} ${cx + r * 0.8},${cy} ${cx},${cy}`} fill="#fff" opacity="0.25" />
-    </g>
-  );
-}
-
 // Punkt-Anordnungen (Pin)
 const PIN: Record<number, [number, number][]> = {
   1: [[30, 40]],
@@ -165,15 +173,6 @@ function Numeral({ n, x = 30, y = 34, size = 26, fill = '#1e2a44' }: { n: number
   );
 }
 
-const WIND_COLORS = ['#2f7ff2', '#22b06a', '#e0483d', '#a678f0'];
-// Pfeilrichtung je Wind (E/S/W/N) – rein zur Unterscheidung.
-const WIND_ARROW: Record<number, string> = {
-  1: 'M-3 -4 L4 0 L-3 4 Z',   // rechts
-  2: 'M-4 -3 L4 -3 L0 4 Z',   // unten
-  3: 'M3 -4 L-4 0 L3 4 Z',    // links
-  4: 'M-4 3 L4 3 L0 -4 Z',    // oben
-};
-
 function motif(f: Face): React.ReactNode {
   const { suit, rank } = f;
   if (suit === 'pin') {
@@ -202,46 +201,12 @@ function motif(f: Face): React.ReactNode {
     );
   }
   if (suit === 'wind') {
-    const c = WIND_COLORS[(rank - 1) % 4];
-    return (
-      <g>
-        <Diamond cx={30} cy={40} r={20} c={c} />
-        <path d={WIND_ARROW[rank] ?? WIND_ARROW[1]} transform="translate(30 40) scale(1.6)" fill="#fff" opacity="0.95" />
-      </g>
-    );
+    // Freigestelltes Zeichen 東/南/西/北 (Gemini-Symbol).
+    return <SymbolImg href={WIND_IMG[rank] ?? windE} />;
   }
   if (suit === 'dragon') {
-    if (rank === 1) {
-      // Flamme (rot)
-      return (
-        <g>
-          <path d="M30 16 C 40 26, 40 40, 30 62 C 20 44, 22 34, 30 16 Z" fill="#e0483d" stroke="rgba(0,0,0,.25)" strokeWidth="0.8" />
-          <path d="M30 30 C 35 36, 35 44, 30 56 C 26 46, 27 40, 30 30 Z" fill="#ffd76a" />
-        </g>
-      );
-    }
-    if (rank === 2) {
-      // Jade-Blatt (grün)
-      return (
-        <g>
-          <path d="M30 16 C 46 26, 44 52, 30 62 C 16 52, 14 26, 30 16 Z" fill="#22b06a" stroke="rgba(0,0,0,.25)" strokeWidth="0.8" />
-          <path d="M30 20 L30 58" stroke="#0c6b41" strokeWidth="1.6" />
-          <path d="M30 32 L40 26 M30 40 L20 34 M30 48 L40 42" stroke="#0c6b41" strokeWidth="1.2" />
-        </g>
-      );
-    }
-    // Stern/Orb (silber)
-    const star = Array.from({ length: 5 }, (_, i) => {
-      const a = (-90 + i * 72) * Math.PI / 180;
-      const a2 = a + 36 * Math.PI / 180;
-      return `${30 + Math.cos(a) * 18},${40 + Math.sin(a) * 18} ${30 + Math.cos(a2) * 8},${40 + Math.sin(a2) * 8}`;
-    }).join(' ');
-    return (
-      <g>
-        <polygon points={star} fill="#e8eef7" stroke="#9aa8bd" strokeWidth="1" strokeLinejoin="round" />
-        <circle cx="30" cy="40" r="4" fill="#c7d2e0" />
-      </g>
-    );
+    // Freigestelltes Zeichen 中/發/白 (Gemini-Symbol; Rot = Drehstein-中).
+    return <SymbolImg href={DRAGON_IMG[rank] ?? dragonRed} />;
   }
   if (suit === 'myth') {
     // Mythen-Serie: kolorierte CJK-Glyphen mit Gold-Akzenten (Entwurf 3).

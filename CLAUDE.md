@@ -42,8 +42,18 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   Magenta-Key `min(R,B)-G`, auf Silhouette croppen, Sternchen mit weg): Münze `coin.webp` (Icon 'coin',
   überall), Truhe `reward-chest.webp` (RewardIcon), Geschenk `event-gift.webp` (EventIcon), Drachen-Wappen
   `emblem-shield.webp` (DailyIcon + HeroTile3D-Rückseite), sowie die 8 Icons der „Alle Spiele"-Liste
-  `game-*.webp` (in App.tsx `gameItems`, CSS `.game-ico .game-img`). **Nächster Schritt (offen):**
-  die 42 klassischen Board-Steine per Gemini ersetzen (Prompts im Session-Verlauf; erst Winde+Drachen testen).
+  `game-*.webp` (in App.tsx `gameItems`, CSS `.game-ico .game-img`).
+  **Board-Steine (Winde+Drachen) ersetzt:** die 4 Winde 東南西北 (`tile-wind-{e,s,w,n}.webp`, Onyx-Schwarz+Gold)
+  und die Drachen 發/白 (`tile-dragon-{green,white}.webp`, Jade/Slate + Gold); roter Drache 中 = Wiederverwendung
+  von `symbol-zhong.webp` (dasselbe 中 wie auf dem Drehstein). Eingebunden in `Tile.tsx` (`SymbolImg` als
+  `<image>` im Steinkorpus, `WIND_IMG`/`DRAGON_IMG`; ersetzt die alten abstrakten Raute/Flamme/Blatt/Stern-Motive).
+  **Extraktions-Skript** `scripts/extract_tiles.py` (venv `.venv-img`, Pillow/numpy/scipy): Magenta-Key
+  `min(R,B)-G` → weiche Alpha-Rampe → **alle** Zeichenteile behalten die ≥5% der größten Fläche sind (Sternchen
+  raus, aber getrennte Radikale wie 北/發 bleiben!) → Kante ~4px erodieren (roter Gold/Magenta-Saum weg) →
+  Magenta-Un-Multiply (Farbentkontaminierung) → Silhouetten-Crop → WebP. Rohbilder in `gemini-in/` (gitignored),
+  Batch: `.venv-img/bin/python scripts/extract_tiles.py gemini-in/ src/assets/`; Assets danach kompakt
+  re-enkodieren (thumbnail 320px, WebP q88). **Nächster Schritt (offen):** die übrigen klassischen Steine
+  (Zahlen/Bambus/Kreise/Blumen/Jahreszeiten) per Gemini ersetzen (aktuell noch als SVG-Motive in `Tile.tsx`).
   **Startseiten-Hintergrund** = asiatisches
   Tempel-Motiv (`src/assets/home-temple.webp`), animierte Sakura-Blüten darüber.
   **WICHTIG — Safe-Area-Falle (viel Debugging gekostet):** iOS füllt den unteren Streifen
