@@ -13,8 +13,8 @@ interface Props {
 
 const TW = 44; // Stein-Breite
 const TH = 58; // Stein-Höhe
-const DX = 2.5; // horizontaler 3D-Versatz pro Ebene (halbe Tiefe, = Korpus-Versatz in Tile.tsx)
-const DY = 3.5; // vertikaler 3D-Versatz pro Ebene
+const DX = 0; // kein horizontaler Versatz -> Frontansicht, Steine sauber senkrecht gestapelt
+const DY = 3.5; // vertikaler 3D-Versatz pro Ebene (= Korpus-Steindicke in Tile.tsx)
 
 export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
