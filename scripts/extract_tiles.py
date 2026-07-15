@@ -112,7 +112,7 @@ def extract_blank(in_path: str, out_path: str) -> None:
     rgba = np.dstack([out, alpha * 255.0]).astype(np.uint8)
     ys, xs = np.where(alpha > 0.05)
     if len(xs):
-        pad = 6
+        pad = 0  # randlos: Silhouette fuellt die Bounding-Box -> keine Filz-Luecken
         y0, y1 = max(ys.min() - pad, 0), min(ys.max() + pad + 1, arr.shape[0])
         x0, x1 = max(xs.min() - pad, 0), min(xs.max() + pad + 1, arr.shape[1])
         rgba = rgba[y0:y1, x0:x1]

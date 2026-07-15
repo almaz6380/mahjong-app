@@ -148,12 +148,15 @@ const SOU: Record<number, [number, number][]> = {
 // darüber. `corpus` > 0 legt darunter eine abgedunkelte, nach unten versetzte Kopie
 // als dezente Steindicke (3D-Block) an.
 function TileFace({ children, corpus = 0 }: { children: React.ReactNode; corpus?: number }) {
+  // Deckfläche wird mit kleinem Bleed (2 Einheiten) über das 54×72-Rasterfeld
+  // (x3..57, y3..75) hinaus gezeichnet, damit sich Nachbarsteine minimal
+  // überlappen und kein Filz durchblitzt. Das Footprint-Mapping (CSS) bleibt 54×72.
   return (
     <>
       {corpus > 0 && (
-        <image href={blankTile} x="3" y={3 + corpus} width="54" height="72" preserveAspectRatio="none" filter="url(#tiledark)" />
+        <image href={blankTile} x="1" y={1 + corpus} width="58" height="76" preserveAspectRatio="none" filter="url(#tiledark)" />
       )}
-      <image href={blankTile} x="3" y="3" width="54" height="72" preserveAspectRatio="none" />
+      <image href={blankTile} x="1" y="1" width="58" height="76" preserveAspectRatio="none" />
       {children}
     </>
   );
