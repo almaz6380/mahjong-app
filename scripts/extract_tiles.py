@@ -68,6 +68,13 @@ def extract(in_path: str, out_path: str) -> None:
     F = (arr - (1.0 - a) * BG) / safe
     out = np.clip(F, 0, 255)
 
+    # Gruen-Despill NUR an den Kanten (halbtransparente Zone): die Un-Multiply-
+    # Ueberkorrektur laesst dort einen gruenen Saum -> Gruen auf max(R,B) klemmen.
+    # Innenflaechen (voll opak) bleiben unberuehrt, damit echtes Jade-Gruen bleibt.
+    edge = (alpha > 0.02) & (alpha < 0.98)
+    g = out[..., 1]
+    g[edge] = np.minimum(g[edge], np.maximum(out[..., 0][edge], out[..., 2][edge]))
+
     rgba = np.dstack([out, alpha * 255.0]).astype(np.uint8)
 
     # auf Silhouette croppen

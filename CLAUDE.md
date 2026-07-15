@@ -61,9 +61,14 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   (Magenta+eingebackener Schatten haben viel Blau, Elfenbein nicht) → Grün-Despill → Ton auf mittleres Elfenbein
   vereinheitlichen (einfarbig, Glanz bleibt). Rohbilder in `gemini-in/` (gitignored), Batch:
   `.venv-img/bin/python scripts/extract_tiles.py gemini-in/ src/assets/`; Assets danach kompakt re-enkodieren
-  (thumbnail 320–360px, WebP q88). **Nächster Schritt (offen):** restliche klassische Steine
-  (Bambus/Kreise/Blumen/Jahreszeiten) per Gemini ersetzen — Kreise/Bambus als 1 Element + Anzahl im Code
-  zusammensetzen (aktuell noch SVG-Motive `Gem`/`Crystal` in `Tile.tsx`).
+  (thumbnail 320–360px, WebP q88).
+  **Kreise (Pin) + Bambus (Sou) ersetzt:** je 1 freigestelltes Gemini-Element — Münz-Token `tile-pin-dot.webp`
+  (Jade+Gold-Gitter+roter Blütenkern; runde Extraktions-Maske gegen grünen Render-Bloom), Bambusstab
+  `tile-sou-stick.webp`, Vogel `tile-sou-bird.webp` (1-Bambus). Die **Anzahl 1–9 wird im Code zusammengesetzt**
+  (`TokenImg` an den `PIN`/`SOU`-Positionen in `Tile.tsx`; ersetzt die alten SVG-Motive `Gem`/`Crystal`,
+  Anzahl garantiert korrekt). `Gem`/`DOT_COLORS` bleiben nur noch für `PinDigit` (Sudoku).
+  **Nächster Schritt (offen):** Blumen (梅蘭菊竹) + Jahreszeiten (je 4) per Gemini als Motive ersetzen
+  (aktuell noch SVG in `Tile.tsx`).
   **Startseiten-Hintergrund** = asiatisches
   Tempel-Motiv (`src/assets/home-temple.webp`), animierte Sakura-Blüten darüber.
   **WICHTIG — Safe-Area-Falle (viel Debugging gekostet):** iOS füllt den unteren Streifen

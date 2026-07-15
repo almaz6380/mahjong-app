@@ -19,6 +19,9 @@ import wan7 from '../assets/tile-wan-7.webp';
 import wan8 from '../assets/tile-wan-8.webp';
 import wan9 from '../assets/tile-wan-9.webp';
 import blankTile from '../assets/tile-face.webp';
+import pinDot from '../assets/tile-pin-dot.webp';
+import souStick from '../assets/tile-sou-stick.webp';
+import souBird from '../assets/tile-sou-bird.webp';
 
 // Freigestellte Gemini-Symbole für Winde (東南西北) und Drachen (中/發/白).
 // Roter Drache = dasselbe 中 wie auf dem Drehstein (symbol-zhong).
@@ -33,6 +36,11 @@ interface Face { suit: Suit; rank: number }
 // Zeichen-Bild mittig im Steinkörper (Box um (30,40) im 60×80-Korpus).
 function SymbolImg({ href }: { href: string }) {
   return <image href={href} x="13" y="16" width="34" height="48" preserveAspectRatio="xMidYMid meet" />;
+}
+
+// Token-Bild (Kreis/Bambus/Vogel) zentriert an (x,y) – für Pin/Sou-Anzahlen.
+function TokenImg({ href, x, y, w, h }: { href: string; x: number; y: number; w: number; h: number }) {
+  return <image href={href} x={x - w / 2} y={y - h / 2} width={w} height={h} preserveAspectRatio="xMidYMid meet" />;
 }
 
 export function normalizeFace(key: string): Face {
@@ -76,12 +84,6 @@ export function TileDefs() {
           <stop offset="0.5" stopColor="#f5b301" />
           <stop offset="1" stopColor="#c8890a" />
         </linearGradient>
-        {/* Kristall (Sou) */}
-        <linearGradient id="crystal" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#6ff0da" />
-          <stop offset="0.5" stopColor="#22c4a8" />
-          <stop offset="1" stopColor="#0f8f7c" />
-        </linearGradient>
         {/* Elfenbein-Deckfläche (aus dem Blankostein gesampelt) – harte, bündig
             kachelnde Basis, damit zwischen Steinen kein Filz durchscheint. */}
         <linearGradient id="tbody" x1="0" y1="0" x2="0" y2="1">
@@ -109,19 +111,6 @@ function Gem({ x, y, c, r = 5 }: { x: number; y: number; c: string; r?: number }
       <path d={`M${x - r} ${y} A ${r} ${r} 0 0 1 ${x + r} ${y} Z`} fill="#fff" opacity="0.28" />
       <circle cx={x} cy={y} r={r} fill="none" stroke="rgba(0,0,0,.35)" strokeWidth="0.7" />
       <circle cx={x - r * 0.32} cy={y - r * 0.32} r={r * 0.28} fill="#fff" opacity="0.95" />
-    </g>
-  );
-}
-
-// Vertikaler Kristall-Stab (ersetzt Bambus im Sou).
-function Crystal({ x, y, w = 7, h = 20 }: { x: number; y: number; w?: number; h?: number }) {
-  const hw = w / 2, hh = h / 2, tip = h * 0.22;
-  const pts = `${x},${y - hh} ${x + hw},${y - hh + tip} ${x + hw},${y + hh - tip} ${x},${y + hh} ${x - hw},${y + hh - tip} ${x - hw},${y - hh + tip}`;
-  return (
-    <g>
-      <polygon points={pts} fill="url(#crystal)" stroke="rgba(0,0,0,.28)" strokeWidth="0.5" />
-      <polyline points={`${x},${y - hh} ${x},${y + hh}`} stroke="rgba(255,255,255,.5)" strokeWidth="0.7" />
-      <polygon points={`${x},${y - hh} ${x + hw},${y - hh + tip} ${x},${y}`} fill="#fff" opacity="0.22" />
     </g>
   );
 }
@@ -186,20 +175,18 @@ function Numeral({ n, x = 30, y = 34, size = 26, fill = '#1e2a44' }: { n: number
 function motif(f: Face): React.ReactNode {
   const { suit, rank } = f;
   if (suit === 'pin') {
+    // Kreise (Pin) = freigestelltes Münz-Token, Anzahl 1–9 aus PIN-Positionen.
     const pts = PIN[rank] ?? [];
-    const r = rank === 1 ? 9 : rank >= 8 ? 4 : 5;
-    return pts.map(([x, y], i) => <Gem key={i} x={x} y={y} c={DOT_COLORS[(rank === 1 ? 0 : i) % 3]} r={r} />);
+    const d = rank === 1 ? 30 : rank >= 7 ? 13 : 16;
+    return pts.map(([x, y], i) => <TokenImg key={i} href={pinDot} x={x} y={y} w={d} h={d} />);
   }
   if (suit === 'sou') {
+    // Bambus (Sou): 1 = Vogel, 2–9 = Bambusstäbe aus SOU-Positionen.
+    if (rank === 1) return <TokenImg href={souBird} x={30} y={40} w={42} h={40} />;
     const pts = SOU[rank] ?? [];
-    const w = rank >= 8 ? 5 : rank >= 6 ? 6 : 7;
-    const h = rank >= 6 ? 17 : 20;
-    return (
-      <>
-        {pts.map(([x, y], i) => <Crystal key={i} x={x} y={y} w={w} h={h} />)}
-        {rank === 1 && <Gem x={30} y={20} c="#e0483d" r={4} />}
-      </>
-    );
+    const sw = rank >= 6 ? 11 : 13;
+    const sh = rank >= 6 ? 20 : 24;
+    return pts.map(([x, y], i) => <TokenImg key={i} href={souStick} x={x} y={y} w={sw} h={sh} />);
   }
   if (suit === 'man') {
     // Zahlen-Stein 一萬…九萬 (Gemini-Symbol, hochformatig: Ziffer + 萬).
