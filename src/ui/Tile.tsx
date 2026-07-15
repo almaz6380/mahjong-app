@@ -9,11 +9,22 @@ import windN from '../assets/tile-wind-n.webp';
 import dragonGreen from '../assets/tile-dragon-green.webp';
 import dragonWhite from '../assets/tile-dragon-white.webp';
 import dragonRed from '../assets/symbol-zhong.webp';
+import wan1 from '../assets/tile-wan-1.webp';
+import wan2 from '../assets/tile-wan-2.webp';
+import wan3 from '../assets/tile-wan-3.webp';
+import wan4 from '../assets/tile-wan-4.webp';
+import wan5 from '../assets/tile-wan-5.webp';
+import wan6 from '../assets/tile-wan-6.webp';
+import wan7 from '../assets/tile-wan-7.webp';
+import wan8 from '../assets/tile-wan-8.webp';
+import wan9 from '../assets/tile-wan-9.webp';
 
 // Freigestellte Gemini-Symbole für Winde (東南西北) und Drachen (中/發/白).
 // Roter Drache = dasselbe 中 wie auf dem Drehstein (symbol-zhong).
 const WIND_IMG: Record<number, string> = { 1: windE, 2: windS, 3: windW, 4: windN };
 const DRAGON_IMG: Record<number, string> = { 1: dragonRed, 2: dragonGreen, 3: dragonWhite };
+// Zahlen-Steine 一萬…九萬 (chinesische Ziffer + 萬), traditionell.
+const WAN_IMG: Record<number, string> = { 1: wan1, 2: wan2, 3: wan3, 4: wan4, 5: wan5, 6: wan6, 7: wan7, 8: wan8, 9: wan9 };
 
 type Suit = 'man' | 'sou' | 'pin' | 'wind' | 'dragon' | 'flower' | 'season' | 'myth' | 'treasure';
 interface Face { suit: Suit; rank: number }
@@ -114,19 +125,6 @@ function Crystal({ x, y, w = 7, h = 20 }: { x: number; y: number; w?: number; h?
   );
 }
 
-// Kleine Krone (Man-Emblem, "Royale").
-function Crown({ cx, cy, s = 1 }: { cx: number; cy: number; s?: number }) {
-  return (
-    <g transform={`translate(${cx} ${cy}) scale(${s})`}>
-      <path d="M-11 5 L-11 -5 L-5 1 L0 -8 L5 1 L11 -5 L11 5 Z" fill="url(#gold)" stroke="rgba(120,80,0,.5)" strokeWidth="0.8" strokeLinejoin="round" />
-      <rect x="-11" y="5" width="22" height="3.4" rx="1.2" fill="url(#gold)" stroke="rgba(120,80,0,.5)" strokeWidth="0.6" />
-      <circle cx="0" cy="-8" r="1.7" fill="#fff3c4" />
-      <circle cx="-11" cy="-5" r="1.5" fill="#fff3c4" />
-      <circle cx="11" cy="-5" r="1.5" fill="#fff3c4" />
-    </g>
-  );
-}
-
 // Punkt-Anordnungen (Pin)
 const PIN: Record<number, [number, number][]> = {
   1: [[30, 40]],
@@ -192,13 +190,8 @@ function motif(f: Face): React.ReactNode {
     );
   }
   if (suit === 'man') {
-    // Krone (Royale) + große Rangzahl.
-    return (
-      <>
-        <Crown cx={30} cy={26} s={1.05} />
-        <Numeral n={rank} x={30} y={64} size={30} fill="#1e2a44" />
-      </>
-    );
+    // Zahlen-Stein 一萬…九萬 (Gemini-Symbol, hochformatig: Ziffer + 萬).
+    return <image href={WAN_IMG[rank] ?? wan1} x="14" y="9" width="32" height="62" preserveAspectRatio="xMidYMid meet" />;
   }
   if (suit === 'wind') {
     // Freigestelltes Zeichen 東/南/西/北 (Gemini-Symbol).
