@@ -170,11 +170,12 @@ function TileTop() {
   );
 }
 
-// 3D-Steindicke: Elfenbein-Seitenwand unten+links, um (-6,+9) Einheiten ≈ (5px,7px)
-// gegen die Deckfläche versetzt → überbrückt den Stapel-Versatz DX=5/DY=7 (Board.tsx),
-// sodass die Kante des oberen Steins direkt an den unteren anschließt.
+// 3D-Steindicke: Elfenbein-Seitenwand unten+links, um (-3,+4.5) Einheiten
+// ≈ (2.5px,3.5px) gegen die Deckfläche versetzt → überbrückt den (halbierten)
+// Stapel-Versatz DX=2.5/DY=3.5 (Board.tsx), sodass die Kante des oberen Steins
+// direkt an den unteren anschließt.
 function TileSide() {
-  return <rect x="-4" y="11" width="56" height="74" rx="6" fill="url(#tside)" stroke="rgba(60,45,15,.3)" strokeWidth="0.6" />;
+  return <rect x="-1" y="6.5" width="56" height="74" rx="6" fill="url(#tside)" stroke="rgba(60,45,15,.3)" strokeWidth="0.6" />;
 }
 
 // Rangzahl im eigenen Stil (arabisch, kräftig) – ersetzt chinesische Ziffern.
