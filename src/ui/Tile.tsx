@@ -82,10 +82,18 @@ export function TileDefs() {
           <stop offset="0.5" stopColor="#22c4a8" />
           <stop offset="1" stopColor="#0f8f7c" />
         </linearGradient>
-        {/* Korpus-Abdunklung: dunklere Kopie des Blankosteins als Steindicke. */}
-        <filter id="tiledark" x="-5%" y="-5%" width="110%" height="110%">
-          <feColorMatrix type="matrix" values="0.78 0 0 0 0  0 0.78 0 0 0  0 0 0.78 0 0  0 0 0 1 0" />
-        </filter>
+        {/* Elfenbein-Deckfläche (aus dem Blankostein gesampelt) – harte, bündig
+            kachelnde Basis, damit zwischen Steinen kein Filz durchscheint. */}
+        <linearGradient id="tbody" x1="0" y1="0" x2="0.15" y2="1">
+          <stop offset="0" stopColor="#f4ecd6" />
+          <stop offset="0.55" stopColor="#ebdfc2" />
+          <stop offset="1" stopColor="#dccdaa" />
+        </linearGradient>
+        {/* Elfenbein-Seitenwand (3D-Steindicke, etwas dunkler). */}
+        <linearGradient id="tside" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#d3c4a0" />
+          <stop offset="1" stopColor="#b09c72" />
+        </linearGradient>
       </defs>
     </svg>
   );
@@ -147,9 +155,26 @@ const SOU: Record<number, [number, number][]> = {
 // Deckfläche = freigestellter Gemini-Blankostein (premium Elfenbein). Motiv liegt
 // darüber. `corpus` > 0 legt darunter eine abgedunkelte, nach unten versetzte Kopie
 // als dezente Steindicke (3D-Block) an.
-// Deckflächen-Bild (freigestellter Blankostein), optional abgedunkelt (Korpus).
-function FaceImg({ x, y, w, h, dark }: { x: number; y: number; w: number; h: number; dark?: boolean }) {
-  return <image href={blankTile} x={x} y={y} width={w} height={h} preserveAspectRatio="none" filter={dark ? 'url(#tiledark)' : undefined} />;
+// Deckfläche: harte, bündig kachelnde Elfenbein-Basis (rundet leicht, füllt das
+// Rasterfeld randvoll + 1u Bleed → benachbarte Steine stoßen bündig, kein Filz)
+// + Gemini-Blankostein als Textur darüber (weiche Kante blendet in die Basis)
+// + dünne dunkle Fuge zur Abgrenzung der Einzelsteine.
+// Footprint = (3,3,54,72); mit Bleed 1 => (2,2,56,74).
+function TileTop() {
+  return (
+    <>
+      <rect x="2" y="2" width="56" height="74" rx="6" fill="url(#tbody)" />
+      <image href={blankTile} x="2" y="2" width="56" height="74" preserveAspectRatio="none" />
+      <rect x="2" y="2" width="56" height="74" rx="6" fill="none" stroke="rgba(60,45,15,.28)" strokeWidth="0.8" />
+    </>
+  );
+}
+
+// 3D-Steindicke: Elfenbein-Seitenwand unten+links, um (-6,+9) Einheiten ≈ (5px,7px)
+// gegen die Deckfläche versetzt → überbrückt den Stapel-Versatz DX=5/DY=7 (Board.tsx),
+// sodass die Kante des oberen Steins direkt an den unteren anschließt.
+function TileSide() {
+  return <rect x="-4" y="11" width="56" height="74" rx="6" fill="url(#tside)" stroke="rgba(60,45,15,.3)" strokeWidth="0.6" />;
 }
 
 // Rangzahl im eigenen Stil (arabisch, kräftig) – ersetzt chinesische Ziffern.
@@ -294,15 +319,15 @@ export function Tile({ face, className, solid }: { face: string; className?: str
     // zentriert bleibt. CSS (.tile.solid) mappt das Footprint (3,3,54,72) aufs Raster.
     return (
       <svg className={'tileface' + (className ? ' ' + className : '')} viewBox="-5 0 63 86" preserveAspectRatio="none">
-        <FaceImg x={-4} y={11} w={56} h={74} dark />
-        <FaceImg x={2} y={2} w={56} h={74} />
+        <TileSide />
+        <TileTop />
         {motif(f)}
       </svg>
     );
   }
   return (
     <svg className={'tileface' + (className ? ' ' + className : '')} viewBox="0 0 60 80" preserveAspectRatio="xMidYMid meet">
-      <FaceImg x={1} y={1} w={58} h={76} />
+      <TileTop />
       {motif(f)}
     </svg>
   );
