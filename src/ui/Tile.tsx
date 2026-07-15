@@ -186,16 +186,17 @@ function motif(f: Face): React.ReactNode {
   const { suit, rank } = f;
   if (suit === 'pin') {
     // Kreise (Pin) = freigestelltes Münz-Token, Anzahl 1–9 aus PIN-Positionen.
+    // Größer = füllt den Stein (v.a. bei wenigen Kreisen), wirkt nicht mehr „billig".
     const pts = PIN[rank] ?? [];
-    const d = rank === 1 ? 30 : rank >= 7 ? 13 : 16;
+    const d = rank === 1 ? 46 : rank === 2 ? 28 : rank === 3 ? 21 : rank <= 5 ? 19 : rank === 6 ? 18 : 15;
     return pts.map(([x, y], i) => <TokenImg key={i} href={pinDot} x={x} y={y} w={d} h={d} />);
   }
   if (suit === 'sou') {
     // Bambus (Sou): 1 = Vogel, 2–9 = Bambusstäbe aus SOU-Positionen.
-    if (rank === 1) return <TokenImg href={souBird} x={30} y={40} w={42} h={40} />;
+    if (rank === 1) return <TokenImg href={souBird} x={30} y={40} w={48} h={46} />;
     const pts = SOU[rank] ?? [];
-    const sw = rank >= 6 ? 11 : 13;
-    const sh = rank >= 6 ? 20 : 24;
+    const sw = rank >= 6 ? 14 : 17;
+    const sh = rank >= 6 ? 25 : 30;
     return pts.map(([x, y], i) => <TokenImg key={i} href={souStick} x={x} y={y} w={sw} h={sh} />);
   }
   if (suit === 'man') {
