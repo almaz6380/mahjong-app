@@ -660,10 +660,22 @@ body {
 .tile.solid.hint .tileface {
   outline: none;
 }
+/* Ausgewählter Stein: sichtbar anheben + goldener Leuchtrahmen. Der Glow liegt
+   auf der Steinsilhouette (folgt der runden Form); z-index-Bump aus Board.tsx
+   sorgt dafür, dass angehobener Stein + Glow über den Nachbarn liegen. */
 .tile.solid.selected {
-  outline: 3px solid var(--accent);
+  outline: 3px solid #ffcf5a;
   outline-offset: -1px;
   border-radius: 8px;
+  transform: translateY(-5px);
+  animation: selectlift 0.16s ease-out;
+}
+.tile.solid.selected .tileface {
+  filter: drop-shadow(0 0 6px #ffcf5a) drop-shadow(0 0 3px rgba(255, 207, 90, 0.9)) brightness(1.05);
+}
+@keyframes selectlift {
+  from { transform: translateY(0); }
+  to { transform: translateY(-5px); }
 }
 .tile.solid.hint {
   outline: 3px solid #56c8ff;

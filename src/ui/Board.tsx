@@ -78,7 +78,7 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
                   top: y,
                   width: TW,
                   height: TH,
-                  zIndex: t.layer * 10000 + t.row * 100 + t.col,
+                  zIndex: t.layer * 10000 + t.row * 100 + t.col + (selected === t.key ? 500000 : 0),
                 }}
                 onClick={() => onTile(t.key)}
                 aria-label={t.face.id}
