@@ -128,9 +128,63 @@ def extract_blank(in_path: str, out_path: str) -> None:
     print(f"  [blank] {os.path.basename(in_path)} -> {os.path.basename(out_path)}  ({w}x{h})")
 
 
+def extract_flower(in_path: str, out_path: str) -> None:
+    """Offene Farb-Motive (Blumen/Jahreszeiten) auf pinkigem, NICHT reinem Magenta.
+    Magenta-Key min(R,B)-G erkennt Pink in jeder Helligkeit; Hintergrund per
+    Rand-Flood-Fill (alle randverbundenen pinkigen Flaechen) + kraeftig-pink
+    (ueberall) + dunkel-pink (schattierter BG in Motiv-Oeffnungen) entfernen.
+    Tiefrosa Blueten (hell, von Goldkontur umschlossen) bleiben erhalten."""
+    arr = np.asarray(Image.open(in_path).convert("RGB")).astype(np.float32)
+    H, W = arr.shape[:2]
+    R, G, B = arr[..., 0], arr[..., 1], arr[..., 2]
+    key = np.minimum(R, B) - G
+    bright = (R + G + B) / 3.0
+    strong = key > 55                       # kraeftig pink -> BG (ueberall)
+    darkpink = (key > 26) & (bright < 125)  # dunkler schattierter BG in Oeffnungen
+    cand = key > 20
+    lbl, n = ndimage.label(cand)
+    border = set(lbl[0, :]).union(lbl[-1, :], lbl[:, 0], lbl[:, -1]); border.discard(0)
+    bg = np.isin(lbl, list(border)) | strong | darkpink
+    fg = ~bg
+    flbl, fn = ndimage.label(fg)
+    if fn > 1:
+        sizes = ndimage.sum(np.ones_like(flbl), flbl, range(1, fn + 1))
+        cut = sizes.max() * 0.01
+        for l, sz in enumerate(sizes, 1):
+            if sz < cut:
+                fg[flbl == l] = False
+    alpha = fg.astype(np.float32)
+    alpha = ndimage.grey_erosion(alpha, size=7)
+    alpha = ndimage.gaussian_filter(alpha, 1.0)
+    c = 80
+    corners = np.concatenate([arr[:c, :c].reshape(-1, 3), arr[:c, -c:].reshape(-1, 3),
+                              arr[-c:, :c].reshape(-1, 3), arr[-c:, -c:].reshape(-1, 3)])
+    bgcol = np.median(corners, 0)
+    a = alpha[..., None]
+    out = np.clip((arr - (1 - a) * bgcol[None, None, :]) / np.maximum(a, 1e-3), 0, 255)
+    edge = (alpha > 0.02) & (alpha < 0.98)
+    # Gruen-Despill: gruener Un-Multiply-Saum -> G auf max(R,B) klemmen
+    out[..., 1][edge] = np.minimum(out[..., 1][edge], np.maximum(out[..., 0][edge], out[..., 2][edge]))
+    g = out[..., 1]
+    out[..., 0][edge] = np.minimum(out[..., 0][edge], g[edge] + 45)  # Pink-Despill
+    out[..., 2][edge] = np.minimum(out[..., 2][edge], g[edge] + 45)
+    rgba = np.dstack([out, alpha * 255.0]).astype(np.uint8)
+    ys, xs = np.where(alpha > 0.05)
+    if len(xs):
+        pad = 10
+        y0, y1 = max(ys.min() - pad, 0), min(ys.max() + pad + 1, H)
+        x0, x1 = max(xs.min() - pad, 0), min(xs.max() + pad + 1, W)
+        rgba = rgba[y0:y1, x0:x1]
+    Image.fromarray(rgba, "RGBA").save(out_path, "WEBP", lossless=True, quality=100)
+    h, w = rgba.shape[:2]
+    print(f"  [flower] {os.path.basename(in_path)} -> {os.path.basename(out_path)}  ({w}x{h})")
+
+
 def main() -> None:
     if len(sys.argv) == 4 and sys.argv[1] == "--blank":
         extract_blank(sys.argv[2], sys.argv[3]); return
+    if len(sys.argv) == 4 and sys.argv[1] == "--flower":
+        extract_flower(sys.argv[2], sys.argv[3]); return
     if len(sys.argv) != 3:
         print(__doc__); sys.exit(1)
     src, dst = sys.argv[1], sys.argv[2]

@@ -22,6 +22,10 @@ import blankTile from '../assets/tile-face.webp';
 import pinDot from '../assets/tile-pin-dot.webp';
 import souStick from '../assets/tile-sou-stick.webp';
 import souBird from '../assets/tile-sou-bird.webp';
+import flowerPlum from '../assets/tile-flower-plum.webp';
+import flowerOrchid from '../assets/tile-flower-orchid.webp';
+import flowerChrys from '../assets/tile-flower-chrys.webp';
+import flowerBamboo from '../assets/tile-flower-bamboo.webp';
 
 // Freigestellte Gemini-Symbole für Winde (東南西北) und Drachen (中/發/白).
 // Roter Drache = dasselbe 中 wie auf dem Drehstein (symbol-zhong).
@@ -29,6 +33,8 @@ const WIND_IMG: Record<number, string> = { 1: windE, 2: windS, 3: windW, 4: wind
 const DRAGON_IMG: Record<number, string> = { 1: dragonRed, 2: dragonGreen, 3: dragonWhite };
 // Zahlen-Steine 一萬…九萬 (chinesische Ziffer + 萬), traditionell.
 const WAN_IMG: Record<number, string> = { 1: wan1, 2: wan2, 3: wan3, 4: wan4, 5: wan5, 6: wan6, 7: wan7, 8: wan8, 9: wan9 };
+// Blumen 梅蘭菊竹 (Pflaume/Orchidee/Chrysantheme/Bambus) – freigestellte Gemini-Motive.
+const FLOWER_IMG: Record<number, string> = { 1: flowerPlum, 2: flowerOrchid, 3: flowerChrys, 4: flowerBamboo };
 
 type Suit = 'man' | 'sou' | 'pin' | 'wind' | 'dragon' | 'flower' | 'season' | 'myth' | 'treasure';
 interface Face { suit: Suit; rank: number }
@@ -265,29 +271,21 @@ function motif(f: Face): React.ReactNode {
       </g>
     );
   }
-  // Blumen / Jahreszeiten – helle eigene Icons.
-  const color = suit === 'flower' ? '#e857a6' : '#f5a623';
-  const petals = suit === 'flower';
+  if (suit === 'flower') {
+    // Blumen (梅蘭菊竹) – freigestelltes Gemini-Motiv.
+    return <image href={FLOWER_IMG[rank] ?? flowerPlum} x="9" y="12" width="42" height="52" preserveAspectRatio="xMidYMid meet" />;
+  }
+  // Jahreszeiten – vorerst SVG-Sonne (Gemini-Motive folgen).
+  const color = '#f5a623';
   return (
     <>
-      {petals ? (
-        <g>
-          {[0, 60, 120, 180, 240, 300].map((a) => {
-            const rad = (a * Math.PI) / 180;
-            return <circle key={a} cx={30 + Math.cos(rad) * 9} cy={38 + Math.sin(rad) * 9} r="6.5" fill={color} opacity="0.92" />;
-          })}
-          <circle cx="30" cy="38" r="6" fill="#ffe07a" />
-        </g>
-      ) : (
-        <g>
-          {/* Sonne/Strahlen (Jahreszeit) */}
-          {Array.from({ length: 8 }, (_, i) => {
-            const a = (i * 45) * Math.PI / 180;
-            return <line key={i} x1={30 + Math.cos(a) * 11} y1={38 + Math.sin(a) * 11} x2={30 + Math.cos(a) * 18} y2={38 + Math.sin(a) * 18} stroke={color} strokeWidth="2.4" strokeLinecap="round" />;
-          })}
-          <circle cx="30" cy="38" r="10" fill={color} />
-        </g>
-      )}
+      <g>
+        {Array.from({ length: 8 }, (_, i) => {
+          const a = (i * 45) * Math.PI / 180;
+          return <line key={i} x1={30 + Math.cos(a) * 11} y1={38 + Math.sin(a) * 11} x2={30 + Math.cos(a) * 18} y2={38 + Math.sin(a) * 18} stroke={color} strokeWidth="2.4" strokeLinecap="round" />;
+        })}
+        <circle cx="30" cy="38" r="10" fill={color} />
+      </g>
       <Numeral n={rank} x={46} y={70} size={13} fill={color} />
     </>
   );
