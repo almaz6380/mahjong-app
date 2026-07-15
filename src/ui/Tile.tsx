@@ -147,19 +147,9 @@ const SOU: Record<number, [number, number][]> = {
 // Deckfläche = freigestellter Gemini-Blankostein (premium Elfenbein). Motiv liegt
 // darüber. `corpus` > 0 legt darunter eine abgedunkelte, nach unten versetzte Kopie
 // als dezente Steindicke (3D-Block) an.
-function TileFace({ children, corpus = 0 }: { children: React.ReactNode; corpus?: number }) {
-  // Deckfläche wird mit kleinem Bleed (2 Einheiten) über das 54×72-Rasterfeld
-  // (x3..57, y3..75) hinaus gezeichnet, damit sich Nachbarsteine minimal
-  // überlappen und kein Filz durchblitzt. Das Footprint-Mapping (CSS) bleibt 54×72.
-  return (
-    <>
-      {corpus > 0 && (
-        <image href={blankTile} x="1" y={1 + corpus} width="58" height="76" preserveAspectRatio="none" filter="url(#tiledark)" />
-      )}
-      <image href={blankTile} x="1" y="1" width="58" height="76" preserveAspectRatio="none" />
-      {children}
-    </>
-  );
+// Deckflächen-Bild (freigestellter Blankostein), optional abgedunkelt (Korpus).
+function FaceImg({ x, y, w, h, dark }: { x: number; y: number; w: number; h: number; dark?: boolean }) {
+  return <image href={blankTile} x={x} y={y} width={w} height={h} preserveAspectRatio="none" filter={dark ? 'url(#tiledark)' : undefined} />;
 }
 
 // Rangzahl im eigenen Stil (arabisch, kräftig) – ersetzt chinesische Ziffern.
@@ -295,19 +285,25 @@ function motif(f: Face): React.ReactNode {
 export function Tile({ face, className, solid }: { face: string; className?: string; solid?: boolean }) {
   const f = normalizeFace(face);
   if (solid) {
-    // Blankostein-Deckfläche (bei 3,3 Größe 54×72) + dünne Steindicke darunter
-    // (corpus 3px nach unten). Weicher Schatten kommt per CSS (.tile.solid).
-    // preserveAspectRatio="none": viewBox mappt exakt aufs Element, CSS
-    // (.tile.solid .tileface) legt die 54×72-Deckfläche aufs Button-Raster.
+    // 3D-Korpus: Die abgedunkelte Kopie (Seitenwände unten+links) ist um
+    // (-6,+9) Einheiten ≈ (5px links, 7px unten) gegen die Deckfläche versetzt
+    // und überbrückt damit exakt den Stapel-Versatz aus Board.tsx (DX=5/DY=7).
+    // So schließt die Kante des oberen Steins direkt an den unteren an – keine
+    // Filz-Lücke im Stapel. Deckfläche mit 1u-Bleed gegen Lücken auf gleicher Ebene.
+    // viewBox links negativ, damit die Seitenwand Platz hat und das Motiv (um 30,40)
+    // zentriert bleibt. CSS (.tile.solid) mappt das Footprint (3,3,54,72) aufs Raster.
     return (
-      <svg className={'tileface' + (className ? ' ' + className : '')} viewBox="0 0 60 82" preserveAspectRatio="none">
-        <TileFace corpus={3}>{motif(f)}</TileFace>
+      <svg className={'tileface' + (className ? ' ' + className : '')} viewBox="-5 0 63 86" preserveAspectRatio="none">
+        <FaceImg x={-4} y={11} w={56} h={74} dark />
+        <FaceImg x={2} y={2} w={56} h={74} />
+        {motif(f)}
       </svg>
     );
   }
   return (
     <svg className={'tileface' + (className ? ' ' + className : '')} viewBox="0 0 60 80" preserveAspectRatio="xMidYMid meet">
-      <TileFace>{motif(f)}</TileFace>
+      <FaceImg x={1} y={1} w={58} h={76} />
+      {motif(f)}
     </svg>
   );
 }
