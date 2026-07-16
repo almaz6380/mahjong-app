@@ -9,7 +9,6 @@ interface Props {
   selected: number | null;
   hintPair: [number, number] | null;
   onTile: (key: number) => void;
-  variant?: 'A' | 'B'; // 3D-Stein-Stil (Vergleich): A=Einzelblöcke, B=bündig
 }
 
 const TW = 44; // Stein-Breite
@@ -17,7 +16,7 @@ const TH = 58; // Stein-Höhe
 const DX = 0; // kein horizontaler Versatz -> Frontansicht, Steine sauber senkrecht gestapelt
 const DY = 10; // vertikaler 3D-Versatz pro Ebene (= sichtbare Steindicke SIDE_D in Tile.tsx)
 
-export function Board({ tiles, fading, freeSet, selected, hintPair, onTile, variant = 'B' }: Props) {
+export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 
@@ -96,7 +95,7 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile, vari
                 onClick={() => onTile(t.key)}
                 aria-label={t.face.id}
               >
-                <Tile face={t.face.id} solid variant={variant} />
+                <Tile face={t.face.id} solid />
               </button>
             );
           })}
@@ -113,7 +112,7 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile, vari
               zIndex: 99999,
             }}
           >
-            <Tile face={f.faceId} solid variant={variant} />
+            <Tile face={f.faceId} solid />
           </div>
         ))}
         </div>

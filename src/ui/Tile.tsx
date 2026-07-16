@@ -176,17 +176,12 @@ const SOU: Record<number, [number, number][]> = {
 // + Gemini-Blankostein als Textur darüber (weiche Kante blendet in die Basis)
 // + dünne dunkle Fuge zur Abgrenzung der Einzelsteine.
 // Footprint = (3,3,54,72); mit Bleed 1 => (2,2,56,74).
-// Footprint der Deckfläche je Variante.
-//  B (bündig): füllt das Rasterfeld randvoll (Bleed) → keine Fugen.
-//  A (Einzelblöcke): allseitig eingerückt → feine Fuge + Bevel an JEDEM Stein.
-function topRect(variant: 'A' | 'B') {
-  return variant === 'A'
-    ? { x: 5, y: 4, w: 50, h: 62, rx: 8 }
-    : { x: 2, y: 2, w: 56, h: 74, rx: 9 };
-}
+// Footprint der Deckfläche: füllt das Rasterfeld randvoll (Bleed 1u) → benachbarte
+// Steine stoßen bündig, kein Filz dazwischen; runde Ecken (rx 9) wie Referenz.
+const TOP = { x: 2, y: 2, w: 56, h: 74, rx: 9 };
 
-function TileTop({ variant = 'B' }: { variant?: 'A' | 'B' }) {
-  const r = topRect(variant);
+function TileTop() {
+  const r = TOP;
   return (
     <>
       <rect x={r.x} y={r.y} width={r.w} height={r.h} rx={r.rx} fill="url(#tbody)" />
@@ -201,8 +196,8 @@ function TileTop({ variant = 'B' }: { variant?: 'A' | 'B' }) {
 // nach unten → überbrückt den Stapel-Versatz DY (Board.tsx). Verlauf `#tside2`
 // splittet oben Elfenbein / unten blau.
 const SIDE_D = 10; // sichtbare Tiefe (px-nah); muss zu DY in Board.tsx passen
-function TileSide({ variant = 'B' }: { variant?: 'A' | 'B' }) {
-  const r = topRect(variant);
+function TileSide() {
+  const r = TOP;
   const fb = r.y + r.h; // Unterkante der Deckfläche = Oberkante der sichtbaren Tiefe
   // Rect = exakt die sichtbare Tiefe (kein Überlapp) → Verlauf-Split bei 50 %
   // trennt sauber obere Hälfte Elfenbein / untere Hälfte blau.
@@ -257,7 +252,7 @@ function motif(f: Face): React.ReactNode {
   return <image href={SEASON_IMG[rank] ?? seasonSpring} x="9" y="12" width="42" height="52" preserveAspectRatio="xMidYMid meet" />;
 }
 
-export function Tile({ face, className, solid, variant = 'B' }: { face: string; className?: string; solid?: boolean; variant?: 'A' | 'B' }) {
+export function Tile({ face, className, solid }: { face: string; className?: string; solid?: boolean }) {
   const f = normalizeFace(face);
   if (solid) {
     // 3D-Korpus: Die abgedunkelte Kopie (Seitenwände unten+links) ist um
@@ -268,9 +263,9 @@ export function Tile({ face, className, solid, variant = 'B' }: { face: string; 
     // viewBox links negativ, damit die Seitenwand Platz hat und das Motiv (um 30,40)
     // zentriert bleibt. CSS (.tile.solid) mappt das Footprint (3,3,54,72) aufs Raster.
     return (
-      <svg className={'tileface tv-' + variant + (className ? ' ' + className : '')} viewBox="-5 0 63 86" preserveAspectRatio="none">
-        <TileSide variant={variant} />
-        <TileTop variant={variant} />
+      <svg className={'tileface' + (className ? ' ' + className : '')} viewBox="-5 0 63 86" preserveAspectRatio="none">
+        <TileSide />
+        <TileTop />
         {motif(f)}
       </svg>
     );
