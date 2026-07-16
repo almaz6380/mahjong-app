@@ -48,12 +48,21 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   `symbol-zhong.webp`, dasselbe 中 wie auf dem Drehstein) und die Zahlen 一萬…九萬 (`tile-wan-{1..9}.webp`, Ziffer blau
   + 萬 rot; ersetzt das alte Royale-Kronen-Motiv). Eingebunden in `Tile.tsx` (`SymbolImg`/`WIND_IMG`/`DRAGON_IMG`/`WAN_IMG`
   als `<image>` über der Deckfläche; ersetzt die abstrakten Raute/Flamme/Blatt/Stern/Krone-Motive).
-  **Stein-Optik (Blankostein):** Die Deckfläche ist ein freigestellter Gemini-**Blankostein** `tile-blank.webp`
-  (einfarbiges Premium-Elfenbein), Symbol liegt darüber (`TileFace`). Im Solitaire (`Tile solid`) darunter eine
-  abgedunkelte, 3px nach unten versetzte Kopie als **dünne Steindicke** (SVG-Filter `#tiledark`) + weicher
-  `drop-shadow` per CSS (`.tile.solid .tileface`, viewBox `0 0 60 82`, `preserveAspectRatio="none"`); ersetzt die
-  alte gemalte Seitenwand + hartes Schatten-Rechteck (wirkte „zu tief/billig"). Flache 4-Spieler-Steine = Deckfläche
-  ohne Korpus. Stapel-Versätze flacher: `Board.tsx` `DX=5/DY=7`.
+  **WICHTIG — Solitaire-Board-Steine sind jetzt `StoneTile` (klassischer 2.5D-Quader), NICHT mehr die
+  Gemini-Bild-Faces:** `src/ui/StoneTile.tsx` zeichnet je Stein eine **Deckfläche** (rundes Rect,
+  Verlauf `#stoneFront`) + **Steindicke = nach unten-rechts versetztes RUNDES Rect** (`#stoneSideB`,
+  `DX≈4/DY≈5`) → runde Ecken, leichte Seitenansicht, **kein Filz** zwischen Steinen (die Zwischenräume
+  sind die Elfenbein-Kanten). Dazu Glanz `#stoneGloss` + feine Kante. `Board.tsx` rendert `StoneTile`
+  (Raster `CW=FW+DX`, `CH=FH+DY`; Stapel-Versatz `LX/LY` nach oben-links; Auswahl-Glow + Blockiert-Dim
+  über CSS `.stoneface.sel/.hint/.dim`). Gradients in `TileDefs` (Tile.tsx). Die Symbole darauf sind
+  **flache, fette, kräftige, vorgerenderte** Zeichen: `src/assets/flat/*.webp` (Zahlen blau + 萬 rot,
+  Winde schwarz, 中 rot/發 grün/白 blauer SVG-Rahmen, Blumen/Jahreszeiten), gerendert aus CJK-Font
+  **WenQuanYi Zen Hei** via Pillow (`scripts/gen_flat_symbols.py`); Pin/Sou als **flache SVG-Formen**
+  (blaue Kreise / grüner Bambus). Mapping = `boardMotif(faceId)` in StoneTile. **Keine Runtime-Font-
+  Abhängigkeit.** Figuren-Cap: `figures.ts` erzeugt nur Layouts **≤6×7** (kleine SIZES + Filter) → große
+  Steine (~200 Figuren). — Die alten Gemini-Bild-Faces (`motif`/`WIND_IMG`/`WAN_IMG`/`tile-*.webp` in
+  `Tile.tsx`) + der Blankostein `tile-blank.webp` bleiben nur noch für **Drehstein** (`HeroTile3D`) und
+  4-Spieler/Riichi (`Tile` non-solid); im Solitaire-Board werden sie nicht mehr verwendet.
   **Extraktions-Skript** `scripts/extract_tiles.py` (venv `.venv-img`, Pillow/numpy/scipy): Symbole per Magenta-Key
   `min(R,B)-G` → weiche Alpha-Rampe → **alle** Zeichenteile behalten die ≥5% der größten Fläche sind (Sternchen
   raus, aber getrennte Radikale wie 北/發 bleiben!) → Kante ~4px erodieren (roter Gold/Magenta-Saum weg) →
@@ -71,8 +80,8 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   `tile-season-{spring,summer,autumn,winter}.webp` (`SEASON_IMG`) als freigestellte Gemini-Motive; `Numeral`
   entfernt. **Bonus-Serien ersetzt:** Mythen `tile-myth-{dragon,phoenix,qilin,turtle}.webp` (`MYTH_IMG`, Jade+Gold-
   Kreaturen 龍鳳麒龜) und Schätze `tile-treasure-{lantern,fan,coin,knot}.webp` (`TREASURE_IMG`); `#gold`-Verlauf
-  entfernt. **Damit sind ALLE Stein-Faces (Standard + Bonus) freigestellte Gemini-Bilder** — `motif` in `Tile.tsx`
-  enthält keine gezeichneten Stein-Symbole mehr (nur noch `Gem` für Sudoku-`PinDigit`).
+  entfernt. Diese Gemini-Bild-Faces (`motif` in `Tile.tsx`) werden noch für Drehstein/4-Spieler genutzt;
+  **im Solitaire-Board sind sie durch die flachen `src/assets/flat/*.webp`-Symbole ersetzt** (siehe StoneTile oben).
   Freistellung dieser offenen Farb-Motive auf **pinkigem (nicht reinem) Magenta** per `--blank`-artigem
   `--flower`-Modus: Magenta-Key `min(R,B)-G` + Rand-Flood-Fill (randverbundener BG) + „dunkel-pink"-Entfernung
   (schattierter BG in Motiv-Öffnungen) + Grün-Despill an Kanten (gegen Un-Multiply-Saum). Bilder aus Chat ohne
