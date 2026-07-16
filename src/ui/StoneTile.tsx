@@ -9,7 +9,7 @@ const flatAll = import.meta.glob('../assets/flat/*.webp', { eager: true, import:
 const F = (n: string) => flatAll[`../assets/flat/${n}.webp`];
 
 // Geometrie in „Tile-Units" (1u ≈ 1px unskaliert; Board skaliert zum Fit).
-const FW = 60, FH = 80, DX = 7, DY = 9; // Deckfläche + Tiefe nach unten-rechts
+const FW = 60, FH = 80, DX = 4, DY = 5; // Deckfläche + (dezente) Tiefe nach unten-rechts
 export const STONE = {
   FW, FH, DX, DY,
   CW: FW + DX,   // Spaltenschritt (Wand füllt die Lücke -> bündig, kein Filz)
@@ -86,10 +86,9 @@ export function StoneTile({ faceId, selected, hint, dim }: Props) {
   const R = 6;
   return (
     <svg className={cls} viewBox={`0 0 ${FW + DX} ${FH + DY}`} preserveAspectRatio="none">
-      {/* untere Seitenwand (Parallelogramm nach unten-rechts) */}
-      <path d={`M0 ${FH} H${FW} L${FW + DX} ${FH + DY} H${DX} Z`} fill="url(#stoneSideB)" stroke="rgba(45,34,12,.22)" strokeWidth="0.4" />
-      {/* rechte Seitenwand */}
-      <path d={`M${FW} 0 L${FW + DX} ${DY} V${FH + DY} L${FW} ${FH} Z`} fill="url(#stoneSideR)" stroke="rgba(45,34,12,.22)" strokeWidth="0.4" />
+      {/* Steindicke = nach unten-rechts versetztes RUNDES Rechteck hinter der
+          Deckfläche -> Tiefe-Ecken automatisch rund (keine spitzen Zipfel). */}
+      <rect x={DX} y={DY} width={FW} height={FH} rx={R} fill="url(#stoneSideB)" stroke="rgba(45,34,12,.20)" strokeWidth="0.4" />
       {/* Deckfläche */}
       <rect x="0" y="0" width={FW} height={FH} rx={R} fill="url(#stoneFront)" />
       {boardMotif(faceId)}
