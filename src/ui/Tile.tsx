@@ -123,16 +123,21 @@ export function TileDefs() {
           <stop offset="0.5" stopColor="#4a95e8" />
           <stop offset="1" stopColor="#265fa8" />
         </linearGradient>
-        {/* Deckfläche der 3D-Steine (StoneTile): heller Elfenbein-Verlauf. */}
+        {/* Deckfläche der Board-Steine (StoneTile): sauberes, helles Warm-Elfenbein. */}
         <linearGradient id="stoneFront" x1="0" y1="0" x2="0.28" y2="1">
-          <stop offset="0" stopColor="#fefcf6" />
-          <stop offset="0.55" stopColor="#f6eedb" />
-          <stop offset="1" stopColor="#e7d9bf" />
+          <stop offset="0" stopColor="#fffefa" />
+          <stop offset="0.55" stopColor="#f7f0de" />
+          <stop offset="1" stopColor="#ece1c6" />
         </linearGradient>
-        {/* Steindicke (Seitenwand) der StoneTile: Elfenbein dunkler -> Tiefe unten. */}
-        <linearGradient id="stoneSide" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#dccca6" />
-          <stop offset="1" stopColor="#b39b70" />
+        {/* Untere Seitenwand (Steindicke, im Schatten -> dunkler). */}
+        <linearGradient id="stoneSideB" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#d8c8a2" />
+          <stop offset="1" stopColor="#ab9268" />
+        </linearGradient>
+        {/* Rechte Seitenwand (etwas heller als unten). */}
+        <linearGradient id="stoneSideR" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#e0d1ac" />
+          <stop offset="1" stopColor="#bda878" />
         </linearGradient>
         {/* Sanftes Glanzlicht oben auf der Deckfläche. */}
         <linearGradient id="stoneGloss" x1="0" y1="0" x2="0" y2="1">

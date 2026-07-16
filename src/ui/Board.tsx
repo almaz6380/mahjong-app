@@ -11,7 +11,7 @@ interface Props {
   onTile: (key: number) => void;
 }
 
-const { W, H, DEPTH, DX, DY } = STONE;
+const { FW, FH, DX, DY, CW, CH, LX, LY } = STONE;
 
 export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -21,16 +21,18 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
   const maxRow = tiles.reduce((m, t) => Math.max(m, t.row), 0);
   const maxLayer = tiles.reduce((m, t) => Math.max(m, t.layer), 0);
 
-  // Breite Figuren hochkant drehen (Screen ist hochkant). Reine Anzeige:
-  // col/row-Logik (frei, Nachbarn) bleibt unangetastet.
+  // Breite Figuren hochkant drehen (Screen ist hochkant). Reine Anzeige.
   const rot = maxCol > maxRow;
   const dCol = (t: { col: number; row: number }) => (rot ? maxRow - t.row : t.col);
   const dRow = (t: { col: number; row: number }) => (rot ? t.col : t.row);
   const colsN = rot ? maxRow : maxCol;
   const rowsN = rot ? maxCol : maxRow;
 
-  const boardW = (colsN + 1) * W + maxLayer * DX;
-  const boardH = (rowsN + 1) * H + maxLayer * DY + DEPTH;
+  // Stapel wächst nach oben-links -> Platz oben/links reservieren.
+  const padL = -maxLayer * LX; // LX ist negativ
+  const padT = -maxLayer * LY;
+  const boardW = padL + (colsN + 1) * CW + DX;
+  const boardH = padT + (rowsN + 1) * CH + DY;
 
   useLayoutEffect(() => {
     const el = wrapRef.current;
@@ -40,7 +42,7 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
       const r = el.getBoundingClientRect();
       if (r.width === 0 || r.height === 0) return;
       const s = Math.min((r.width - PAD) / boardW, (r.height - PAD) / boardH);
-      setScale(s > 0 ? Math.min(s, 3) : 1);
+      setScale(s > 0 ? Math.min(s, 3.4) : 1);
     };
     resize();
     const ro = new ResizeObserver(resize);
@@ -64,8 +66,8 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
             .sort((a, b) => a.layer - b.layer || dRow(a) - dRow(b) || dCol(a) - dCol(b))
             .map((t) => {
               const dc = dCol(t), dr = dRow(t);
-              const x = dc * W + t.layer * DX;
-              const y = dr * H - t.layer * DY + maxLayer * DY;
+              const x = padL + dc * CW + t.layer * LX;
+              const y = padT + dr * CH + t.layer * LY;
               const free = freeSet.has(t.key);
               const isHint = !!hintPair && (hintPair[0] === t.key || hintPair[1] === t.key);
               return (
@@ -75,8 +77,8 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
                   style={{
                     left: x,
                     top: y,
-                    width: W,
-                    height: H,
+                    width: FW + DX,
+                    height: FH + DY,
                     zIndex: t.layer * 10000 + dr * 100 + dc + (selected === t.key ? 500000 : 0),
                   }}
                   onClick={() => onTile(t.key)}
@@ -86,16 +88,15 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
                 </button>
               );
             })}
-          {/* Verschwindende Steine (Match-Animation) */}
           {fading.map((f) => (
             <div
               key={`fade-${f.key}`}
               className="stonebtn removing"
               style={{
-                left: dCol(f) * W + f.layer * DX,
-                top: dRow(f) * H - f.layer * DY + maxLayer * DY,
-                width: W,
-                height: H,
+                left: padL + dCol(f) * CW + f.layer * LX,
+                top: padT + dRow(f) * CH + f.layer * LY,
+                width: FW + DX,
+                height: FH + DY,
                 zIndex: 99999,
               }}
             >
