@@ -123,11 +123,21 @@ export function TileDefs() {
           <stop offset="0.5" stopColor="#4a95e8" />
           <stop offset="1" stopColor="#265fa8" />
         </linearGradient>
-        {/* Deckfläche der 3D-Drehsteine (StoneTile): heller Elfenbein-Verlauf. */}
+        {/* Deckfläche der 3D-Steine (StoneTile): heller Elfenbein-Verlauf. */}
         <linearGradient id="stoneFront" x1="0" y1="0" x2="0.28" y2="1">
           <stop offset="0" stopColor="#fefcf6" />
           <stop offset="0.55" stopColor="#f6eedb" />
           <stop offset="1" stopColor="#e7d9bf" />
+        </linearGradient>
+        {/* Steindicke (Seitenwand) der StoneTile: Elfenbein dunkler -> Tiefe unten. */}
+        <linearGradient id="stoneSide" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#dccca6" />
+          <stop offset="1" stopColor="#b39b70" />
+        </linearGradient>
+        {/* Sanftes Glanzlicht oben auf der Deckfläche. */}
+        <linearGradient id="stoneGloss" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#ffffff" stopOpacity="0.5" />
+          <stop offset="0.35" stopColor="#ffffff" stopOpacity="0" />
         </linearGradient>
       </defs>
     </svg>

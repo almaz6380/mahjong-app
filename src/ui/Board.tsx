@@ -11,7 +11,7 @@ interface Props {
   onTile: (key: number) => void;
 }
 
-const { W, H, CW, CH, DX, DY } = STONE;
+const { W, H, DEPTH, DX, DY } = STONE;
 
 export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -29,8 +29,8 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
   const colsN = rot ? maxRow : maxCol;
   const rowsN = rot ? maxCol : maxRow;
 
-  const boardW = (colsN + 1) * CW + maxLayer * DX + (W - CW) + 4;
-  const boardH = (rowsN + 1) * CH + maxLayer * DY + (H - CH) + 4;
+  const boardW = (colsN + 1) * W + maxLayer * DX;
+  const boardH = (rowsN + 1) * H + maxLayer * DY + DEPTH;
 
   useLayoutEffect(() => {
     const el = wrapRef.current;
@@ -40,7 +40,7 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
       const r = el.getBoundingClientRect();
       if (r.width === 0 || r.height === 0) return;
       const s = Math.min((r.width - PAD) / boardW, (r.height - PAD) / boardH);
-      setScale(s > 0 ? Math.min(s, 2.2) : 1);
+      setScale(s > 0 ? Math.min(s, 3) : 1);
     };
     resize();
     const ro = new ResizeObserver(resize);
@@ -64,8 +64,8 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
             .sort((a, b) => a.layer - b.layer || dRow(a) - dRow(b) || dCol(a) - dCol(b))
             .map((t) => {
               const dc = dCol(t), dr = dRow(t);
-              const x = dc * CW + t.layer * DX;
-              const y = dr * CH - t.layer * DY + maxLayer * DY;
+              const x = dc * W + t.layer * DX;
+              const y = dr * H - t.layer * DY + maxLayer * DY;
               const free = freeSet.has(t.key);
               const isHint = !!hintPair && (hintPair[0] === t.key || hintPair[1] === t.key);
               return (
@@ -92,8 +92,8 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
               key={`fade-${f.key}`}
               className="stonebtn removing"
               style={{
-                left: dCol(f) * CW + f.layer * DX,
-                top: dRow(f) * CH - f.layer * DY + maxLayer * DY,
+                left: dCol(f) * W + f.layer * DX,
+                top: dRow(f) * H - f.layer * DY + maxLayer * DY,
                 width: W,
                 height: H,
                 zIndex: 99999,
