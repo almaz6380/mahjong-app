@@ -24,8 +24,17 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
   const maxRow = tiles.reduce((m, t) => Math.max(m, t.row), 0);
   const maxLayer = tiles.reduce((m, t) => Math.max(m, t.layer), 0);
 
-  const boardW = (maxCol + 1) * TW + maxLayer * DX + 6;
-  const boardH = (maxRow + 1) * TH + maxLayer * DY + 6;
+  // Breite Figuren hochkant drehen (Screen ist hochkant) -> lange Seite senkrecht,
+  // Steine groß, Fläche voll genutzt. Reine Anzeige: col/row-Logik (frei, Nachbarn)
+  // bleibt unangetastet; nur die Bildschirm-Position wird rotiert.
+  const rot = maxCol > maxRow;
+  const dCol = (t: { col: number; row: number }) => (rot ? maxRow - t.row : t.col);
+  const dRow = (t: { col: number; row: number }) => (rot ? t.col : t.row);
+  const colsN = rot ? maxRow : maxCol;
+  const rowsN = rot ? maxCol : maxRow;
+
+  const boardW = (colsN + 1) * TW + maxLayer * DX + 6;
+  const boardH = (rowsN + 1) * TH + maxLayer * DY + 6;
 
   useLayoutEffect(() => {
     const el = wrapRef.current;
@@ -62,8 +71,9 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
         {tiles
           .filter((t) => !t.removed)
           .map((t) => {
-            const x = t.col * TW + t.layer * DX;
-            const y = t.row * TH - t.layer * DY + maxLayer * DY;
+            const dc = dCol(t), dr = dRow(t);
+            const x = dc * TW + t.layer * DX;
+            const y = dr * TH - t.layer * DY + maxLayer * DY;
             const free = freeSet.has(t.key);
             const isHint = hintPair && (hintPair[0] === t.key || hintPair[1] === t.key);
             const cls =
@@ -80,7 +90,7 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
                   top: y,
                   width: TW,
                   height: TH,
-                  zIndex: t.layer * 10000 + t.row * 100 + t.col + (selected === t.key ? 500000 : 0),
+                  zIndex: t.layer * 10000 + dr * 100 + dc + (selected === t.key ? 500000 : 0),
                 }}
                 onClick={() => onTile(t.key)}
                 aria-label={t.face.id}
@@ -95,8 +105,8 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
             key={`fade-${f.key}`}
             className="tile solid removing"
             style={{
-              left: f.col * TW + f.layer * DX,
-              top: f.row * TH - f.layer * DY + maxLayer * DY,
+              left: dCol(f) * TW + f.layer * DX,
+              top: dRow(f) * TH - f.layer * DY + maxLayer * DY,
               width: TW,
               height: TH,
               zIndex: 99999,
