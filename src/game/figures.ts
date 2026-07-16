@@ -147,7 +147,8 @@ function buildFigures(): Figure[] {
   interface Base { shape: string; sizeLabel: FigureSize; mask: Mask; mirrored?: boolean }
   const bases: Base[] = [];
 
-  const SIZES: [FigureSize, number, number][] = [['klein', 7, 8], ['mittel', 9, 11], ['groß', 11, 13]];
+  // Kleinere Grundmaße -> max ~6 breit × 8 hoch -> deutlich größere Steine im Board.
+  const SIZES: [FigureSize, number, number][] = [['klein', 5, 7], ['mittel', 6, 8]];
   for (const [key, f] of ANALYTIC)
     for (const [sizeLabel, w, h] of SIZES) bases.push({ shape: key, sizeLabel, mask: analytic(f, w, h) });
 
@@ -221,6 +222,12 @@ function buildFigures(): Figure[] {
         const minC = Math.min(...cells.map((t) => t.col));
         const minR = Math.min(...cells.map((t) => t.row));
         cells = cells.map((t) => ({ col: t.col - minC, row: t.row - minR, layer: t.layer }));
+
+        // Auf max 6×8 begrenzen (Anzeige dreht breite Figuren hochkant -> kleinere
+        // Kante = Spalten ≤6, größere Kante = Reihen ≤8). Große Steine im Board.
+        const mc = Math.max(...cells.map((t) => t.col));
+        const mr = Math.max(...cells.map((t) => t.row));
+        if (Math.min(mc, mr) > 5 || Math.max(mc, mr) > 7) continue;
 
         const sig = cells.map((t) => `${t.col},${t.row},${t.layer}`).sort().join(';');
         if (seen.has(sig)) continue;

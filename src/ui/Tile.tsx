@@ -54,7 +54,7 @@ const MYTH_IMG: Record<number, string> = { 1: mythDragon, 2: mythPhoenix, 3: myt
 const TREASURE_IMG: Record<number, string> = { 1: treasureLantern, 2: treasureFan, 3: treasureCoin, 4: treasureKnot };
 
 type Suit = 'man' | 'sou' | 'pin' | 'wind' | 'dragon' | 'flower' | 'season' | 'myth' | 'treasure';
-interface Face { suit: Suit; rank: number }
+export interface Face { suit: Suit; rank: number }
 
 // Zeichen-Bild mittig im Steinkörper (Box um (30,40) im 60×80-Korpus).
 function SymbolImg({ href }: { href: string }) {
@@ -122,6 +122,12 @@ export function TileDefs() {
           <stop offset="0.5" stopColor="#c4b384" />
           <stop offset="0.5" stopColor="#4a95e8" />
           <stop offset="1" stopColor="#265fa8" />
+        </linearGradient>
+        {/* Deckfläche der 3D-Drehsteine (StoneTile): heller Elfenbein-Verlauf. */}
+        <linearGradient id="stoneFront" x1="0" y1="0" x2="0.28" y2="1">
+          <stop offset="0" stopColor="#fefcf6" />
+          <stop offset="0.55" stopColor="#f6eedb" />
+          <stop offset="1" stopColor="#e7d9bf" />
         </linearGradient>
       </defs>
     </svg>
@@ -207,7 +213,7 @@ function TileSide() {
   );
 }
 
-function motif(f: Face): React.ReactNode {
+export function motif(f: Face): React.ReactNode {
   const { suit, rank } = f;
   if (suit === 'pin') {
     // Kreise (Pin) = freigestelltes Münz-Token, Anzahl 1–9 aus PIN-Positionen.

@@ -629,6 +629,23 @@ body {
   height: 100%;
 }
 
+/* ---------- 3D-Drehsteine im Board (StoneTile) ---------- */
+.stonebtn {
+  position: absolute;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.stonebtn.blocked {
+  cursor: default;
+}
+.stonebtn.removing {
+  pointer-events: none;
+  animation: removefade 0.26s ease forwards;
+}
+
 /* ---------- Steine (Container; Motiv kommt als SVG) ---------- */
 .tile {
   position: absolute;
