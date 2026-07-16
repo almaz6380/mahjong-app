@@ -63,6 +63,9 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   Steine (~200 Figuren). — Die alten Gemini-Bild-Faces (`motif`/`WIND_IMG`/`WAN_IMG`/`tile-*.webp` in
   `Tile.tsx`) + der Blankostein `tile-blank.webp` bleiben nur noch für **Drehstein** (`HeroTile3D`) und
   4-Spieler/Riichi (`Tile` non-solid); im Solitaire-Board werden sie nicht mehr verwendet.
+  **Gemini-Roh-Designs gesichert:** die Original-Gemini-Bilder (PNG + Zwischen-webp) liegen unter
+  `design-sources/gemini-tiles/` (committet, cross-session nach Klon verfügbar; der alte Arbeitsordner
+  `gemini-in/` bleibt gitignored/ephemer). Siehe dortige `README.md`.
   **Extraktions-Skript** `scripts/extract_tiles.py` (venv `.venv-img`, Pillow/numpy/scipy): Symbole per Magenta-Key
   `min(R,B)-G` → weiche Alpha-Rampe → **alle** Zeichenteile behalten die ≥5% der größten Fläche sind (Sternchen
   raus, aber getrennte Radikale wie 北/發 bleiben!) → Kante ~4px erodieren (roter Gold/Magenta-Saum weg) →
