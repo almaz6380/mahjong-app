@@ -24,20 +24,20 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
   const maxRow = tiles.reduce((m, t) => Math.max(m, t.row), 0);
   const maxLayer = tiles.reduce((m, t) => Math.max(m, t.layer), 0);
 
-  const boardW = (maxCol + 1) * TW + maxLayer * DX + 10;
-  const boardH = (maxRow + 1) * TH + maxLayer * DY + 10;
+  const boardW = (maxCol + 1) * TW + maxLayer * DX + 6;
+  const boardH = (maxRow + 1) * TH + maxLayer * DY + 6;
 
   useLayoutEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
-    const PAD = 4;
+    const PAD = 2;
     const resize = () => {
       const r = el.getBoundingClientRect();
       if (r.width === 0 || r.height === 0) return;
       const s = Math.min((r.width - PAD) / boardW, (r.height - PAD) / boardH);
       // Deckel hoch (1.7 -> 3.2): dünne Layouts (Stern etc.) füllen den Screen,
       // Steine deutlich größer. Dichte Layouts sind ohnehin durch fit begrenzt.
-      setScale(s > 0 ? Math.min(s, 3.6) : 1);
+      setScale(s > 0 ? Math.min(s, 4.2) : 1);
     };
     resize();
     // ResizeObserver fängt Layout-Änderungen zuverlässig ab (Timing-sicher).

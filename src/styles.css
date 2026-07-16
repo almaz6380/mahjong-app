@@ -604,8 +604,8 @@ body {
 .board-wrap {
   flex: 1;
   min-height: 0;
-  margin: 2px 4px 4px;
-  border-radius: 18px;
+  margin: 1px 2px 3px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
