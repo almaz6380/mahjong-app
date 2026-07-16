@@ -561,7 +561,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
+  padding: 6px 12px;
 }
 .hud .title {
   font-weight: 800;
@@ -604,8 +604,8 @@ body {
 .board-wrap {
   flex: 1;
   min-height: 0;
-  margin: 4px 10px 8px;
-  border-radius: 22px;
+  margin: 2px 4px 4px;
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -727,14 +727,14 @@ body {
 .controls {
   display: flex;
   gap: 8px;
-  padding: 8px 12px calc(10px + env(safe-area-inset-bottom));
+  padding: 5px 10px calc(7px + env(safe-area-inset-bottom));
   justify-content: center;
 }
 .controls button {
   position: relative;
   flex: 1;
-  max-width: 110px;
-  padding: 13px 0;
+  max-width: 120px;
+  padding: 11px 0;
   font: inherit;
   font-size: 15px;
   font-weight: 700;
@@ -1635,7 +1635,7 @@ html.on-home .app-bg {
   display: flex;
   gap: 8px;
   justify-content: center;
-  padding: 8px 12px calc(10px + env(safe-area-inset-bottom));
+  padding: 5px 10px calc(7px + env(safe-area-inset-bottom));
   flex-wrap: wrap;
 }
 .mode-foot button {

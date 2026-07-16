@@ -30,14 +30,14 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
   useLayoutEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
-    const PAD = 8;
+    const PAD = 4;
     const resize = () => {
       const r = el.getBoundingClientRect();
       if (r.width === 0 || r.height === 0) return;
       const s = Math.min((r.width - PAD) / boardW, (r.height - PAD) / boardH);
       // Deckel hoch (1.7 -> 3.2): dünne Layouts (Stern etc.) füllen den Screen,
       // Steine deutlich größer. Dichte Layouts sind ohnehin durch fit begrenzt.
-      setScale(s > 0 ? Math.min(s, 3.2) : 1);
+      setScale(s > 0 ? Math.min(s, 3.6) : 1);
     };
     resize();
     // ResizeObserver fängt Layout-Änderungen zuverlässig ab (Timing-sicher).
