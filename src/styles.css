@@ -660,6 +660,11 @@ body {
 .tile.solid.hint .tileface {
   outline: none;
 }
+/* Variante A (Einzelblöcke): weicher Schatten nach unten trennt die Ebenen
+   und die feinen Fugen zwischen den Steinen (wie Referenz). */
+.tile.solid .tv-A {
+  filter: drop-shadow(0 2px 1.6px rgba(0, 0, 0, 0.42));
+}
 /* Ausgewählter Stein: sichtbar anheben + goldener Leuchtrahmen. Der Glow liegt
    auf der Steinsilhouette (folgt der runden Form); z-index-Bump aus Board.tsx
    sorgt dafür, dass angehobener Stein + Glow über den Nachbarn liegen. */

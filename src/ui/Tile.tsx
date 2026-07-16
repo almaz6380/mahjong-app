@@ -112,6 +112,17 @@ export function TileDefs() {
           <stop offset="0" stopColor="#d3c4a0" />
           <stop offset="1" stopColor="#b09c72" />
         </linearGradient>
+        {/* Zweifarbige Steindicke: obere Hälfte Elfenbein, untere Hälfte blau
+            (Wunsch Nutzer). Harter Stopp bei der Mitte der SICHTBAREN Tiefe.
+            Der Verlauf liegt über der Seitenwand-Rect (objectBoundingBox);
+            die Rect hat oben einen kleinen (verdeckten) Überlapp, daher liegt
+            die sichtbare Mitte bei ~0.59 statt 0.5. */}
+        <linearGradient id="tside2" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#d6c8a4" />
+          <stop offset="0.5" stopColor="#c4b384" />
+          <stop offset="0.5" stopColor="#4a95e8" />
+          <stop offset="1" stopColor="#265fa8" />
+        </linearGradient>
       </defs>
     </svg>
   );
@@ -165,21 +176,40 @@ const SOU: Record<number, [number, number][]> = {
 // + Gemini-Blankostein als Textur darüber (weiche Kante blendet in die Basis)
 // + dünne dunkle Fuge zur Abgrenzung der Einzelsteine.
 // Footprint = (3,3,54,72); mit Bleed 1 => (2,2,56,74).
-function TileTop() {
+// Footprint der Deckfläche je Variante.
+//  B (bündig): füllt das Rasterfeld randvoll (Bleed) → keine Fugen.
+//  A (Einzelblöcke): allseitig eingerückt → feine Fuge + Bevel an JEDEM Stein.
+function topRect(variant: 'A' | 'B') {
+  return variant === 'A'
+    ? { x: 5, y: 4, w: 50, h: 62, rx: 8 }
+    : { x: 2, y: 2, w: 56, h: 74, rx: 9 };
+}
+
+function TileTop({ variant = 'B' }: { variant?: 'A' | 'B' }) {
+  const r = topRect(variant);
   return (
     <>
-      <rect x="2" y="2" width="56" height="74" rx="6" fill="url(#tbody)" />
-      <image href={blankTile} x="2" y="2" width="56" height="74" preserveAspectRatio="none" />
-      <rect x="2" y="2" width="56" height="74" rx="6" fill="none" stroke="rgba(60,45,15,.28)" strokeWidth="0.8" />
+      <rect x={r.x} y={r.y} width={r.w} height={r.h} rx={r.rx} fill="url(#tbody)" />
+      <image href={blankTile} x={r.x} y={r.y} width={r.w} height={r.h} preserveAspectRatio="none" />
+      <rect x={r.x} y={r.y} width={r.w} height={r.h} rx={r.rx} fill="none" stroke="rgba(60,45,15,.28)" strokeWidth="0.8" />
     </>
   );
 }
 
-// 3D-Steindicke: Elfenbein-Seitenwand NUR unten (Frontansicht, kein seitlicher
-// Winkel), um +7.5 Einheiten ≈ 6px nach unten versetzt → überbrückt den
-// senkrechten Stapel-Versatz DY=6 (Board.tsx). Spürbare, solide Tiefe.
-function TileSide() {
-  return <rect x="2" y="9.5" width="56" height="74" rx="6" fill="url(#tside)" stroke="rgba(60,45,15,.32)" strokeWidth="0.6" />;
+// 3D-Steindicke: zweifarbige Seitenwand unten (Frontansicht). Die Rect reicht
+// mit kleinem Überlapp hinter die Deckfläche und ragt um die sichtbare Tiefe D
+// nach unten → überbrückt den Stapel-Versatz DY (Board.tsx). Verlauf `#tside2`
+// splittet oben Elfenbein / unten blau.
+const SIDE_D = 10; // sichtbare Tiefe (px-nah); muss zu DY in Board.tsx passen
+function TileSide({ variant = 'B' }: { variant?: 'A' | 'B' }) {
+  const r = topRect(variant);
+  const fb = r.y + r.h; // Unterkante der Deckfläche = Oberkante der sichtbaren Tiefe
+  // Rect = exakt die sichtbare Tiefe (kein Überlapp) → Verlauf-Split bei 50 %
+  // trennt sauber obere Hälfte Elfenbein / untere Hälfte blau.
+  return (
+    <rect x={r.x} y={fb} width={r.w} height={SIDE_D} rx={r.rx}
+      fill="url(#tside2)" stroke="rgba(30,40,70,.35)" strokeWidth="0.6" />
+  );
 }
 
 function motif(f: Face): React.ReactNode {
@@ -227,7 +257,7 @@ function motif(f: Face): React.ReactNode {
   return <image href={SEASON_IMG[rank] ?? seasonSpring} x="9" y="12" width="42" height="52" preserveAspectRatio="xMidYMid meet" />;
 }
 
-export function Tile({ face, className, solid }: { face: string; className?: string; solid?: boolean }) {
+export function Tile({ face, className, solid, variant = 'B' }: { face: string; className?: string; solid?: boolean; variant?: 'A' | 'B' }) {
   const f = normalizeFace(face);
   if (solid) {
     // 3D-Korpus: Die abgedunkelte Kopie (Seitenwände unten+links) ist um
@@ -238,9 +268,9 @@ export function Tile({ face, className, solid }: { face: string; className?: str
     // viewBox links negativ, damit die Seitenwand Platz hat und das Motiv (um 30,40)
     // zentriert bleibt. CSS (.tile.solid) mappt das Footprint (3,3,54,72) aufs Raster.
     return (
-      <svg className={'tileface' + (className ? ' ' + className : '')} viewBox="-5 0 63 86" preserveAspectRatio="none">
-        <TileSide />
-        <TileTop />
+      <svg className={'tileface tv-' + variant + (className ? ' ' + className : '')} viewBox="-5 0 63 86" preserveAspectRatio="none">
+        <TileSide variant={variant} />
+        <TileTop variant={variant} />
         {motif(f)}
       </svg>
     );
