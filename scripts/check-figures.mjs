@@ -41,10 +41,12 @@ console.log(`max Brett: ${maxCols}×${maxRows} · Steine ${Math.min(...counts)}�
 
 check(maxCols <= 8 && maxRows <= 9, `Brett global ≤ 8×9 (ist ${maxCols}×${maxRows})`);
 
-const bad = all.slice(0, 300).filter((f) => f.cols > 6 || f.rows > 7);
-check(bad.length === 0, `Level 1–300 alle ≤ 6×7 (${bad.length} Verstöße)`);
-const firstBig = all.findIndex((f) => f.cols > 6 || f.rows > 7);
-console.log(`       erstes Brett > 6×7: Level ${firstBig + 1}`);
+const bad = all.slice(0, 150).filter((f) => f.cols > 5 || f.rows > 6);
+check(bad.length === 0, `Level 1–150 alle ≤ 5×6 (${bad.length} Verstöße)`);
+for (const [c, r] of [[5, 6], [6, 7], [7, 8]]) {
+  const i = all.findIndex((f) => f.cols > c || f.rows > r);
+  console.log(`       erstes Brett > ${c}×${r}: Level ${i + 1}`);
+}
 
 // Rampe: maxDim je 100er-Band nicht fallend
 let prev = 0, mono = true;

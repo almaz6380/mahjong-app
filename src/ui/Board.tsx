@@ -37,9 +37,9 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
       const r = el.getBoundingClientRect();
       if (r.width === 0 || r.height === 0) return;
       const s = Math.min((r.width - PAD) / boardW, (r.height - PAD) / boardH);
-      // Deckel: kleine Bretter (4×4) kämen sonst auf Faktor 2,1 – die Steine
-      // würden gegenüber dem 6×7-Referenzbrett grotesk wirken.
-      setScale(s > 0 ? Math.min(s, 1.55) : 1);
+      // Deckel bremst nur die winzigsten Bretter (4×4 käme auf 2,1) – große
+      // Steine sind gewollt, aber zwei Steine sollen nicht den Schirm füllen.
+      setScale(s > 0 ? Math.min(s, 1.85) : 1);
     };
     resize();
     // ResizeObserver fängt Layout-Änderungen zuverlässig ab (Timing-sicher).

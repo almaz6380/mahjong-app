@@ -22,8 +22,9 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   = 1050 einzigartige, deterministische Level-Boards (`layoutForLevel`; Namen `fig-<n>`, i18n `fig.*`).
   **Bretter bleiben klein, damit die Steine groß sind** (max 8×9 Zellen): `SIZES` = 4×5 … 8×9, ASCII-Formen
   werden per `resample()` auf dieselben Raster gebracht. Die Level-Rampe sortiert nach
-  `cells.length + 30 × tier` (tier: ≤6×7 = 0, ≤7×8 = 1, sonst 2) — dadurch sind **Level 1–353 alle ≤6×7**
-  (Stein ≈ 63×83 px), danach wächst das Brett weich bis 8×9 (≈ 48×63 px). Prüfskript:
+  `cells.length + 30 × tier` (tier: ≤5×6 = 0, ≤6×7 = 1, ≤7×8 = 2, sonst 3) — dadurch sind
+  **Level 1–150 alle ≤5×6** (Stein ≈ 75–81 px), bis 354 ≤6×7 (≈ 63), danach weiches Wachstum bis
+  8×9 (≈ 48). Scale-Deckel in `Board.tsx` = 1.85. Prüfskript:
   `node scripts/check-figures.mjs` (Maße, Rampe, Parität, Schweben, Lösbarkeit aller 1050, Modus-Filter).
   Steine im Solitaire mit 3D-Korpus (`<Tile solid>`, CSS `.tile.solid`); ab 40 Steinen (`SERIES_MIN_TILES`)
   mischen die Serien **Mythen** (龍鳳麒龜) & **Schätze** (Laterne/Fächer/Münze/Knoten) ins Deck
@@ -32,11 +33,16 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   im Repo unter `design-sources/gemini-tiles/`, freigestellt per `scripts/extract-tiles.py magenta <in> <out>`
   (Magenta-Key, 320 px, WebP) nach `src/assets/tiles/*.webp`; `motif()` lädt sie per `import.meta.glob`
   (fehlt ein Bild → gezeichneter SVG-Fallback, Not-Schalter `USE_IMG_MOTIFS`). Bild-Motive: myth1–4,
-  season1–4, treasure1–4, elem-pin (Münze = Kreis-Pips), face-marble (Deckfläche). Als SVG nachgezeichnet
+  season1–4, treasure1–4, elem-pin (Münze = Kreis-Pips), elem-sou (Bambusstab = Sou-Pips),
+  face-marble (Deckfläche). Als SVG nachgezeichnet
   (schärfer in Kleinstgrößen, `Glyph`-Helper mit Goldkante): Zahlen = Lapis-Ziffer + Rubin-萬,
   Winde = Onyx, 中 rot / 發 jade / 白 schiefer, Blume = rote Scheibe. Skins mit eigener Flächenfarbe
   blenden Marmor+Goldrand aus (`.face-tex`), Neon hellt Lapis/Onyx/Slate auf (sonst unlesbar).
-  **Bambus (`elem-sou`) fehlt noch** — Gemini-Bild ausstehend, bis dahin gezeichnete Jade-Stäbe.
+  **Hinweis:** Am 16./17.7.2026 lief parallel eine zweite Session am selben Thema (30 Commits,
+  flacher „StoneTile"-Look + `src/assets/flat/`). Deren Roh-Designs liegen weiterhin in
+  `design-sources/gemini-tiles/` (`README-parallel-session.md`); der Bambus stammt daher.
+  Aktiv ist der Bild-/Marmor-Look dieser Session — vor Arbeiten am Stein-Look immer erst
+  `git fetch` und den Remote-Stand prüfen.
 - `src/mahjong4/` — 4-Spieler-Modus (Hongkong, KI per Shanten-Heuristik) **und Riichi**: `riichi.ts`
   (Yaku/Han/Fu/Dora-Wertung), `riichiGame.ts`+`useRiichi.ts` (Ablauf, geschlossene Variante),
   `ui/RiichiTable.tsx`; HK-Tisch `ui/Table4.tsx`

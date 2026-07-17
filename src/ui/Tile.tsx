@@ -268,6 +268,18 @@ function motif(f: Face): React.ReactNode {
   }
   if (suit === 'sou') {
     const pts = SOU[rank] ?? [];
+    const bam = timg('elem-sou');
+    if (bam) {
+      // Bambusstab (Gemini) je Stab – Größe nach Rang, an den SOU-Koordinaten.
+      const w = rank >= 8 ? 6.5 : rank >= 6 ? 7.5 : 9;
+      const h = rank >= 6 ? 19 : 23;
+      return pts.map(([x, y], i) => (
+        <image
+          key={i} href={bam} x={x - w / 2} y={y - h / 2} width={w} height={h}
+          className="motif-img" preserveAspectRatio="xMidYMid meet"
+        />
+      ));
+    }
     const w = rank >= 8 ? 5 : rank >= 6 ? 6 : 7;
     const h = rank >= 6 ? 17 : 20;
     return (

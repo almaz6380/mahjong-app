@@ -259,9 +259,10 @@ function buildFigures(): Figure[] {
   // Steinzahl reicht dafür nicht (dünne Sterne sind breit trotz weniger Steine),
   // reine Größen-Buckets würden die Schwierigkeit am Bucket-Rand einbrechen lassen.
   // Deshalb: Steinzahl + Aufschlag je Größenstufe -> Stufen überlappen weich.
-  // Ergebnis (gemessen): Level 1..353 alle ≤6×7, erstes 7×8 @354, erstes 8×9 @579.
+  // Stufen entsprechen den Steingrößen auf dem Handy: ≤5×6 ≈ 75 px, ≤6×7 ≈ 63,
+  // ≤7×8 ≈ 55, 8×9 ≈ 48.
   const tier = (f: { cols: number; rows: number }) =>
-    f.cols <= 6 && f.rows <= 7 ? 0 : f.cols <= 7 && f.rows <= 8 ? 1 : 2;
+    f.cols <= 5 && f.rows <= 6 ? 0 : f.cols <= 6 && f.rows <= 7 ? 1 : f.cols <= 7 && f.rows <= 8 ? 2 : 3;
   const score = (f: (typeof out)[number]) => f.cells.length + 30 * tier(f);
   out.sort((a, b) => score(a) - score(b) || a.hash - b.hash);
 
