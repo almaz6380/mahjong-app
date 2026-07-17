@@ -29,6 +29,15 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   Steine im Solitaire mit 3D-Korpus (`<Tile solid>`, CSS `.tile.solid`); ab 40 Steinen (`SERIES_MIN_TILES`)
   mischen die Serien **Mythen** (龍鳳麒龜) & **Schätze** (Laterne/Fächer/Münze/Knoten) ins Deck
   (`deckForCount`) — Schwelle muss zur Brettgröße passen, sonst bleibt das Album leer.
+- **`src/ui/Board.tsx` — Ausrichtung (subtil, leicht kaputtzumachen):** Der Stein ist bewusst
+  asymmetrisch (Seitenkante nur links = `OVER_L`, unten Kante+Schatten = `OVER_B`; oben/rechts bündig).
+  Deshalb gilt: (1) Board-Maße aus den **echten Steinpositionen** rechnen, nicht aus
+  `maxCol`/`maxLayer` — bei Pyramiden ist die obere Ebene eingerückt, ihr Versatz zählt rechts nicht mit;
+  (2) über **alle** Steine inkl. `removed`, sonst springt die Figur beim Spielen; (3) zentriert werden die
+  **Deckflächen**, nicht die Silhouetten — sonst stehen die weißen Flächen sichtbar nach rechts versetzt
+  (das Auge liest die Fläche, nicht die Kante). Die Kante ragt darum links aus der Box; ihr Platz wird in
+  der Scale-Rechnung reserviert (`(boardW + OVER_L)`), sonst schneidet `.board-wrap` (overflow:hidden) sie ab.
+  Verifikation: `node scripts/e2e-boards.mjs` bzw. Rand links/rechts im gerenderten Bild messen (Δ soll 0 sein).
 - **Stein-Design** (`src/ui/Tile.tsx`): Motive stammen aus **Gemini-Bildern des Nutzers**. Rohbilder liegen
   im Repo unter `design-sources/gemini-tiles/`, freigestellt per `scripts/extract-tiles.py magenta <in> <out>`
   (Magenta-Key, 320 px, WebP) nach `src/assets/tiles/*.webp`; `motif()` lädt sie per `import.meta.glob`
@@ -64,8 +73,8 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   Magenta-Key `min(R,B)-G`, auf Silhouette croppen, Sternchen mit weg): Münze `coin.webp` (Icon 'coin',
   überall), Truhe `reward-chest.webp` (RewardIcon), Geschenk `event-gift.webp` (EventIcon), Drachen-Wappen
   `emblem-shield.webp` (DailyIcon + HeroTile3D-Rückseite), sowie die 8 Icons der „Alle Spiele"-Liste
-  `game-*.webp` (in App.tsx `gameItems`, CSS `.game-ico .game-img`). **Nächster Schritt (offen):**
-  die 42 klassischen Board-Steine per Gemini ersetzen (Prompts im Session-Verlauf; erst Winde+Drachen testen).
+  `game-*.webp` (in App.tsx `gameItems`, CSS `.game-ico .game-img`). Die **Board-Steine** sind seit
+  17.7.2026 ebenfalls auf Gemini-Motive umgestellt — siehe Abschnitt „Stein-Design" oben.
   **Startseiten-Hintergrund** = asiatisches
   Tempel-Motiv (`src/assets/home-temple.webp`), animierte Sakura-Blüten darüber.
   **WICHTIG — Safe-Area-Falle (viel Debugging gekostet):** iOS füllt den unteren Streifen
@@ -152,3 +161,6 @@ minSdk 23 / compileSdk+targetSdk 35 (Billing-Lib 9 + Play-Pflicht). AAB lädt de
   Jade-Look, drehendem 3D-Stein, neuem Icon/Splash, neuen Screenshots (iPhone+iPad / Handy+Tablet),
   differenzierter Beschreibung + Reviewer-Antwort im Resolution Center gegen 4.3a. Store-Assets in
   `~/Desktop/mahjong-*export*` (Icon 512, Feature 1024×500, AAB, Screenshots).
+- **Seit 17.7.2026 nur im Web live** (Gemini-Stein-Designs + große Bretter). Der nächste native Build
+  wäre **iOS 12 / Android vc13**; die **Store-Screenshots sind damit veraltet** (Steine/Bretter sehen
+  komplett anders aus) und müssten vor einer Einreichung neu erzeugt werden.
