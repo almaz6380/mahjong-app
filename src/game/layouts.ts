@@ -154,11 +154,79 @@ const TURTLE = fromMaps([
   ],
 ]);
 
+// Kompakte Schildkröte für die Tages-Challenge (52 + 20 + 6 = 78 Steine).
+// Klein genug, dass die Steine so groß sind wie in den Leveln.
+const DAILY = fromMaps([
+  [
+    '.XXXXX.',
+    'XXXXXXX',
+    'XXXXXXX',
+    'XXXXXXX',
+    'XXXXXXX',
+    'XXXXXXX',
+    'XXXXXXX',
+    '.XXXXX.',
+  ],
+  [
+    '.......',
+    '.XXXXX.',
+    '.XXXXX.',
+    '.XXXXX.',
+    '.XXXXX.',
+    '.......',
+    '.......',
+    '.......',
+  ],
+  [
+    '.......',
+    '.......',
+    '.......',
+    '..XXX..',
+    '..XXX..',
+    '.......',
+    '.......',
+    '.......',
+  ],
+]);
+
+// Kompakter Hügel für den Zeit-Blitz (38 + 12 + 2 = 52 Steine).
+const BLITZ = fromMaps([
+  [
+    '.XXXX.',
+    'XXXXXX',
+    'XXXXXX',
+    'XXXXXX',
+    'XXXXXX',
+    'XXXXXX',
+    '.XXXX.',
+  ],
+  [
+    '......',
+    '......',
+    '.XXXX.',
+    '.XXXX.',
+    '.XXXX.',
+    '......',
+    '......',
+  ],
+  [
+    '......',
+    '......',
+    '......',
+    '..XX..',
+    '......',
+    '......',
+    '......',
+  ],
+]);
+
 export const LAYOUTS: Record<string, Layout> = {
   mini: { name: 'mini', label: 'layout.mini', cells: MINI },
   classic: { name: 'classic', label: 'layout.classic', cells: CLASSIC },
   pyramid: { name: 'pyramid', label: 'layout.pyramid', cells: PYRAMID },
   turtle: { name: 'turtle', label: 'layout.turtle', cells: TURTLE },
+  daily: { name: 'daily', label: 'layout.dailyBoard', cells: DAILY },
+  blitz: { name: 'blitz', label: 'layout.blitzBoard', cells: BLITZ },
 };
 
 // Layout per Name auflösen: klassische Namen (mini/classic/...) oder

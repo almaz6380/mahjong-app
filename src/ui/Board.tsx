@@ -13,8 +13,10 @@ interface Props {
 
 const TW = 44; // Stein-Breite
 const TH = 58; // Stein-Höhe
-const DX = 7; // horizontaler 3D-Versatz pro Ebene
-const DY = 10; // vertikaler 3D-Versatz pro Ebene
+// Stil S3 „klassisch schräg – bündig": Versatz je Ebene entspricht exakt den
+// sichtbaren Kanten des Steins (Seitenkante 4, Unterkante 6 SVG-Einheiten).
+const DX = 3.3; // = 4 × 44/54 – horizontaler Versatz je Ebene
+const DY = 5; // = 6 × 58/72 – vertikaler Hub je Ebene
 
 export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -25,7 +27,7 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
   const maxLayer = tiles.reduce((m, t) => Math.max(m, t.layer), 0);
 
   const boardW = (maxCol + 1) * TW + maxLayer * DX + 10;
-  const boardH = (maxRow + 1) * TH + maxLayer * DY + 10;
+  const boardH = (maxRow + 1) * TH + maxLayer * DY + 18; // +18: Unterkante + Schatten der Ebene 0
 
   useLayoutEffect(() => {
     const el = wrapRef.current;
@@ -35,7 +37,9 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
       const r = el.getBoundingClientRect();
       if (r.width === 0 || r.height === 0) return;
       const s = Math.min((r.width - PAD) / boardW, (r.height - PAD) / boardH);
-      setScale(s > 0 ? Math.min(s, 1.7) : 1);
+      // Deckel: kleine Bretter (4×4) kämen sonst auf Faktor 2,1 – die Steine
+      // würden gegenüber dem 6×7-Referenzbrett grotesk wirken.
+      setScale(s > 0 ? Math.min(s, 1.55) : 1);
     };
     resize();
     // ResizeObserver fängt Layout-Änderungen zuverlässig ab (Timing-sicher).
@@ -78,7 +82,10 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
                   top: y,
                   width: TW,
                   height: TH,
-                  zIndex: t.layer * 10000 + t.row * 100 + t.col,
+                  // Ebene zuerst, dann Reihe (vordere über hinteren). Innerhalb der Reihe
+                  // liegt der LINKE Nachbar oben und verdeckt die Seitenkante des rechten –
+                  // so wirkt eine Ebene als bündige Fläche. (×2 wegen Halbschritt-Positionen)
+                  zIndex: t.layer * 100000 + Math.round(t.row * 2) * 500 + (499 - Math.round(t.col * 2)),
                 }}
                 onClick={() => onTile(t.key)}
                 aria-label={t.face.id}
@@ -97,7 +104,7 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
               top: f.row * TH - f.layer * DY + maxLayer * DY,
               width: TW,
               height: TH,
-              zIndex: 99999,
+              zIndex: 10000000,
             }}
           >
             <Tile face={f.faceId} solid />

@@ -11,7 +11,7 @@ import type { ModeProps } from '../types';
 const START_SEC = 90;
 const MATCH_BONUS = 2; // Sekunden pro Paar
 const BOARD_BONUS = 12; // Sekunden für ein geleertes Brett
-const LAYOUT = 'classic';
+const LAYOUT = 'blitz';
 
 export function BlitzScreen({ api, onExit }: ModeProps) {
   const [secLeft, setSecLeft] = useState(START_SEC);

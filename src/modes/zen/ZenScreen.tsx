@@ -8,9 +8,12 @@ import { t } from '../../i18n';
 // Sanfte mittlere Figuren aus dem Generator; Tipp & Mischen sind gratis.
 
 export function ZenScreen({ onExit }: { onExit: () => void }) {
-  // Sanfte Boards: mittlere Größe, max. 3 Ebenen.
+  // Sanfte Boards: mittlere Größe, max. 3 Ebenen – und kompakt, damit die Steine
+  // groß bleiben (ohne die Maß-Filter zeigt Zen ausgerechnet die größten Bretter).
   const figures = useMemo(
-    () => allFigures().filter((f) => f.cells.length >= 40 && f.cells.length <= 84 && f.layerCount <= 3),
+    () => allFigures().filter(
+      (f) => f.cells.length >= 30 && f.cells.length <= 64 && f.layerCount <= 3 && f.cols <= 7 && f.rows <= 8,
+    ),
     [],
   );
   // Startpunkt streut über den Tag, danach der Reihe nach.

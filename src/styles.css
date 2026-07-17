@@ -643,14 +643,14 @@ body {
   height: 100%;
   display: block;
 }
-/* 3D-Korpus: Die SVG-Deckfläche (54×72 bei Offset 9/3 im 66×92-viewBox) wird
-   exakt aufs Button-Raster gelegt; Seitenfläche + Schatten ragen optisch in
-   die Nachbarzellen (links/unten). Prozentwerte = viewBox-Verhältnisse. */
+/* 3D-Korpus (Stil S3): Die SVG-Deckfläche (54×72 bei Offset 7/3 im 64×96-viewBox)
+   wird exakt aufs Button-Raster gelegt; Seitenkante (links) + Unterkante + Schatten
+   ragen optisch in die Nachbarzellen. Prozentwerte = viewBox-Verhältnisse. */
 .tile.solid .tileface {
   position: relative;
-  width: 122.223%;   /* 66/54 */
-  height: 127.778%;  /* 92/72 */
-  left: -16.667%;    /* 9/54 */
+  width: 118.519%;   /* 64/54 */
+  height: 133.333%;  /* 96/72 */
+  left: -12.963%;    /* 7/54 */
   top: -4.167%;      /* 3/72 */
 }
 /* Auswahl/Tipp-Rahmen beim 3D-Stein auf den Button (= Deckfläche) statt aufs
@@ -662,16 +662,17 @@ body {
 .tile.solid.selected {
   outline: 3px solid var(--accent);
   outline-offset: -1px;
-  border-radius: 8px;
+  border-radius: 9px; /* 20 % der Steinbreite – passt zur Ecken-Rundung rx11 */
 }
 .tile.solid.hint {
   outline: 3px solid #56c8ff;
   outline-offset: -1px;
-  border-radius: 8px;
+  border-radius: 9px;
   animation: hintpulse 0.7s ease-in-out infinite alternate;
 }
 .tile.blocked {
-  filter: brightness(0.8) saturate(0.9);
+  /* Dezent statt Grauschleier: Tiefe kommt jetzt aus Kanten + Schatten. */
+  filter: brightness(0.93) saturate(0.96);
   cursor: default;
 }
 .tile.free:active {
@@ -684,7 +685,7 @@ body {
 .tile.selected .tileface {
   outline: 3px solid var(--accent);
   outline-offset: -1px;
-  border-radius: 8px;
+  border-radius: 9px;
 }
 @keyframes selectpop {
   0% { transform: scale(1); }
@@ -702,7 +703,7 @@ body {
 .tile.hint .tileface {
   outline: 3px solid #56c8ff;
   outline-offset: -1px;
-  border-radius: 8px;
+  border-radius: 9px;
   animation: hintpulse 0.7s ease-in-out infinite alternate;
 }
 @keyframes hintpulse {
@@ -1350,12 +1351,26 @@ html.on-home .app-bg {
 .mtile.dim {
   opacity: 0.85;
 }
+/* Eigene Hand (Ostrunde + Riichi): 13–14 Steine passen einzeilig nur winzig auf
+   ein Handy – deshalb bewusst 7 pro Reihe (14 -> 7+7, 13 -> 7+6, beide zentriert).
+   So sind die Steine doppelt so groß wie im Tisch. */
 .hand {
   display: flex;
   flex-wrap: wrap;
-  gap: 2px;
+  gap: 4px;
   justify-content: center;
-  margin: 4px 0;
+  margin: 4px auto;
+  padding: 0 4px;
+  max-width: 460px;
+}
+.hand .mtile {
+  width: min(54px, calc((100% - 30px) / 7));
+  height: auto;
+  aspect-ratio: 28 / 38;
+}
+.hand .mtile.hl .tileface,
+.hand .mtile.claimable .tileface {
+  border-radius: 8px;
 }
 .melds {
   display: flex;
@@ -1750,12 +1765,23 @@ html.on-home .app-bg {
 :root[data-skin="sakura"] .tileface { filter: saturate(1.35) hue-rotate(-30deg) brightness(1.03) drop-shadow(0 1px 2px rgba(180, 60, 110, 0.25)); }
 :root[data-skin="minimal"] .tileface { filter: saturate(0.6) contrast(1.2); }
 :root[data-skin="minimal"] .tileface rect[fill="url(#tbody)"] { fill: #fbfcfe; }
+:root[data-skin="minimal"] .tileface rect[fill="url(#tside)"] { fill: #c9d3de; }
+/* Skins mit eigener Flächenfarbe: Marmor-Textur + Goldrand ausblenden */
+:root[data-skin="minimal"] .tileface .face-tex,
+:root[data-skin="neon"] .tileface .face-tex,
+:root[data-skin="contrast"] .tileface .face-tex { display: none; }
 :root[data-skin="neon"] .tileface {
   filter: contrast(1.15) saturate(1.6) drop-shadow(0 0 4px rgba(94, 160, 255, 0.7));
 }
 :root[data-skin="neon"] .tileface rect[fill="url(#tbody)"] { fill: #1b2740; }
+:root[data-skin="neon"] .tileface rect[fill="url(#tside)"] { fill: #101a30; }
+/* Dunkle Deckfläche: Lapis-Ziffern und Onyx-Winde aufhellen, sonst unlesbar. */
+:root[data-skin="neon"] .tileface text[fill="url(#lapis)"] { fill: #7fb6ff; }
+:root[data-skin="neon"] .tileface text[fill="url(#onyx)"] { fill: #cdd8ea; }
+:root[data-skin="neon"] .tileface text[fill="url(#slate)"] { fill: #9fc4e8; }
 :root[data-skin="contrast"] .tileface { filter: contrast(1.7) saturate(1.5) brightness(1.05); }
 :root[data-skin="contrast"] .tileface rect[fill="url(#tbody)"] { fill: #ffffff; }
+:root[data-skin="contrast"] .tileface rect[fill="url(#tside)"] { fill: #bdbdbd; }
 :root[data-skin="contrast"] .tileface rect[stroke] { stroke: #000 !important; stroke-width: 1.5px; }
 
 .skin-row { display: inline-flex; align-items: center; gap: 8px; }

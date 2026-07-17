@@ -37,9 +37,14 @@ export function TileDefs() {
     <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden>
       <defs>
         <linearGradient id="tbody" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#fffdf8" />
-          <stop offset="0.5" stopColor="#f6efe0" />
-          <stop offset="1" stopColor="#e6dcc5" />
+          <stop offset="0" stopColor="#ffffff" />
+          <stop offset="0.55" stopColor="#fdf9ef" />
+          <stop offset="1" stopColor="#f0e7d3" />
+        </linearGradient>
+        {/* Glanz oben auf der Deckfläche */}
+        <linearGradient id="tgloss" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#ffffff" stopOpacity="0.9" />
+          <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
         </linearGradient>
         <linearGradient id="tback" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#1a6b4f" />
@@ -57,16 +62,65 @@ export function TileDefs() {
           <stop offset="0.5" stopColor="#22c4a8" />
           <stop offset="1" stopColor="#0f8f7c" />
         </linearGradient>
-        {/* Elfenbein-Seitenfläche (3D-Korpus, solide Steine) */}
-        <linearGradient id="tside" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#d9c9a3" />
-          <stop offset="0.7" stopColor="#bfae85" />
-          <stop offset="1" stopColor="#a3906a" />
+        {/* Jade (glänzend, wie die Glyphen der Gemini-Vorlage) */}
+        <linearGradient id="jadeg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#49b87c" />
+          <stop offset="0.55" stopColor="#1f8f52" />
+          <stop offset="1" stopColor="#136a3c" />
         </linearGradient>
+        {/* Rot-Lack (Drache 中, Akzente) */}
+        <linearGradient id="redlac" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#e05a41" />
+          <stop offset="0.55" stopColor="#c23b2e" />
+          <stop offset="1" stopColor="#992417" />
+        </linearGradient>
+        {/* Nutzer-Designs 17.7.2026: Lapis (Man-Ziffer), Rubin (萬), Onyx (Winde) */}
+        <linearGradient id="lapis" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#5578b8" />
+          <stop offset="0.5" stopColor="#2e4a86" />
+          <stop offset="1" stopColor="#1a2c58" />
+        </linearGradient>
+        <linearGradient id="ruby" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#d0342a" />
+          <stop offset="0.5" stopColor="#a81c14" />
+          <stop offset="1" stopColor="#7c120c" />
+        </linearGradient>
+        <linearGradient id="onyx" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#3a3a40" />
+          <stop offset="0.45" stop-color="#1c1c22" stopColor="#1c1c22" />
+          <stop offset="1" stopColor="#060608" />
+        </linearGradient>
+        {/* Schiefer-Blau (weißer Drache 白) */}
+        <linearGradient id="slate" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#6d84a0" />
+          <stop offset="0.5" stopColor="#4a5f7c" />
+          <stop offset="1" stopColor="#2f4058" />
+        </linearGradient>
+        {/* Goldene Seitenfläche (3D-Korpus) – wie die Kanten der Gemini-Vorlage */}
+        <linearGradient id="tside" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#ecd9a4" />
+          <stop offset="0.6" stopColor="#c9a75c" />
+          <stop offset="1" stopColor="#96762f" />
+        </linearGradient>
+        {/* Clip auf die abgerundete Deckfläche (für die Marmor-Textur) */}
+        <clipPath id="tfaceclip">
+          <rect x="3" y="3" width="54" height="72" rx="11" />
+        </clipPath>
       </defs>
     </svg>
   );
 }
+
+// Freigestellte Gemini-Motive (Quellen in design-sources/gemini-tiles/,
+// Freistellung via scripts/extract-tiles.py). Fehlt ein Bild, greift automatisch
+// der gezeichnete SVG-Fallback weiter unten. Not-Schalter: USE_IMG_MOTIFS.
+const USE_IMG_MOTIFS = true;
+const TILE_IMG = import.meta.glob('../assets/tiles/*.webp', { eager: true, import: 'default' }) as Record<string, string>;
+const timg = (name: string): string | undefined =>
+  USE_IMG_MOTIFS ? TILE_IMG[`../assets/tiles/${name}.webp`] : undefined;
+
+// Chinesische Ziffern für die Zahlen-Steine (Jade-Ziffer über goldenem 萬).
+const CJK_NUM = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
 
 // Farben der drei Pin-Edelsteine (zyklisch pro Pip) – eigene, kräftige Gem-Töne.
 const DOT_COLORS = ['#2f7ff2', '#22b06a', '#e0483d'];
@@ -83,15 +137,14 @@ function Gem({ x, y, c, r = 5 }: { x: number; y: number; c: string; r?: number }
   );
 }
 
-// Vertikaler Kristall-Stab (ersetzt Bambus im Sou).
+// Vertikaler Jade-Bambusstab mit Goldknoten (Sou) – Palette der Gemini-Vorlage.
 function Crystal({ x, y, w = 7, h = 20 }: { x: number; y: number; w?: number; h?: number }) {
-  const hw = w / 2, hh = h / 2, tip = h * 0.22;
-  const pts = `${x},${y - hh} ${x + hw},${y - hh + tip} ${x + hw},${y + hh - tip} ${x},${y + hh} ${x - hw},${y + hh - tip} ${x - hw},${y - hh + tip}`;
+  const hw = w / 2, hh = h / 2;
   return (
     <g>
-      <polygon points={pts} fill="url(#crystal)" stroke="rgba(0,0,0,.28)" strokeWidth="0.5" />
-      <polyline points={`${x},${y - hh} ${x},${y + hh}`} stroke="rgba(255,255,255,.5)" strokeWidth="0.7" />
-      <polygon points={`${x},${y - hh} ${x + hw},${y - hh + tip} ${x},${y}`} fill="#fff" opacity="0.22" />
+      <rect x={x - hw} y={y - hh} width={w} height={h} rx={hw} fill="url(#jadeg)" stroke="rgba(120,90,20,.55)" strokeWidth="0.6" />
+      <rect x={x - hw} y={y - 1.7} width={w} height={3.4} rx={1.5} fill="url(#gold)" />
+      <line x1={x - hw * 0.45} y1={y - hh + 2.5} x2={x - hw * 0.45} y2={y + hh - 2.5} stroke="rgba(255,255,255,.4)" strokeWidth="0.9" />
     </g>
   );
 }
@@ -144,15 +197,28 @@ const SOU: Record<number, [number, number][]> = {
   9: [[18, 22], [30, 22], [42, 22], [18, 41], [30, 41], [42, 41], [18, 60], [30, 60], [42, 60]],
 };
 
-// Premium-Steinkorpus: weicher Schatten, Elfenbein-Körper, dezenter Goldrahmen, Glanzkante.
+// Deckfläche (Stil der Gemini-Vorlage): Elfenbein-Marmor-Textur mit Goldrand,
+// runde Ecken, weicher Glanz oben. Der #tbody-Grund bleibt darunter — Skins mit
+// eigener Flächenfarbe blenden die Textur per CSS aus (.face-tex).
+// Schatten/Korpus zeichnen die Tile-Varianten selbst (flach dezent, solid mit Kanten).
 function TileBody({ children }: { children: React.ReactNode }) {
+  const marble = timg('face-marble');
   return (
     <>
-      <rect x="3" y="6" width="54" height="72" rx="10" fill="#000" opacity="0.2" />
-      <rect x="3" y="3" width="54" height="72" rx="10" fill="url(#tbody)" />
-      <rect x="5" y="5" width="50" height="68" rx="8" fill="none" stroke="rgba(245,179,1,.35)" strokeWidth="0.8" />
-      <rect x="3" y="3" width="54" height="72" rx="10" fill="none" stroke="rgba(0,0,0,.14)" />
-      <rect x="7" y="6" width="46" height="8" rx="4" fill="#fff" opacity="0.5" />
+      <rect x="3" y="3" width="54" height="72" rx="11" fill="url(#tbody)" stroke="rgba(0,0,0,.10)" />
+      {marble && (
+        <image
+          href={marble} x="3" y="3" width="54" height="72"
+          preserveAspectRatio="none" clipPath="url(#tfaceclip)" className="face-tex"
+        />
+      )}
+      {marble && (
+        <rect
+          x="4.2" y="4.2" width="51.6" height="69.6" rx="9.8" fill="none"
+          stroke="url(#gold)" strokeWidth="1.4" opacity="0.9" className="face-tex"
+        />
+      )}
+      <path d="M8 15 Q8 6 17 6 H43 Q52 6 52 15 Q52 20 30 20.5 Q8 21 8 15" fill="url(#tgloss)" opacity="0.55" />
       {children}
     </>
   );
@@ -165,19 +231,38 @@ function Numeral({ n, x = 30, y = 34, size = 26, fill = '#1e2a44' }: { n: number
   );
 }
 
-const WIND_COLORS = ['#2f7ff2', '#22b06a', '#e0483d', '#a678f0'];
-// Pfeilrichtung je Wind (E/S/W/N) – rein zur Unterscheidung.
-const WIND_ARROW: Record<number, string> = {
-  1: 'M-3 -4 L4 0 L-3 4 Z',   // rechts
-  2: 'M-4 -3 L4 -3 L0 4 Z',   // unten
-  3: 'M3 -4 L-4 0 L3 4 Z',    // links
-  4: 'M-4 3 L4 3 L0 -4 Z',    // oben
-};
+// Windzeichen (E/S/W/N) – klassische CJK-Glyphen im Jade-Gold-Stil.
+const WIND_CH = ['', '東', '南', '西', '北'];
+
+// CJK-Glyphe im Stil der Gemini-Vorlage: farbige Glasur mit Goldrand.
+function Glyph({ ch, fill, size = 34, y = 52 }: { ch: string; fill: string; size?: number; y?: number }) {
+  return (
+    <text
+      x="30" y={y} textAnchor="middle"
+      fontFamily="'Songti SC','Songti TC','STSong','Noto Serif CJK SC','Noto Serif SC',serif"
+      fontSize={size} fontWeight="700" fill={fill}
+      stroke="url(#gold)" strokeWidth="1" paintOrder="stroke" strokeLinejoin="round"
+    >{ch}</text>
+  );
+}
 
 function motif(f: Face): React.ReactNode {
   const { suit, rank } = f;
+  // Voll-Motiv als freigestelltes Bild (wind1, dragon2, flower3, myth1 …), wenn vorhanden.
+  const full = timg(suit + rank);
+  if (full) {
+    return <image href={full} x={9} y={11} width={42} height={56} className="motif-img" preserveAspectRatio="xMidYMid meet" />;
+  }
   if (suit === 'pin') {
     const pts = PIN[rank] ?? [];
+    const coin = timg('elem-pin');
+    if (coin) {
+      // Goldmünze (Gemini) je Pip – Größe nach Rang, exakt an den PIN-Koordinaten.
+      const r = rank === 1 ? 14 : rank >= 8 ? 7 : 9;
+      return pts.map(([x, y], i) => (
+        <image key={i} href={coin} x={x - r} y={y - r} width={r * 2} height={r * 2} className="motif-img" preserveAspectRatio="xMidYMid meet" />
+      ));
+    }
     const r = rank === 1 ? 9 : rank >= 8 ? 4 : 5;
     return pts.map(([x, y], i) => <Gem key={i} x={x} y={y} c={DOT_COLORS[(rank === 1 ? 0 : i) % 3]} r={r} />);
   }
@@ -193,73 +278,45 @@ function motif(f: Face): React.ReactNode {
     );
   }
   if (suit === 'man') {
-    // Krone (Royale) + große Rangzahl.
+    // Nutzer-Design (17.7.2026, „八萬"): Lapis-blaue Ziffer oben, rubinrotes 萬
+    // darunter, beide mit feiner Goldkante; kleine Rangzahl für Lesbarkeit.
     return (
       <>
-        <Crown cx={30} cy={26} s={1.05} />
-        <Numeral n={rank} x={30} y={64} size={30} fill="#1e2a44" />
+        <Glyph ch={CJK_NUM[rank]} fill="url(#lapis)" size={27} y={33} />
+        <Glyph ch="萬" fill="url(#ruby)" size={27} y={64} />
+        <text x={49} y={71} textAnchor="middle" fontFamily="Inter, system-ui, sans-serif" fontSize={10} fontWeight={800} fill="#2e4a86">{rank}</text>
       </>
     );
   }
   if (suit === 'wind') {
-    const c = WIND_COLORS[(rank - 1) % 4];
-    return (
-      <g>
-        <Diamond cx={30} cy={40} r={20} c={c} />
-        <path d={WIND_ARROW[rank] ?? WIND_ARROW[1]} transform="translate(30 40) scale(1.6)" fill="#fff" opacity="0.95" />
-      </g>
-    );
+    // Nutzer-Design (17.7.2026): Windzeichen in schwarzem Onyx-Glas mit Goldkante.
+    return <Glyph ch={WIND_CH[rank] ?? WIND_CH[1]} fill="url(#onyx)" size={36} />;
   }
   if (suit === 'dragon') {
     if (rank === 1) {
-      // Flamme (rot)
-      return (
-        <g>
-          <path d="M30 16 C 40 26, 40 40, 30 62 C 20 44, 22 34, 30 16 Z" fill="#e0483d" stroke="rgba(0,0,0,.25)" strokeWidth="0.8" />
-          <path d="M30 30 C 35 36, 35 44, 30 56 C 26 46, 27 40, 30 30 Z" fill="#ffd76a" />
-        </g>
-      );
+      // Roter Drache: 中 in Rot-Lack mit Goldrand.
+      return <Glyph ch="中" fill="url(#redlac)" />;
     }
     if (rank === 2) {
-      // Jade-Blatt (grün)
-      return (
-        <g>
-          <path d="M30 16 C 46 26, 44 52, 30 62 C 16 52, 14 26, 30 16 Z" fill="#22b06a" stroke="rgba(0,0,0,.25)" strokeWidth="0.8" />
-          <path d="M30 20 L30 58" stroke="#0c6b41" strokeWidth="1.6" />
-          <path d="M30 32 L40 26 M30 40 L20 34 M30 48 L40 42" stroke="#0c6b41" strokeWidth="1.2" />
-        </g>
-      );
+      // Grüner Drache: 發 in Jade mit Goldrand.
+      return <Glyph ch="發" fill="url(#jadeg)" />;
     }
-    // Stern/Orb (silber)
-    const star = Array.from({ length: 5 }, (_, i) => {
-      const a = (-90 + i * 72) * Math.PI / 180;
-      const a2 = a + 36 * Math.PI / 180;
-      return `${30 + Math.cos(a) * 18},${40 + Math.sin(a) * 18} ${30 + Math.cos(a2) * 8},${40 + Math.sin(a2) * 8}`;
-    }).join(' ');
-    return (
-      <g>
-        <polygon points={star} fill="#e8eef7" stroke="#9aa8bd" strokeWidth="1" strokeLinejoin="round" />
-        <circle cx="30" cy="40" r="4" fill="#c7d2e0" />
-      </g>
-    );
+    // Weißer Drache (Nutzer-Design): 白 in Schiefer-Blau mit Goldkante.
+    return <Glyph ch="白" fill="url(#slate)" size={36} />;
   }
   if (suit === 'myth') {
-    // Mythen-Serie: kolorierte CJK-Glyphen mit Gold-Akzenten (Entwurf 3).
+    // Mythen-Serie: CJK-Glyphen in der Vorlagen-Palette (Rot-Lack/Gold/Jade/Tief-Jade).
     const M: [string, string][] = [
-      ['龍', '#e0483d'], // Drache
-      ['鳳', '#c9962a'], // Phönix
-      ['麒', '#22b06a'], // Qilin
-      ['龜', '#2f7ff2'], // Schildkröte
+      ['龍', 'url(#redlac)'], // Drache
+      ['鳳', 'url(#gold)'],   // Phönix
+      ['麒', 'url(#jadeg)'],  // Qilin
+      ['龜', '#1b6e66'],      // Schildkröte
     ];
     const [ch, c] = M[(rank - 1) % 4];
     return (
       <g>
         <path d="M30 11 l3.5 5 h-7 z" fill="url(#gold)" />
-        <text
-          x="30" y="53" textAnchor="middle"
-          fontFamily="'Songti SC','Songti TC','STSong','Noto Serif CJK SC','Noto Serif SC',serif"
-          fontSize="33" fontWeight="700" fill={c}
-        >{ch}</text>
+        <Glyph ch={ch} fill={c} size={33} y={53} />
         <path d="M30 66 l3 4 -3 4 -3 -4 z" fill="url(#gold)" opacity="0.9" />
       </g>
     );
@@ -308,18 +365,19 @@ function motif(f: Face): React.ReactNode {
       </g>
     );
   }
-  // Blumen / Jahreszeiten – helle eigene Icons.
-  const color = suit === 'flower' ? '#e857a6' : '#f5a623';
+  // Blumen / Jahreszeiten – in der Vorlagen-Palette (Rot-Lack-Blüte / Gold-Sonne).
   const petals = suit === 'flower';
+  const color = petals ? '#c2402f' : '#c9962a';
   return (
     <>
       {petals ? (
+        // Blume nach Nutzer-Design (17.7.2026): rote Scheibe, schwarzer Kern,
+        // goldener Doppelring — flach-modern.
         <g>
-          {[0, 60, 120, 180, 240, 300].map((a) => {
-            const rad = (a * Math.PI) / 180;
-            return <circle key={a} cx={30 + Math.cos(rad) * 9} cy={38 + Math.sin(rad) * 9} r="6.5" fill={color} opacity="0.92" />;
-          })}
-          <circle cx="30" cy="38" r="6" fill="#ffe07a" />
+          <circle cx="30" cy="38" r="17.5" fill="none" stroke="url(#gold)" strokeWidth="2" />
+          <circle cx="30" cy="38" r="15.6" fill="none" stroke="rgba(138,106,32,.55)" strokeWidth="0.6" />
+          <circle cx="30" cy="38" r="14.6" fill="url(#redlac)" />
+          <circle cx="30" cy="38" r="5.2" fill="#1c1713" />
         </g>
       ) : (
         <g>
@@ -328,7 +386,7 @@ function motif(f: Face): React.ReactNode {
             const a = (i * 45) * Math.PI / 180;
             return <line key={i} x1={30 + Math.cos(a) * 11} y1={38 + Math.sin(a) * 11} x2={30 + Math.cos(a) * 18} y2={38 + Math.sin(a) * 18} stroke={color} strokeWidth="2.4" strokeLinecap="round" />;
           })}
-          <circle cx="30" cy="38" r="10" fill={color} />
+          <circle cx="30" cy="38" r="10" fill="url(#gold)" stroke="rgba(138,106,32,.6)" strokeWidth="0.8" />
         </g>
       )}
       <Numeral n={rank} x={46} y={70} size={13} fill={color} />
@@ -339,23 +397,30 @@ function motif(f: Face): React.ReactNode {
 export function Tile({ face, className, solid }: { face: string; className?: string; solid?: boolean }) {
   const f = normalizeFace(face);
   if (solid) {
-    // 3D-Korpus (Entwurf 3): sichtbare Elfenbein-Seitenfläche unten links +
-    // Schlagschatten. Die Deckfläche liegt bei (9,3) in Originalgröße 54×72;
-    // CSS (.tile.solid) mappt genau sie auf das Button-Raster, der Korpus
-    // ragt optisch in die Nachbarzellen (Überstand links/unten).
+    // 3D-Korpus (Stil S3 „klassisch schräg – bündig"): schmale Seitenkante links (4)
+    // + Unterkante (6), Schatten fällt NUR nach unten und bleibt innerhalb der
+    // Korpusbreite – so entstehen keine dunklen Fugen zwischen Nachbarsteinen.
+    // Die Deckfläche liegt bei (7,3) in Originalgröße 54×72; CSS (.tile.solid)
+    // mappt genau sie aufs Button-Raster. Das Board legt den linken Nachbarn per
+    // z-Reihenfolge obenauf, damit gleiche Ebenen bündig wirken.
     return (
-      <svg className={'tileface' + (className ? ' ' + className : '')} viewBox="0 0 66 92" preserveAspectRatio="xMidYMid meet">
-        <rect x="1" y="17" width="55" height="72" rx="10" fill="#000" opacity="0.3" />
-        <rect x="3" y="12" width="54" height="72" rx="10" fill="url(#tside)" />
-        <rect x="3" y="12" width="54" height="72" rx="10" fill="none" stroke="rgba(0,0,0,.28)" strokeWidth="0.8" />
-        <g transform="translate(6 0)">
+      <svg className={'tileface' + (className ? ' ' + className : '')} viewBox="0 0 64 96" preserveAspectRatio="none">
+        <rect x="3.5" y="9" width="57" height="78" rx="11" fill="#000" opacity="0.10" />
+        <rect x="3" y="6.5" width="58" height="79" rx="11" fill="#000" opacity="0.14" />
+        <rect x="3" y="3" width="58" height="78" rx="11" fill="url(#tside)" />
+        <rect x="3.4" y="3.4" width="57.2" height="77.2" rx="10.6" fill="none" stroke="rgba(90,70,40,.35)" strokeWidth="0.8" />
+        <g transform="translate(4 0)">
           <TileBody>{motif(f)}</TileBody>
         </g>
       </svg>
     );
   }
+  // Flache Variante (alle anderen Modi): gleiche Deckfläche + dezente Unterkante,
+  // bleibt in der 60×80-Box – kein Layoutwechsel für bestehende Nutzer.
   return (
     <svg className={'tileface' + (className ? ' ' + className : '')} viewBox="0 0 60 80" preserveAspectRatio="xMidYMid meet">
+      <rect x="3" y="5.5" width="54" height="73" rx="11" fill="#000" opacity="0.12" />
+      <rect x="3" y="3" width="54" height="75" rx="11" fill="url(#tside)" />
       <TileBody>{motif(f)}</TileBody>
     </svg>
   );

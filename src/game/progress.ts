@@ -40,6 +40,7 @@ export interface Progress {
   album: Record<string, number>; // Mythen/Schätze: gesammelte Paare je Stein-ID
   albumClaimed: string[]; // bereits belohnte Album-Einträge
   lastFestival: string; // 'YYYY-M-D' des zuletzt eingelösten Fest-Bonus
+  blitzReset: boolean; // Bestwert einmalig geleert (Blitz-Brett von 144 auf 52 Steine)
   stats: {
     bestTimeMs: number; // schnellstes Solitaire-Level (0 = noch keins)
     dailies: number; // erledigte Tages-Challenges
@@ -80,6 +81,7 @@ const DEFAULT: Progress = {
   album: {},
   albumClaimed: [],
   lastFestival: '',
+  blitzReset: true,
   stats: { bestTimeMs: 0, dailies: 0, m4Hands: 0, m4Wins: 0, m4BestFaan: 0, modeBest: {} },
 };
 
@@ -126,6 +128,13 @@ export function useProgress() {
           loaded = { ...DEFAULT, ...parsed, stats: { ...DEFAULT.stats, ...(parsed.stats ?? {}) } };
           // Migration: früher markierte erst das Abholen den Tag (lastPlayedDate).
           if (parsed.lastRewardClaim === undefined) loaded.lastRewardClaim = loaded.lastPlayedDate;
+          // Migration: Zeit-Blitz spielt jetzt auf 52 statt 144 Steinen – alte
+          // Bestwerte sind damit nicht mehr vergleichbar, einmalig leeren.
+          if (!parsed.blitzReset) {
+            const { blitz: _drop, ...rest } = loaded.stats.modeBest;
+            loaded.stats = { ...loaded.stats, modeBest: rest };
+            loaded.blitzReset = true;
+          }
         } catch {
           loaded = DEFAULT;
         }

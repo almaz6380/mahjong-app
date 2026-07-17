@@ -4,7 +4,7 @@ import { buildNeighbors, generateBoard, mulberry32, seedFromString, type PlacedT
 import { todayStr } from './progress';
 
 // Deterministische Tages-Challenge: gleicher Seed pro Tag -> gleiches Board für alle.
-const DAILY_LAYOUT = 'turtle';
+const DAILY_LAYOUT = 'daily';
 export const DAILY_REWARD = 100;
 
 export function dailyLayoutName(): string {

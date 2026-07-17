@@ -18,18 +18,34 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
 ## Architektur (Kurzüberblick)
 
 - `src/engine.ts`, `src/layouts.ts` — Solitaire-Kern; jedes Board rückwärts konstruiert = garantiert lösbar
-- `src/game/figures.ts` — **Figuren-Generator**: 29 Grundformen × Größe × Höhenprofil × Aushöhlung
-  = 1026 einzigartige, deterministische Level-Boards (`layoutForLevel`; Namen `fig-<n>`, i18n `fig.*`).
-  Klassische Layouts (mini/classic/…) nur noch für Tages-Challenge & Zeit-Blitz. Steine im Solitaire
-  mit 3D-Korpus (`<Tile solid>`, CSS `.tile.solid`); ab 80 Steinen mischen die Serien **Mythen**
-  (龍鳳麒龜) & **Schätze** (Laterne/Fächer/Münze/Knoten) ins Deck (`deckForCount`).
+- `src/game/figures.ts` — **Figuren-Generator**: 29 Grundformen × 5 Größen × Höhenprofil × Aushöhlung
+  = 1050 einzigartige, deterministische Level-Boards (`layoutForLevel`; Namen `fig-<n>`, i18n `fig.*`).
+  **Bretter bleiben klein, damit die Steine groß sind** (max 8×9 Zellen): `SIZES` = 4×5 … 8×9, ASCII-Formen
+  werden per `resample()` auf dieselben Raster gebracht. Die Level-Rampe sortiert nach
+  `cells.length + 30 × tier` (tier: ≤6×7 = 0, ≤7×8 = 1, sonst 2) — dadurch sind **Level 1–353 alle ≤6×7**
+  (Stein ≈ 63×83 px), danach wächst das Brett weich bis 8×9 (≈ 48×63 px). Prüfskript:
+  `node scripts/check-figures.mjs` (Maße, Rampe, Parität, Schweben, Lösbarkeit aller 1050, Modus-Filter).
+  Steine im Solitaire mit 3D-Korpus (`<Tile solid>`, CSS `.tile.solid`); ab 40 Steinen (`SERIES_MIN_TILES`)
+  mischen die Serien **Mythen** (龍鳳麒龜) & **Schätze** (Laterne/Fächer/Münze/Knoten) ins Deck
+  (`deckForCount`) — Schwelle muss zur Brettgröße passen, sonst bleibt das Album leer.
+- **Stein-Design** (`src/ui/Tile.tsx`): Motive stammen aus **Gemini-Bildern des Nutzers**. Rohbilder liegen
+  im Repo unter `design-sources/gemini-tiles/`, freigestellt per `scripts/extract-tiles.py magenta <in> <out>`
+  (Magenta-Key, 320 px, WebP) nach `src/assets/tiles/*.webp`; `motif()` lädt sie per `import.meta.glob`
+  (fehlt ein Bild → gezeichneter SVG-Fallback, Not-Schalter `USE_IMG_MOTIFS`). Bild-Motive: myth1–4,
+  season1–4, treasure1–4, elem-pin (Münze = Kreis-Pips), face-marble (Deckfläche). Als SVG nachgezeichnet
+  (schärfer in Kleinstgrößen, `Glyph`-Helper mit Goldkante): Zahlen = Lapis-Ziffer + Rubin-萬,
+  Winde = Onyx, 中 rot / 發 jade / 白 schiefer, Blume = rote Scheibe. Skins mit eigener Flächenfarbe
+  blenden Marmor+Goldrand aus (`.face-tex`), Neon hellt Lapis/Onyx/Slate auf (sonst unlesbar).
+  **Bambus (`elem-sou`) fehlt noch** — Gemini-Bild ausstehend, bis dahin gezeichnete Jade-Stäbe.
 - `src/mahjong4/` — 4-Spieler-Modus (Hongkong, KI per Shanten-Heuristik) **und Riichi**: `riichi.ts`
   (Yaku/Han/Fu/Dora-Wertung), `riichiGame.ts`+`useRiichi.ts` (Ablauf, geschlossene Variante),
   `ui/RiichiTable.tsx`; HK-Tisch `ui/Table4.tsx`
 - `src/modes/connect/` — **Mahjong Connect** (BFS-Pfad ≤2 Kurven, garantiert lösbar via Auto-Mischen),
   Fortschritt in `progress.connectLevel`
 - `src/modes/` — Bonus-Spiele (2048, Match-3, Memory, Sudoku, Tile Match, Zeit-Blitz, 3D-Dimensions),
-  gemeinsame `ModeApi` in types.ts
+  gemeinsame `ModeApi` in types.ts. Tages-Challenge (`daily`, 7×8/78 Steine) und Zeit-Blitz
+  (`blitz`, 6×7/52) haben eigene kompakte Layouts in `layouts.ts` — die alten Riesenbretter
+  (turtle/classic) hätten winzige Steine. Zen filtert zusätzlich auf `cols<=7 && rows<=8`.
 - **Startseite:** minimales Layout in `src/App.tsx` (Play-Button, Seiten-Symbole `DailyIcon`/`EventIcon`,
   „Alle Spiele"-Sheet `src/ui/GamesSheet.tsx`); drehender 3D-Stein `src/ui/HeroTile3D.tsx` (CSS-3D-
   Schicht-Extrusion + runde Seitenwand; **Rotation per JS-rAF**: sanfte Ruhe-Drehung + Finger/Maus-

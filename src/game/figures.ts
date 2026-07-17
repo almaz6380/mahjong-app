@@ -31,13 +31,15 @@ function erode(m: Mask): Mask {
   return o;
 }
 
-function dilate(m: Mask): Mask {
-  const o = newMask(m.w + 2, m.h + 2);
-  for (let r = 0; r < o.h; r++)
-    for (let c = 0; c < o.w; c++) {
-      const cc = c - 1, rr = r - 1;
-      if (get(m, cc, rr) || get(m, cc - 1, rr) || get(m, cc + 1, rr) || get(m, cc, rr - 1) || get(m, cc, rr + 1))
-        o.a[r * o.w + c] = 1;
+// Maske auf ein Zielraster umrechnen (Nearest Neighbor) – bringt die ASCII-Formen
+// auf dieselben Größenstufen wie die analytischen (siehe SIZES).
+function resample(m: Mask, w: number, h: number): Mask {
+  const o = newMask(w, h);
+  for (let r = 0; r < h; r++)
+    for (let c = 0; c < w; c++) {
+      const sr = Math.min(m.h - 1, Math.floor(((r + 0.5) / h) * m.h));
+      const sc = Math.min(m.w - 1, Math.floor(((c + 0.5) / w) * m.w));
+      if (get(m, sc, sr)) o.a[r * w + c] = 1;
     }
   return o;
 }
@@ -123,7 +125,7 @@ const ASCII: Record<string, string[]> = {
 // Nur erkennbar unsymmetrische Formen werden zusätzlich gespiegelt.
 const MIRRORABLE = new Set(['drache', 'fisch', 'halbmond']);
 
-export type FigureSize = 'klein' | 'mittel' | 'groß';
+export type FigureSize = 'winzig' | 'klein' | 'mittel' | 'groß' | 'riesig';
 
 export interface Figure extends Layout {
   shape: string; // Grundform, z. B. 'drache' -> i18n-Key 'fig.drache'
@@ -132,6 +134,8 @@ export interface Figure extends Layout {
   shaft: string;
   mirrored: boolean;
   layerCount: number;
+  cols: number; // Brettbreite in Zellen (für Level-Rampe & Modus-Filter)
+  rows: number;
 }
 
 function hashStr(s: string): number {
@@ -147,16 +151,20 @@ function buildFigures(): Figure[] {
   interface Base { shape: string; sizeLabel: FigureSize; mask: Mask; mirrored?: boolean }
   const bases: Base[] = [];
 
-  const SIZES: [FigureSize, number, number][] = [['klein', 7, 8], ['mittel', 9, 11], ['groß', 11, 13]];
+  // Größenstufen: Brett bleibt handlich (max 8×9), damit die Steine groß bleiben.
+  const SIZES: [FigureSize, number, number][] = [
+    ['winzig', 4, 5], ['klein', 5, 6], ['mittel', 6, 7], ['groß', 7, 8], ['riesig', 8, 9],
+  ];
   for (const [key, f] of ANALYTIC)
     for (const [sizeLabel, w, h] of SIZES) bases.push({ shape: key, sizeLabel, mask: analytic(f, w, h) });
 
+  // ASCII-Formen auf dieselben Raster bringen (statt dilate/erode-Sonderweg).
   for (const key of Object.keys(ASCII)) {
     const b = fromAscii(ASCII[key]);
-    bases.push({ shape: key, sizeLabel: 'mittel', mask: b });
-    bases.push({ shape: key, sizeLabel: 'groß', mask: dilate(b) });
-    const s = erode(b);
-    if (cnt(s) >= 20) bases.push({ shape: key, sizeLabel: 'klein', mask: s });
+    for (const [sizeLabel, w, h] of SIZES) {
+      const m = resample(b, w, h);
+      if (cnt(m) >= 12) bases.push({ shape: key, sizeLabel, mask: m });
+    }
   }
 
   const withMirror: Base[] = [];
@@ -188,11 +196,14 @@ function buildFigures(): Figure[] {
       ['Innenhof', hofSrc
         ? (c, r) => get(hofSrc, c, r)
         : (c, r) => Math.abs(c + 0.5 - cx) < 1 && Math.abs(r + 0.5 - cy) < 1],
-      ['Doppelschacht', (c, r) => {
-        const lc = Math.round(b.mask.w * 0.25), rc = b.mask.w - 1 - lc;
-        return (c === lc || c === rc) && Math.abs(r + 0.5 - cy) <= 1.5;
-      }],
     ];
+    // Doppelschacht nur, wenn zwischen den Schächten mindestens ein Steg bleibt –
+    // bei schmalen Formen verschmelzen sie sonst zu einem Mittelschlitz.
+    const lc = Math.max(1, Math.round(b.mask.w * 0.22));
+    if (b.mask.w >= 3 + 2 * lc) {
+      const rc = b.mask.w - 1 - lc;
+      shafts.push(['Doppelschacht', (c, r) => (c === lc || c === rc) && Math.abs(r + 0.5 - cy) <= 1.5]);
+    }
 
     for (const [profile, layersRaw] of profiles) {
       for (const [shaft, pred] of shafts) {
@@ -204,7 +215,7 @@ function buildFigures(): Figure[] {
           return o;
         });
         layers = layers.filter((m, i) => i === 0 || cnt(m) >= 4);
-        if (cnt(layers[0]) < 20) continue;
+        if (cnt(layers[0]) < 14) continue;
 
         let cells: Cell[] = [];
         layers.forEach((m, layer) => {
@@ -216,7 +227,7 @@ function buildFigures(): Figure[] {
           const top = Math.max(...cells.map((t) => t.layer));
           cells.splice(cells.findIndex((t) => t.layer === top), 1);
         }
-        if (cells.length < 24 || cells.length > 190) continue;
+        if (cells.length < 20 || cells.length > 190) continue;
 
         const minC = Math.min(...cells.map((t) => t.col));
         const minR = Math.min(...cells.map((t) => t.row));
@@ -236,14 +247,23 @@ function buildFigures(): Figure[] {
           mirrored: !!b.mirrored,
           cells,
           layerCount: Math.max(...cells.map((t) => t.layer)) + 1,
+          cols: Math.max(...cells.map((t) => t.col)) + 1,
+          rows: Math.max(...cells.map((t) => t.row)) + 1,
           hash: hashStr(sig),
         });
       }
     }
   }
 
-  // Level-Rampe: klein & flach zuerst; Hash als deterministischer Gleichstand-Brecher.
-  out.sort((a, b) => a.cells.length - b.cells.length || a.hash - b.hash);
+  // Level-Rampe: kleines Brett zuerst, damit die Steine früh groß sind. Reine
+  // Steinzahl reicht dafür nicht (dünne Sterne sind breit trotz weniger Steine),
+  // reine Größen-Buckets würden die Schwierigkeit am Bucket-Rand einbrechen lassen.
+  // Deshalb: Steinzahl + Aufschlag je Größenstufe -> Stufen überlappen weich.
+  // Ergebnis (gemessen): Level 1..353 alle ≤6×7, erstes 7×8 @354, erstes 8×9 @579.
+  const tier = (f: { cols: number; rows: number }) =>
+    f.cols <= 6 && f.rows <= 7 ? 0 : f.cols <= 7 && f.rows <= 8 ? 1 : 2;
+  const score = (f: (typeof out)[number]) => f.cells.length + 30 * tier(f);
+  out.sort((a, b) => score(a) - score(b) || a.hash - b.hash);
 
   // Abwechslung: direkt aufeinanderfolgende Level nie mit derselben Grundform.
   for (let i = 1; i < out.length - 1; i++) {

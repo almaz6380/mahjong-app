@@ -79,6 +79,8 @@ const D: Record<string, Entry> = {
   'layout.classic': { de: 'Klassisch', en: 'Classic' },
   'layout.pyramid': { de: 'Pyramide', en: 'Pyramid' },
   'layout.turtle': { de: 'Schildkröte', en: 'Turtle' },
+  'layout.dailyBoard': { de: 'Tages-Schildkröte', en: 'Daily Turtle' },
+  'layout.blitzBoard': { de: 'Blitz-Hügel', en: 'Blitz Hill' },
   'layout.daily': { de: 'Tages-Board', en: 'Daily board' },
   // Grundformen des Figuren-Generators (figures.ts)
   'fig.herz': { de: 'Herz', en: 'Heart' },

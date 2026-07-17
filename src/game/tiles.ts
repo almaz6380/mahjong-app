@@ -79,12 +79,14 @@ export function buildDeck(withSeries = false): TileFace[] {
   return faces; // 144 Steine, mit Serien 176
 }
 
-// Ab dieser Boardgröße mischen die neuen Serien mit.
-const SERIES_MIN_TILES = 80;
+// Ab dieser Boardgröße mischen die neuen Serien mit. Die Bretter sind bewusst
+// kompakt (max 8×9, ~140 Steine), damit die Steine groß bleiben – die Schwelle
+// muss dazu passen, sonst erscheinen Mythen/Schätze nie und das Album bleibt leer.
+const SERIES_MIN_TILES = 40;
 
 // Deck passend zur Steinzahl eines Layouts.
 //  - kleine Boards: klassisches 144er-Deck (generateBoard nutzt nur n/2 Paare).
-//  - ab 80 Steinen: + Mythen/Schätze (mehr Abwechslung auf großen Boards).
+//  - ab SERIES_MIN_TILES: + Mythen/Schätze (mehr Abwechslung auf größeren Boards).
 //  - n > Deck: Deck paarweise erweitern, damit große Boards genug Steine haben.
 export function deckForCount(n: number): TileFace[] {
   const base = buildDeck(n >= SERIES_MIN_TILES);
