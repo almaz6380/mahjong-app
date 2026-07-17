@@ -17,17 +17,31 @@ const TH = 58; // Stein-Höhe
 // sichtbaren Kanten des Steins (Seitenkante 4, Unterkante 6 SVG-Einheiten).
 const DX = 3.3; // = 4 × 44/54 – horizontaler Versatz je Ebene
 const DY = 5; // = 6 × 58/72 – vertikaler Hub je Ebene
+// Der Stein ragt über sein Feld hinaus: links die Seitenkante, unten Kante +
+// Schatten (oben/rechts liegt er bündig). Ohne diese Reserve stünde das Board
+// asymmetrisch im Filz – links angeschnitten, rechts mit Luft.
+const OVER_L = 3.3;
+const OVER_B = 9.7;
 
 export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 
-  const maxCol = tiles.reduce((m, t) => Math.max(m, t.col), 0);
-  const maxRow = tiles.reduce((m, t) => Math.max(m, t.row), 0);
   const maxLayer = tiles.reduce((m, t) => Math.max(m, t.layer), 0);
 
-  const boardW = (maxCol + 1) * TW + maxLayer * DX + 10;
-  const boardH = (maxRow + 1) * TH + maxLayer * DY + 18; // +18: Unterkante + Schatten der Ebene 0
+  // Maße aus den echten Steinpositionen (nicht aus maxCol/maxLayer geschätzt):
+  // Bei Pyramiden ist die obere Ebene eingerückt, ihr Versatz zählt rechts also
+  // nicht mit – sonst stünde das Board schief im Filz. Über ALLE Steine rechnen
+  // (auch entfernte), damit die Figur beim Spielen nicht springt.
+  const px = (t: { col: number; layer: number }) => t.col * TW + t.layer * DX;
+  const py = (t: { row: number; layer: number }) => t.row * TH - t.layer * DY + maxLayer * DY;
+  const minX = Math.min(...tiles.map(px));
+  const maxX = Math.max(...tiles.map(px)) + TW;
+  const minY = Math.min(...tiles.map(py));
+  const maxY = Math.max(...tiles.map(py)) + TH;
+
+  const boardW = OVER_L + (maxX - minX);
+  const boardH = maxY - minY + OVER_B;
 
   useLayoutEffect(() => {
     const el = wrapRef.current;
@@ -64,8 +78,8 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
         {tiles
           .filter((t) => !t.removed)
           .map((t) => {
-            const x = t.col * TW + t.layer * DX;
-            const y = t.row * TH - t.layer * DY + maxLayer * DY;
+            const x = OVER_L + px(t) - minX;
+            const y = py(t) - minY;
             const free = freeSet.has(t.key);
             const isHint = hintPair && (hintPair[0] === t.key || hintPair[1] === t.key);
             const cls =
@@ -100,8 +114,8 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
             key={`fade-${f.key}`}
             className="tile solid removing"
             style={{
-              left: f.col * TW + f.layer * DX,
-              top: f.row * TH - f.layer * DY + maxLayer * DY,
+              left: OVER_L + px(f) - minX,
+              top: py(f) - minY,
               width: TW,
               height: TH,
               zIndex: 10000000,
