@@ -178,8 +178,9 @@ function buildFigures(): Figure[] {
 
   for (const b of withMirror) {
     const e1 = erode(b.mask), e2 = erode(e1), e3 = erode(e2);
+    // Kein flaches Profil mehr – einschichtige Bretter sind trivial. Jede Figur
+    // hat mindestens zwei Ebenen (unten erzwungen, falls eine Ebene wegdünnt).
     const profiles: [string, Mask[]][] = [
-      ['flach', [b.mask]],
       ['2 Ebenen', [b.mask, e1]],
       ['3 Ebenen', [b.mask, e1, e2]],
       ['4 Ebenen', [b.mask, e1, e2, e3]],
@@ -216,6 +217,7 @@ function buildFigures(): Figure[] {
         });
         layers = layers.filter((m, i) => i === 0 || cnt(m) >= 4);
         if (cnt(layers[0]) < 14) continue;
+        if (layers.length < 2) continue; // keine flachen Bretter (obere Ebene weggedünnt)
 
         let cells: Cell[] = [];
         layers.forEach((m, layer) => {
@@ -263,7 +265,10 @@ function buildFigures(): Figure[] {
   // ≤7×8 ≈ 55, 8×9 ≈ 48.
   const tier = (f: { cols: number; rows: number }) =>
     f.cols <= 5 && f.rows <= 6 ? 0 : f.cols <= 6 && f.rows <= 7 ? 1 : f.cols <= 7 && f.rows <= 8 ? 2 : 3;
-  const score = (f: (typeof out)[number]) => f.cells.length + 30 * tier(f);
+  // Schwierigkeit = Grundfläche (Steingröße-Rampe) + Tiefe. Die Ebenen-Zahl geht
+  // mit ein, damit früh 2 Ebenen kommen, zur Mitte 3, spät 3–4 – ohne die
+  // Grundfläche (= Steingröße) durcheinanderzubringen (Tier dominiert mit ×30).
+  const score = (f: (typeof out)[number]) => f.cells.length + 30 * tier(f) + 12 * f.layerCount;
   out.sort((a, b) => score(a) - score(b) || a.hash - b.hash);
 
   // Abwechslung: direkt aufeinanderfolgende Level nie mit derselben Grundform.

@@ -19,12 +19,15 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
 
 - `src/engine.ts`, `src/layouts.ts` — Solitaire-Kern; jedes Board rückwärts konstruiert = garantiert lösbar
 - `src/game/figures.ts` — **Figuren-Generator**: 29 Grundformen × 5 Größen × Höhenprofil × Aushöhlung
-  = 1050 einzigartige, deterministische Level-Boards (`layoutForLevel`; Namen `fig-<n>`, i18n `fig.*`).
+  = **834** einzigartige, deterministische Level-Boards (`layoutForLevel`; Namen `fig-<n>`, i18n `fig.*`).
+  **Kein flaches Profil** – jede Figur hat ≥2 Ebenen (einschichtige Bretter sind trivial), erzwungen über
+  entfernte 'flach'-Stufe + `layers.length < 2`-Filter.
   **Bretter bleiben klein, damit die Steine groß sind** (max 8×9 Zellen): `SIZES` = 4×5 … 8×9, ASCII-Formen
   werden per `resample()` auf dieselben Raster gebracht. Die Level-Rampe sortiert nach
-  `cells.length + 30 × tier` (tier: ≤5×6 = 0, ≤6×7 = 1, ≤7×8 = 2, sonst 3) — dadurch sind
-  **Level 1–150 alle ≤5×6** (Stein ≈ 75–81 px), bis 354 ≤6×7 (≈ 63), danach weiches Wachstum bis
-  8×9 (≈ 48). Scale-Deckel in `Board.tsx` = 1.85. Prüfskript:
+  `cells.length + 30 × tier + 12 × layerCount` (tier: ≤5×6 = 0, ≤6×7 = 1, ≤7×8 = 2, sonst 3) — dadurch
+  wächst mit dem Level BEIDES: Grundfläche (Steingröße-Rampe, **Level 1–100 ≤5×6** ≈ 75–81 px, bis ~278
+  ≤6×7 ≈ 63, dann bis 8×9 ≈ 48) UND Stapel-Tiefe (früh Ø 2 Ebenen, spät 3–4). Scale-Deckel in
+  `Board.tsx` = 1.85. Prüfskript:
   `node scripts/check-figures.mjs` (Maße, Rampe, Parität, Schweben, Lösbarkeit aller 1050, Modus-Filter).
   Steine im Solitaire mit 3D-Korpus (`<Tile solid>`, CSS `.tile.solid`); ab 40 Steinen (`SERIES_MIN_TILES`)
   mischen die Serien **Mythen** (龍鳳麒龜) & **Schätze** (Laterne/Fächer/Münze/Knoten) ins Deck

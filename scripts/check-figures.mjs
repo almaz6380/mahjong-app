@@ -41,12 +41,19 @@ console.log(`max Brett: ${maxCols}×${maxRows} · Steine ${Math.min(...counts)}�
 
 check(maxCols <= 8 && maxRows <= 9, `Brett global ≤ 8×9 (ist ${maxCols}×${maxRows})`);
 
-const bad = all.slice(0, 150).filter((f) => f.cols > 5 || f.rows > 6);
-check(bad.length === 0, `Level 1–150 alle ≤ 5×6 (${bad.length} Verstöße)`);
+const bad = all.slice(0, 100).filter((f) => f.cols > 5 || f.rows > 6);
+check(bad.length === 0, `Level 1–100 alle ≤ 5×6 (${bad.length} Verstöße)`);
 for (const [c, r] of [[5, 6], [6, 7], [7, 8]]) {
   const i = all.findIndex((f) => f.cols > c || f.rows > r);
   console.log(`       erstes Brett > ${c}×${r}: Level ${i + 1}`);
 }
+
+check(all.every((f) => f.layerCount >= 2), `keine flachen Bretter (${all.filter((f) => f.layerCount < 2).length} einschichtige)`);
+const layAvg = (from, to) => {
+  const s = all.slice(from, to);
+  return s.reduce((a, f) => a + f.layerCount, 0) / s.length;
+};
+check(layAvg(0, 200) < layAvg(600, all.length), `Stapelung steigt (früh ${layAvg(0, 200).toFixed(2)} < spät ${layAvg(600, all.length).toFixed(2)} Ebenen)`);
 
 // Rampe: maxDim je 100er-Band nicht fallend
 let prev = 0, mono = true;
