@@ -18,8 +18,7 @@ const TH = 58; // Stein-Höhe
 const DX = 3.3; // = 4 × 44/54 – horizontaler Versatz je Ebene
 const DY = 5; // = 6 × 58/72 – vertikaler Hub je Ebene
 // Der Stein ragt über sein Feld hinaus: links die Seitenkante, unten Kante +
-// Schatten (oben/rechts liegt er bündig). Ohne diese Reserve stünde das Board
-// asymmetrisch im Filz – links angeschnitten, rechts mit Luft.
+// Schatten (oben/rechts liegt er bündig).
 const OVER_L = 3.3;
 const OVER_B = 9.7;
 
@@ -40,7 +39,11 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
   const minY = Math.min(...tiles.map(py));
   const maxY = Math.max(...tiles.map(py)) + TH;
 
-  const boardW = OVER_L + (maxX - minX);
+  // Ausrichtung an den DECKFLÄCHEN, nicht an den Silhouetten: Die Seitenkante
+  // sitzt nur links, würde man sie mitzentrieren, stünden die weißen Flächen
+  // sichtbar nach rechts versetzt. Die Kante ragt darum links aus der Box –
+  // der Platz dafür ist unten in der Skalierung reserviert.
+  const boardW = maxX - minX;
   const boardH = maxY - minY + OVER_B;
 
   useLayoutEffect(() => {
@@ -50,7 +53,9 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
     const resize = () => {
       const r = el.getBoundingClientRect();
       if (r.width === 0 || r.height === 0) return;
-      const s = Math.min((r.width - PAD) / boardW, (r.height - PAD) / boardH);
+      // Breite: Platz für die überstehende Seitenkante mitreservieren, sonst
+      // schneidet .board-wrap (overflow:hidden) sie am linken Rand ab.
+      const s = Math.min((r.width - PAD) / (boardW + OVER_L), (r.height - PAD) / boardH);
       // Deckel bremst nur die winzigsten Bretter (4×4 käme auf 2,1) – große
       // Steine sind gewollt, aber zwei Steine sollen nicht den Schirm füllen.
       setScale(s > 0 ? Math.min(s, 1.85) : 1);
@@ -78,7 +83,7 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
         {tiles
           .filter((t) => !t.removed)
           .map((t) => {
-            const x = OVER_L + px(t) - minX;
+            const x = px(t) - minX;
             const y = py(t) - minY;
             const free = freeSet.has(t.key);
             const isHint = hintPair && (hintPair[0] === t.key || hintPair[1] === t.key);
@@ -114,7 +119,7 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
             key={`fade-${f.key}`}
             className="tile solid removing"
             style={{
-              left: OVER_L + px(f) - minX,
+              left: px(f) - minX,
               top: py(f) - minY,
               width: TW,
               height: TH,
