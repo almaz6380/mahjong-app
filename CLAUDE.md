@@ -164,6 +164,9 @@ minSdk 23 / compileSdk+targetSdk 35 (Billing-Lib 9 + Play-Pflicht). AAB lädt de
   Jade-Look, drehendem 3D-Stein, neuem Icon/Splash, neuen Screenshots (iPhone+iPad / Handy+Tablet),
   differenzierter Beschreibung + Reviewer-Antwort im Resolution Center gegen 4.3a. Store-Assets in
   `~/Desktop/mahjong-*export*` (Icon 512, Feature 1024×500, AAB, Screenshots).
-- **Seit 17.7.2026 nur im Web live** (Gemini-Stein-Designs + große Bretter). Der nächste native Build
-  wäre **iOS 12 / Android vc13**; die **Store-Screenshots sind damit veraltet** (Steine/Bretter sehen
-  komplett anders aus) und müssten vor einer Einreichung neu erzeugt werden.
+- **17.7.2026 — Build 12/vc13 gebaut** (Gemini-Stein-Designs, große Bretter, gestapelte Level).
+  Artefakte auf dem Desktop: `MahjongRoyale-ios-1.0-b12.ipa` (1.0/Build 12, 0 Test-IDs) +
+  `MahjongRoyale-android-1.0-vc13.aab`. Store-Screenshots in `store/` neu (DE+EN, iPhone 1284×2778 /
+  iPad 2064×2752 / Play 1080×2148). **Upload macht der Nutzer selbst** (iOS `xcrun altool` per
+  `!`-Prefix, Android-AAB in Play Console). **ACHTUNG:** ersetzt die noch in Prüfung liegende Version
+  Build 10/vc11 (iOS war 4.3a-Spam-abgelehnt). Build-Rezept: siehe „Native Builds" oben.
