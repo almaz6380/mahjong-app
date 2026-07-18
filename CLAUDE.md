@@ -192,5 +192,8 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   status completed) inkl. neuer Telefon- **und** 7-Zoll-Tablet-Screenshots + neuem 512-Icon.
   Artefakte: `~/Desktop/MahjongRoyale-ios-1.0-b13.ipa`, `MahjongRoyale-android-1.0-vc14.aab`.
   Store-Screenshots in `store/ios-screenshots/*` + `store/play-screenshots/*` (Play-Tablet = iPad-Set).
-  **Offen:** Play-Feature-Grafik `store/play-feature-graphic.png` (1024×500) noch vom 5.7. (flache
-  Alt-Steine, alter Untertitel) — bewusst nicht getauscht; App Store hat keine Feature-Grafik.
+  Play-Feature-Grafik `store/play-feature-graphic.png` (1024×500) am 18.7. neu im Jade-/Marmor-Look
+  (Marmor-Steine mit Goldrand+3D, Motive Drache/中/Münze, Untertitel „Solitaire · Riichi · Connect ·
+  4 Spieler") per API ersetzt (de-DE). Render-Rezept: HTML mit eingebetteten `src/assets`-Bildern
+  (`tiles/face-marble.webp` + Motive + `symbol-zhong.webp`, Inter-woff2) → puppeteer-core/System-Chrome,
+  viewport 1024×500 dsf 1, screenshot clip. App Store hat keine Feature-Grafik.
