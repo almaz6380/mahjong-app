@@ -145,14 +145,33 @@ xcodebuild -exportArchive -archivePath <pfad>.xcarchive \
   -exportOptionsPlist ~/Desktop/mahjong-ios-export/ExportOptions.plist -exportPath <out>
 ```
 Upload: `xcrun altool --upload-app -f App.ipa -t ios --apiKey VGHCB8Z8Q2 --apiIssuer 0d4e473b-2807-4c66-9857-6b0eb78e62ce`
-(Key in `~/.appstoreconnect/private_keys/`). ASC-API-Skripte (asc.py) in früheren Session-Scratchpads.
+(Key in `~/.appstoreconnect/private_keys/`).
+**Einreichen per ASC-API** (Build zuweisen + Screenshots + zur Prüfung schicken, alles ohne UI):
+JWT (ES256, KeyID VGHCB8Z8Q2 / Issuer 0d4e473b-…) → App-ID 6787721454, Version-ID e2efe72e-….
+Laufende Prüfung abbrechen: PATCH `/v1/reviewSubmissions/{id}` `{canceled:true}` (Version → editierbar).
+Build zuweisen: PATCH `/v1/appStoreVersions/{id}/relationships/build`. Screenshots: DELETE alte +
+3-Schritt-Upload (POST `/v1/appScreenshots` {fileName,fileSize,set} → PUT bytes an uploadOperations →
+PATCH `{uploaded:true,sourceFileChecksum:md5}`). **Einreichen NUR über neue reviewSubmissions-API**
+(alte appStoreVersionSubmissions erlaubt kein CREATE): POST `/v1/reviewSubmissions` {platform IOS, app}
+→ POST `/v1/reviewSubmissionItems` {reviewSubmission, appStoreVersion} → PATCH `{submitted:true}`.
+(altool ist NICHT auto-mode-geblockt; asc-Skripte lebten zuletzt im Session-Scratchpad.)
 
 **Android** (Upload-Keystore `android/upload-keystore.jks` + `keystore.properties`, gitignored — sichern!):
 ```
 cd android && JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew bundleRelease
 # → app/build/outputs/bundle/release/app-release.aab
 ```
-minSdk 23 / compileSdk+targetSdk 35 (Billing-Lib 9 + Play-Pflicht). AAB lädt der Nutzer in der Play Console hoch.
+minSdk 23 / compileSdk+targetSdk 35 (Billing-Lib 9 + Play-Pflicht).
+
+**Upload + Release per Play-Developer-API** (kein manuelles Hochladen mehr nötig): Dienstkonto-Key
+`~/.config/play-publisher/key.json` (`play-upload@wellbooked-501311.iam.gserviceaccount.com`, hat
+Admin-Recht für die App). Rein per REST (pyjwt+cryptography, kein google-api-python-client):
+SA-JWT RS256 → `oauth2.googleapis.com/token` (scope androidpublisher) → Bearer-Token. Dann eine
+Edit-Transaktion: `POST /upload/androidpublisher/v3/applications/{pkg}/edits/{eid}/bundles?uploadType=media`
+(AAB → versionCode) → Bilder `DELETE` + `POST /upload/.../listings/de-DE/{phoneScreenshots|sevenInchScreenshots|icon}?uploadType=media`
+→ `PUT /edits/{eid}/tracks/production` {release name, versionCodes, status:"completed", releaseNotes}
+→ `:validate` → `:commit`. **Play-Listing nur de-DE.** Wenn 403 „PERMISSION_DENIED": SA hat für die App
+noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail einladen) Admin-Recht geben.
 
 ## Store-Koordinaten
 
@@ -164,9 +183,14 @@ minSdk 23 / compileSdk+targetSdk 35 (Billing-Lib 9 + Play-Pflicht). AAB lädt de
   Jade-Look, drehendem 3D-Stein, neuem Icon/Splash, neuen Screenshots (iPhone+iPad / Handy+Tablet),
   differenzierter Beschreibung + Reviewer-Antwort im Resolution Center gegen 4.3a. Store-Assets in
   `~/Desktop/mahjong-*export*` (Icon 512, Feature 1024×500, AAB, Screenshots).
-- **17.7.2026 — Build 12/vc13 gebaut** (Gemini-Stein-Designs, große Bretter, gestapelte Level).
-  Artefakte auf dem Desktop: `MahjongRoyale-ios-1.0-b12.ipa` (1.0/Build 12, 0 Test-IDs) +
-  `MahjongRoyale-android-1.0-vc13.aab`. Store-Screenshots in `store/` neu (DE+EN, iPhone 1284×2778 /
-  iPad 2064×2752 / Play 1080×2148). **Upload macht der Nutzer selbst** (iOS `xcrun altool` per
-  `!`-Prefix, Android-AAB in Play Console). **ACHTUNG:** ersetzt die noch in Prüfung liegende Version
-  Build 10/vc11 (iOS war 4.3a-Spam-abgelehnt). Build-Rezept: siehe „Native Builds" oben.
+- **17.7.2026 — Build 12/vc13 gebaut** (Gemini-Stein-Designs, große Bretter, gestapelte Level);
+  nie hochgeladen, durch 13/vc14 ersetzt.
+- **18.7.2026 — Build 13 / vc14 in beide Stores hochgeladen (v1.0, per API):** kleine Verbesserungen
+  (Level schwerer, Achter-Kreis-Stein zentriert). iOS Build 13 per altool → alte Build-10-Prüfung
+  abgebrochen → Build 13 + neue Screenshots (de-DE+en-US, iPhone+iPad) zugewiesen → neu eingereicht
+  (**WAITING_FOR_REVIEW**). Android **vc14 per Play-API in Produktion** veröffentlicht (Release „14 (1.0)",
+  status completed) inkl. neuer Telefon- **und** 7-Zoll-Tablet-Screenshots + neuem 512-Icon.
+  Artefakte: `~/Desktop/MahjongRoyale-ios-1.0-b13.ipa`, `MahjongRoyale-android-1.0-vc14.aab`.
+  Store-Screenshots in `store/ios-screenshots/*` + `store/play-screenshots/*` (Play-Tablet = iPad-Set).
+  **Offen:** Play-Feature-Grafik `store/play-feature-graphic.png` (1024×500) noch vom 5.7. (flache
+  Alt-Steine, alter Untertitel) — bewusst nicht getauscht; App Store hat keine Feature-Grafik.
