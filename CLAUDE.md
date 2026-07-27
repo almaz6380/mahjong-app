@@ -17,7 +17,17 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
 
 ## Architektur (Kurzüberblick)
 
-- `src/engine.ts`, `src/layouts.ts` — Solitaire-Kern; jedes Board rückwärts konstruiert = garantiert lösbar
+- `src/engine.ts`, `src/layouts.ts` — Solitaire-Kern; jedes Board rückwärts konstruiert = garantiert lösbar.
+  **Achtung:** Das gilt für das *frische* Brett — der Spieler kann sich in eine Sackgasse spielen, für die es
+  keine lösbare Verteilung mehr gibt (z. B. letztes Paar gestapelt). `reshuffleBoard` gibt dann dasselbe
+  Brett zurück; `useGame.shuffle()` liefert `false`. Die Oberfläche muss darauf reagieren (GameScreen:
+  „Neu"-Ausweg + kein Booster-Verbrauch; FigureRound/Blitz: automatisch neues Brett).
+- **Level-Fortschritt (mehrfach kaputtgegangen, Regressionstest `node scripts/e2e-level-flow.mjs`):**
+  Der Spielstand (`session.ts`) darf NUR in genau dem Level wiederverwendet werden, aus dem er stammt —
+  sonst startet jedes Folgelevel wieder mit dem alten, halb geräumten Brett (`App.tsx`: `advanceLevel`
+  verwirft `playInitial` + Session, zusätzlich Level-Vergleich beim Rendern). Das Level steigt erst beim
+  Tippen auf „Weiter"; wird die App vorher geschlossen, hebt die Selbstheilung in `useProgress` (erstes
+  Level ohne `bestStars`-Eintrag) den Stand nach.
 - `src/game/figures.ts` — **Figuren-Generator**: 29 Grundformen × 5 Größen × Höhenprofil × Aushöhlung
   = **834** einzigartige, deterministische Level-Boards (`layoutForLevel`; Namen `fig-<n>`, i18n `fig.*`).
   **Kein flaches Profil** – jede Figur hat ≥2 Ebenen (einschichtige Bretter sind trivial), erzwungen über

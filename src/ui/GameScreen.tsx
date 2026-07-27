@@ -61,6 +61,7 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
   });
 
   const [purchase, setPurchase] = useState<BoosterType | null>(null);
+  const [noShuffle, setNoShuffle] = useState(false); // Mischen kann nicht mehr helfen
   const [win, setWin] = useState<{ stars: number; coins: number; doubled: boolean } | null>(null);
   const winHandled = useRef(false);
 
@@ -71,11 +72,13 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // false = die Aktion hat nichts bewirkt (Mischen ohne lösbare Verteilung).
   const doAction = useCallback(
-    (t: BoosterType) => {
+    (t: BoosterType): boolean => {
       if (t === 'hint') game.hint();
-      else if (t === 'shuffle') game.shuffle();
+      else if (t === 'shuffle') return game.shuffle();
       else game.undo();
+      return true;
     },
     [game],
   );
@@ -85,8 +88,9 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
       if (win) return;
       if (t === 'undo' && !game.canUndo) return;
       if (progress.boosters[t] > 0) {
-        api.useBooster(t);
-        doAction(t);
+        // Erst handeln, dann abbuchen: Ein wirkungsloses Mischen kostet nichts.
+        if (doAction(t)) api.useBooster(t);
+        else setNoShuffle(true);
       } else {
         setPurchase(t);
       }
@@ -96,7 +100,9 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
 
   const buyWithCoins = useCallback(() => {
     if (!purchase) return;
-    if (api.spendCoins(BOOSTER_COST[purchase])) doAction(purchase);
+    if (api.spendCoins(BOOSTER_COST[purchase])) {
+      if (!doAction(purchase)) setNoShuffle(true);
+    }
     setPurchase(null);
   }, [purchase, api, doAction]);
 
@@ -153,13 +159,25 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
     api.advanceLevel(); // Parent remountet mit Level+1
   }, [level, progress.totalWins, api]);
 
+  // Gewonnene Runde per Zurück-Pfeil verlassen: Level trotzdem gutschreiben,
+  // sonst startet das Menü immer wieder dasselbe (bereits gelöste) Level.
+  const exitRound = useCallback(() => {
+    if (win && mode === 'level') api.advanceLevel();
+    onExit();
+  }, [win, mode, api, onExit]);
+
   const deadlock = !game.hasMoves && game.remaining > 0 && !game.won;
+  // Merker zurücksetzen, sobald es wieder Züge gibt (z. B. nach „Zurück").
+  useEffect(() => {
+    if (!deadlock) setNoShuffle(false);
+  }, [deadlock]);
+
   const title = mode === 'daily' ? t('game.daily') : t('game.level', { n: level });
 
   return (
     <div className="app">
       <header className="hud">
-        <button className="icon-btn" onClick={onExit} aria-label="Menü">
+        <button className="icon-btn" onClick={exitRound} aria-label="Menü">
           <Icon name="chevron" />
         </button>
         <div className="hud-center">
@@ -199,9 +217,16 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
           <div className="card">
             <div className="logo">🔀</div>
             <h2>{t('game.noMoves')}</h2>
-            <p>{t('game.noMovesText')}</p>
-            <button className="big-btn" onClick={() => handleBooster('shuffle')}>
-              {t('game.shuffle')}{progress.boosters.shuffle > 0 ? ` (${progress.boosters.shuffle})` : ''}
+            <p>{noShuffle ? t('game.noShuffleText') : t('game.noMovesText')}</p>
+            {!noShuffle && (
+              <button className="big-btn" onClick={() => handleBooster('shuffle')}>
+                {t('game.shuffle')}{progress.boosters.shuffle > 0 ? ` (${progress.boosters.shuffle})` : ''}
+              </button>
+            )}
+            {/* Immer ein Ausweg: Für den Rest kann es Verteilungen geben, die
+                sich nicht mehr lösen lassen (letztes Paar gestapelt). */}
+            <button className={noShuffle ? 'big-btn' : 'big-btn ghost solid'} onClick={onNewRound}>
+              {t('game.new')}
             </button>
           </div>
         </div>

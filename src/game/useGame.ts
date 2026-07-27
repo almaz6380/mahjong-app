@@ -171,12 +171,19 @@ export function useGame(initialLayout = 'classic', opts: GameOptions = {}) {
     setHintPair(null);
   }, [freeSet, byKey]);
 
-  const shuffle = useCallback(() => {
-    setTiles((prev) => reshuffleBoard(prev, nbRef.current));
+  // Gibt zurück, ob das Mischen etwas bewirkt hat. Bei einem Rest, für den es
+  // KEINE lösbare Verteilung mehr gibt (z. B. das letzte Paar liegt gestapelt),
+  // liefert reshuffleBoard dasselbe Brett zurück – dann darf weder ein Booster
+  // verbraucht werden noch soll die Oberfläche endlos weiter mischen.
+  const shuffle = useCallback((): boolean => {
+    const next = reshuffleBoard(tiles, nbRef.current);
+    if (next === tiles) return false;
+    setTiles(next);
     setSelected(null);
     setHintPair(null);
     helpUsed.current += 1;
-  }, []);
+    return true;
+  }, [tiles]);
 
   // Momentaufnahme für die Wertung (Zeit + genutzte Hilfen).
   const snapshot = useCallback(

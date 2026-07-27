@@ -131,13 +131,23 @@ export default function App() {
     spendCoins: p.spendCoins,
     addCoins: p.addCoins,
     recordWin: p.recordWin,
-    advanceLevel: p.advanceLevel,
+    // WICHTIG: Beim Levelaufstieg das fortgesetzte Brett verwerfen. Sonst wird
+    // der gespeicherte Spielstand des ALTEN Levels erneut als Startbrett
+    // benutzt -> im nächsten Level erschien wieder dieselbe (halb geräumte)
+    // Figur, nur mit höherer Levelnummer.
+    advanceLevel: () => {
+      setPlayInitial(undefined);
+      setResume(null);
+      clearSession();
+      p.advanceLevel();
+    },
     completeDailyChallenge: p.completeDailyChallenge,
     bumpAlbum: p.bumpAlbum,
   };
 
   const exitToMenu = () => {
     setScreen('menu');
+    setPlayInitial(undefined);
     loadSession().then(setResume);
   };
 
@@ -149,7 +159,8 @@ export default function App() {
     setScreen('play');
   };
   const startResume = () => {
-    setPlayInitial(resume ?? undefined);
+    // Nur fortsetzen, wenn der Spielstand wirklich zum aktuellen Level gehört.
+    setPlayInitial(resume && resume.level === progress.level ? resume : undefined);
     setScreen('play');
   };
   const startDaily = () => {
@@ -169,7 +180,9 @@ export default function App() {
           level={progress.level}
           layoutName={lay.name}
           layoutLabel={lay.label}
-          initial={playInitial}
+          // Doppelte Sicherung: ein Spielstand darf nur in genau dem Level
+          // wiederverwendet werden, aus dem er stammt.
+          initial={playInitial && playInitial.level === progress.level ? playInitial : undefined}
           progress={progress}
           api={api}
           onExit={exitToMenu}

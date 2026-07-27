@@ -140,6 +140,15 @@ export function useProgress() {
         }
       }
 
+      // Selbstheilung: Das Level steigt erst beim Tippen auf „Weiter". Wurde die
+      // App (oder der Browser-Tab) auf dem Sieg-Bildschirm geschlossen, stand
+      // danach wieder das bereits gelöste Level an — es kam „immer wieder das
+      // gleiche Level". Richtig ist das erste noch nicht gelöste Level.
+      const cleared = Object.keys(loaded.bestStars).length;
+      for (let i = 0; i <= cleared && (loaded.bestStars[loaded.level] ?? 0) > 0; i++) {
+        loaded = { ...loaded, level: loaded.level + 1 };
+      }
+
       // Streak zählt konsekutive Tage mit App-Start — unabhängig vom Abholen,
       // damit ein übersehenes Belohnungs-Icon den Streak nicht bricht.
       const today = todayStr();

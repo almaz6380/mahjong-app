@@ -63,7 +63,9 @@ export function FigureRound({
     if (deadlock && !shuffling.current) {
       shuffling.current = true;
       const id = setTimeout(() => {
-        game.shuffle();
+        // Lässt sich der Rest nicht mehr lösbar verteilen (letztes Paar
+        // gestapelt), hilft nur ein frisches Brett – sonst hängt die Runde.
+        if (!game.shuffle()) game.newGame(layoutName);
         shuffling.current = false;
       }, 500);
       return () => {
@@ -71,7 +73,7 @@ export function FigureRound({
         shuffling.current = false;
       };
     }
-  }, [deadlock, game]);
+  }, [deadlock, game, layoutName]);
 
   const boost = (kind: 'hint' | 'shuffle') => {
     if (!freeBoosters && spendCoins && !spendCoins(BOOSTER_COST[kind])) return;

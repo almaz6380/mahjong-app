@@ -64,6 +64,10 @@ const D: Record<string, Entry> = {
   'game.shuffle': { de: 'Mischen', en: 'Shuffle' },
   'game.noMoves': { de: 'Keine Züge mehr', en: 'No moves left' },
   'game.noMovesText': { de: 'Misch die Steine neu, um weiterzuspielen.', en: 'Shuffle the tiles to keep playing.' },
+  'game.noShuffleText': {
+    de: 'Für die restlichen Steine gibt es keine lösbare Verteilung mehr. Starte das Level mit einem neuen Brett.',
+    en: 'The remaining tiles cannot be arranged into a solvable board. Start the level with a fresh board.',
+  },
   'game.boosterEmpty': { de: '{b} aufgebraucht', en: 'Out of {b}' },
   'game.refill': { de: 'Hol dir Nachschub:', en: 'Get a refill:' },
   'game.coinsBtn': { de: '{n} Münzen', en: '{n} coins' },

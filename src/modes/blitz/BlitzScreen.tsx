@@ -72,7 +72,9 @@ export function BlitzScreen({ api, onExit }: ModeProps) {
 
   // Sackgasse -> automatisch mischen, damit der Blitz nicht stockt
   useEffect(() => {
-    if (!over && !game.hasMoves && game.remaining > 0 && !game.won) game.shuffle();
+    // Mischen kann bei manchen Resten nicht mehr helfen -> dann neues Brett,
+    // damit der Blitz nicht bis zum Ablauf der Zeit stillsteht.
+    if (!over && !game.hasMoves && game.remaining > 0 && !game.won && !game.shuffle()) game.newGame(LAYOUT);
   }, [game.hasMoves, game.remaining, game.won, over]);
 
   const restart = useCallback(() => {
