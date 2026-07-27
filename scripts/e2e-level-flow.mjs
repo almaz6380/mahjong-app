@@ -12,7 +12,8 @@ const OUT = process.argv[2] ?? '/tmp';
 const browser = await puppeteer.launch({
   executablePath: CHROME,
   headless: 'new',
-  args: ['--lang=de-DE'],
+  // --no-sandbox nur nötig, wenn der Test als root läuft (Container/CI).
+  args: ['--lang=de-DE', ...(process.getuid?.() === 0 ? ['--no-sandbox'] : [])],
 });
 const page = await browser.newPage();
 await page.setViewport({ width: 430, height: 930, deviceScaleFactor: 1 });

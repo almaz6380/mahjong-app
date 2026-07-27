@@ -29,11 +29,16 @@ export function presentFact(): Promise<void> {
 
 function dismiss() {
   if (!current) return;
-  current = null;
   const r = resolver;
   resolver = null;
-  emit();
+  // Erst den Aufrufer weiterlaufen lassen (er baut die nächste Runde auf) und
+  // die Karte ein Bild später ausblenden. Sonst ist für einen Moment wieder die
+  // alte Sieg-Karte zu sehen, bevor das neue Brett steht.
   r?.();
+  requestAnimationFrame(() => {
+    current = null;
+    emit();
+  });
 }
 
 function subscribe(cb: () => void) {

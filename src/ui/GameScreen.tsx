@@ -155,8 +155,12 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
 
   const nextLevel = useCallback(async () => {
     await maybeShowInterstitial(level, progress.totalWins);
-    await presentFact(); // kurze Infokarte vor der nächsten Runde
+    // Infokarte zeigen UND das nächste Level schon dahinter aufbauen. Würde erst
+    // nach dem Schließen der Karte gewechselt, blitzt dazwischen für ein Bild
+    // wieder die Sieg-Karte auf ("Belohnung, die sofort verschwindet").
+    const shown = presentFact();
     api.advanceLevel(); // Parent remountet mit Level+1
+    await shown;
   }, [level, progress.totalWins, api]);
 
   // Gewonnene Runde per Zurück-Pfeil verlassen: Level trotzdem gutschreiben,
