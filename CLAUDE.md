@@ -189,6 +189,19 @@ Build bricht mit „Failed to apply patch" ab → einmalig ohne Cache deployen
 - **Git-Autor muss 63almaz80@gmail.com sein** (celorenz1234@… blockiert Vercel-Deploys!)
 - Web zeigt keine echten Ads/IAP — beides nur nativ.
 
+## Builds ohne eigenen Mac (GitHub Actions)
+
+`.github/workflows/android-release.yml` + `ios-release.yml` bauen, signieren und laden auf GitHubs
+Rechnern hoch — von Hand startbar (`workflow_dispatch`), nie automatisch bei einem Push. Damit kann
+auch eine Cloud-Sitzung ein Release auslösen. **Einrichtung + die neun Secrets: `store/ci-setup.md`.**
+Erster Lauf immer mit abgeschaltetem Upload (Schalter „nur bauen"), dann mit.
+
+**Wichtig auf einem frischen Rechner:** Im Repo liegen bewusst KEINE Schlüssel —
+`android/upload-keystore.jks`, `android/keystore.properties`, `~/.config/play-publisher/key.json`
+und `~/.appstoreconnect/private_keys/*.p8` sind gitignored bzw. außerhalb des Repos. Ein neuer Mac
+kann also erst bauen, wenn diese Dateien aus dem Backup dorthin kopiert wurden — oder man nimmt
+gleich den Action-Weg, der die Schlüssel aus den GitHub-Secrets zieht.
+
 ## Native Builds (Launch-Rezept, verifiziert 12.7.2026)
 
 **Skripte im Repo** (nur auf dem Mac lauffähig — Android-SDK, Keystore und Signier-Zertifikate liegen
