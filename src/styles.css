@@ -940,8 +940,10 @@ body {
   position: relative;
   overflow: hidden;
   color: #f4ecd8;
+  /* Unten zusätzlich die Bannerhöhe (--banner-space), sonst liegt die Werbung
+     auf „Alle Spiele" und den Seiten-Symbolen. */
   padding: calc(env(safe-area-inset-top) + 14px) calc(env(safe-area-inset-right) + 16px)
-           calc(env(safe-area-inset-bottom) + 18px) calc(env(safe-area-inset-left) + 16px);
+           calc(env(safe-area-inset-bottom) + 18px + var(--banner-space)) calc(env(safe-area-inset-left) + 16px);
   /* Hintergrund liefert die fixe Vollbild-Ebene .home-bg (Tempel-Motiv). */
   background: transparent;
 }

@@ -151,6 +151,11 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
 - `src/ads/admob.ts` — **`USE_TEST_ADS`-Flag**: `false` = echte Anzeigen (Launch), `true` = Google-Test-IDs.
   Prod-IDs siehe `admob-ids.md`. Der Bundler eliminiert den jeweils inaktiven ID-Block!
   Check im fertigen Build: `grep 3940256099942544` (Test-ID) im entpackten JS-Bundle → darf im Release NICHT vorkommen.
+  **Banner-Platz (`--banner-space`):** Der Banner ist eine native View ÜBER der WebView — er schiebt
+  nichts weg. Jede Layout-Wurzel (`.app`, `.home`, `.m4`, `.mode-play`) rechnet die Höhe unten mit ein;
+  gesetzt wird sie aus dem `SizeChanged`-Ereignis des Plugins (dp = CSS-px), bei Fehler/Entfernen auf 0.
+  Fehlt das, liegt die Werbung auf der Bedienleiste (Neu/Zurück/Tipp/Mischen) — war bis vc14 so.
+  Prüfen ohne Gerät: `--banner-space` im Browser von Hand setzen, der Inhalt muss nach oben rücken.
 - `src/store/iap.ts` — IAP via cordova-plugin-purchase v13 (kein RevenueCat). Produkte:
   `remove_ads` (Non-Consumable), `coins_small/medium/large` (Consumable)
 - `src/audio/sound.ts` — WebAudio-Synth **und Haptik**: `playTap`/`playMatch`/`playWin` lösen zusätzlich

@@ -44,6 +44,21 @@ function ids() {
 
 const isNative = Capacitor.isNativePlatform();
 
+// ---------------------------------------------------------------------------
+//  Platz für das Banner freihalten
+//  Der Banner ist eine NATIVE View ÜBER der WebView — er schiebt das Layout
+//  nicht weg, sondern legt sich darüber. Ohne reservierten Platz verdeckt er
+//  die Bedienleiste (Neu/Zurück/Tipp/Mischen). Die Layout-Wurzeln rechnen die
+//  Höhe über `--banner-space` ein (styles.css); gesetzt wird sie hier aus der
+//  echten Bannerhöhe, die das Plugin meldet (dp = CSS-Pixel).
+//  Kein Banner (Fehler, entfernt, „Werbung entfernen") -> 0, sonst bliebe ein
+//  leerer Streifen stehen.
+// ---------------------------------------------------------------------------
+function setBannerSpace(px: number) {
+  const h = Number.isFinite(px) ? Math.max(0, Math.round(px)) : 0;
+  document.documentElement.style.setProperty('--banner-space', `${h}px`);
+}
+
 // „Werbung entfernen"-Kauf: blendet Banner + Interstitial aus.
 let adsRemoved = false;
 export function setAdsRemoved(removed: boolean) {
@@ -54,6 +69,7 @@ export function setAdsRemoved(removed: boolean) {
       bannerRetryTimer = null;
     }
     AdMob.removeBanner?.().catch?.(() => {});
+    setBannerSpace(0);
   }
 }
 
@@ -132,11 +148,17 @@ export async function initAds(): Promise<void> {
   // Ohne Füllung (z.B. neues AdMob-Konto, kein Netz) bliebe der reservierte
   // Banner-Platz als weißer Streifen stehen → Platz freigeben und später neu
   // versuchen. Lädt ein Banner, ist die Fläche echte Werbung statt Leerraum.
+  // Meldet die echte Bannerhöhe: beim Laden die Größe, beim Entfernen/Fehler 0.
+  // Damit hält das Layout genau so viel Platz frei, wie der Banner belegt.
+  AdMob.addListener(BannerAdPluginEvents.SizeChanged, (info: { width: number; height: number }) => {
+    setBannerSpace(info?.height ?? 0);
+  });
   AdMob.addListener(BannerAdPluginEvents.Loaded, () => {
     bannerRetryMs = BANNER_RETRY_START_MS;
   });
   AdMob.addListener(BannerAdPluginEvents.FailedToLoad, () => {
     AdMob.removeBanner?.().catch?.(() => {});
+    setBannerSpace(0);
     scheduleBannerRetry();
   });
 
