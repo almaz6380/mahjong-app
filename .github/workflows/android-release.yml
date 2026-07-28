@@ -105,10 +105,13 @@ jobs:
           ROLLOUT: ${{ inputs.rollout }}
           NOTES: ${{ inputs.notes }}
         run: |
-          pip3 install --quiet pyjwt cryptography
+          # Eigene venv: neuere Ubuntu-Läufer erlauben kein pip3 install ins
+          # System-Python (PEP 668, "externally managed environment").
+          python3 -m venv /tmp/venv
+          /tmp/venv/bin/pip install --quiet pyjwt cryptography
           printf '%s' "$PLAY_KEY_JSON" > /tmp/play-key.json
           if [ "$ROLLOUT" = "complete" ]; then ARG="--complete"; else ARG="--fraction $ROLLOUT"; fi
-          PLAY_KEY=/tmp/play-key.json python3 scripts/play-upload.py \
+          PLAY_KEY=/tmp/play-key.json /tmp/venv/bin/python scripts/play-upload.py \
             --aab android/app/build/outputs/bundle/release/app-release.aab \
             $ARG --notes "$NOTES"
           rm -f /tmp/play-key.json
