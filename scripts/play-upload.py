@@ -10,11 +10,12 @@ Ablauf (eine Edit-Transaktion):
   edits.insert -> bundles.upload -> tracks.update -> :validate -> :commit
 
 Beispiele:
-  # gestufte Veröffentlichung an 20 % der Nutzer (empfohlen für den ersten Tag)
-  python3 scripts/play-upload.py --aab app-release.aab --fraction 0.2 \
+  # an alle Nutzer veröffentlichen (Standardweg)
+  python3 scripts/play-upload.py --aab app-release.aab --complete \
       --notes "Levelwechsel repariert, Werbung verdeckt die Knöpfe nicht mehr."
 
-  # später auf alle ausweiten (ohne neues AAB)
+  # optional gestuft: erst 20 %, später auf alle ausweiten (ohne neues AAB)
+  python3 scripts/play-upload.py --aab app-release.aab --fraction 0.2
   python3 scripts/play-upload.py --promote 15 --complete
 
   # nur nachsehen, was gerade im Produktions-Track liegt

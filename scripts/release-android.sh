@@ -51,9 +51,8 @@ cp "$AAB" "$ZIEL"
 echo
 echo "✅ fertig: $ZIEL  ($(du -h "$ZIEL" | cut -f1))"
 echo
-echo "Hochladen (erst an 20 % der Nutzer):"
-echo "  python3 scripts/play-upload.py --aab \"$ZIEL\" --fraction 0.2 \\"
+echo "Hochladen und an ALLE Nutzer veröffentlichen:"
+echo "  python3 scripts/play-upload.py --aab \"$ZIEL\" --complete \\"
 echo "    --notes \"Levelwechsel repariert, schwerere Level, Werbung verdeckt die Bedienknöpfe nicht mehr, Vibration.\""
 echo
-echo "Später an alle ausrollen:"
-echo "  python3 scripts/play-upload.py --promote $VC --complete"
+echo "(Gestuft ginge auch: --fraction 0.2 statt --complete, später --promote $VC --complete)"

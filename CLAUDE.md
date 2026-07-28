@@ -195,8 +195,8 @@ Build bricht mit „Failed to apply patch" ab → einmalig ohne Cache deployen
 nicht im Repo). Sie machen Vorprüfung + Build + Upload in einem Rutsch:
 ```
 bash scripts/release-android.sh     # tsc + check-figures + build + sync + signiertes AAB
-python3 scripts/play-upload.py --aab <pfad>.aab --fraction 0.2 --notes "…"   # gestuft veröffentlichen
-python3 scripts/play-upload.py --promote <vc> --complete                     # später an alle
+python3 scripts/play-upload.py --aab <pfad>.aab --complete --notes "…"       # an alle veröffentlichen
+python3 scripts/play-upload.py --status                                      # Produktions-Track ansehen
 bash scripts/release-ios.sh         # archivieren, exportieren, per altool hochladen
 python3 scripts/asc-status.py       # Versionen/Builds/offene Prüfungen (nur lesend)
 ```
