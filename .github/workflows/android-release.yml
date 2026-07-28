@@ -64,6 +64,16 @@ jobs:
           npm run build
           npx cap sync android
 
+      # Zeigt, WELCHE Secrets der Workflow überhaupt sieht — nur die Namen, nie
+      # die Werte. Hilft beim Verwechseln der Bereiche: Actions-Secrets des Repos
+      # sind etwas anderes als Dependabot-, Codespaces- oder Environment-Secrets.
+      - name: Sichtbare Secret-Namen
+        env:
+          NAMEN: ${{ toJSON(secrets) }}
+        run: |
+          echo "Im Workflow sichtbar:"
+          echo "$NAMEN" | jq -r 'keys[]' | sed 's/^/  · /'
+
       - name: Signaturschlüssel bereitstellen
         env:
           KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
