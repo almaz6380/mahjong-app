@@ -72,7 +72,19 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
   }, [boardW, boardH]);
 
   return (
-    <div className="board-wrap" ref={wrapRef}>
+    <div
+      className="board-wrap"
+      ref={wrapRef}
+      // Rückfallebene für Safari ohne `overflow: clip` (< iOS 16): Dort kann der
+      // Kasten trotz `overflow:hidden` gescrollt werden, und iOS holt den
+      // angetippten (fokussierten) Stein in den sichtbaren Bereich — das ganze
+      // Brett rutscht dabei. Wir nehmen jeden solchen Scroll sofort zurück.
+      onScroll={(e) => {
+        const el = e.currentTarget;
+        if (el.scrollTop !== 0) el.scrollTop = 0;
+        if (el.scrollLeft !== 0) el.scrollLeft = 0;
+      }}
+    >
       {/* Äußere Box in Scale-Größe -> korrektes Zentrieren; innere Box wird von
           oben-links skaliert, sodass Layout und sichtbare Größe übereinstimmen. */}
       <div className="board-scale" style={{ width: boardW * scale, height: boardH * scale }}>

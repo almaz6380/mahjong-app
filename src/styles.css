@@ -35,6 +35,14 @@
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
 }
+/* iOS: Doppeltipp-Zoom abschalten. Safari ignoriert `user-scalable=no` seit
+   iOS 10 — beim schnellen Antippen zweier Steine zoomte es deshalb ins Brett
+   („die Steine bewegen sich"), dazu kam die ~300-ms-Klickverzögerung. Wirkt über
+   die Vorfahrenkette auf alles darin; Scrollen und Pinch-Zoom (Barrierefreiheit)
+   bleiben erlaubt. Im Android-WebView trat das nie auf, daher nur hier nötig. */
+html {
+  touch-action: manipulation;
+}
 html,
 body,
 #root {
@@ -609,7 +617,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Der Steinkorpus ragt unten/links etwas heraus. Mit `hidden` bleibt der Kasten
+     aber SCROLLBAR (nur ohne Balken) — iOS Safari scrollt beim Antippen den
+     fokussierten Stein "in den sichtbaren Bereich" und verschiebt damit das ganze
+     Brett um ein paar Pixel. `clip` schneidet genauso ab, erzeugt aber gar keinen
+     Scroll-Container. `hidden` bleibt als Rückfallebene für ältere Safari-Versionen
+     stehen (dort greift zusätzlich die Scroll-Rücksetzung in Board.tsx). */
   overflow: hidden;
+  overflow: clip;
   background: radial-gradient(120% 100% at 50% 28%, var(--felt-2), var(--felt) 78%);
   box-shadow: inset 0 2px 40px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05), var(--sh-1);
 }
@@ -675,8 +690,13 @@ body {
   filter: brightness(0.93) saturate(0.96);
   cursor: default;
 }
-.tile.free:active {
-  transform: translateY(1px);
+/* Druck-Feedback nur mit Maus: Auf iOS bleibt :active nach dem Antippen am Stein
+   hängen, er stünde dann dauerhaft 1 px tiefer als seine Nachbarn. Auf Touch-
+   Geräten reicht die selectpop-Animation als Rückmeldung. */
+@media (hover: hover) {
+  .tile.free:active {
+    transform: translateY(1px);
+  }
 }
 .tile.selected {
   filter: drop-shadow(0 0 0 var(--accent));

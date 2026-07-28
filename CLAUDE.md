@@ -51,6 +51,15 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   (das Auge liest die Fläche, nicht die Kante). Die Kante ragt darum links aus der Box; ihr Platz wird in
   der Scale-Rechnung reserviert (`(boardW + OVER_L)`), sonst schneidet `.board-wrap` (overflow:hidden) sie ab.
   Verifikation: `node scripts/e2e-boards.mjs` bzw. Rand links/rechts im gerenderten Bild messen (Δ soll 0 sein).
+- **iOS-Safari-Fallen beim Antippen** (in der Samsung-/Android-App gab es das nie, daher leicht zu übersehen):
+  (1) `.board-wrap` braucht `overflow: clip` — mit `overflow: hidden` bleibt der Kasten scrollbar (der
+  Steinkorpus ragt ~5 px heraus), und Safari scrollt den angetippten, fokussierten Stein „in den sichtbaren
+  Bereich" → das ganze Brett rutscht bei jedem Tippen. `hidden` bleibt als Rückfall für < iOS 16 stehen,
+  dazu setzt `Board.tsx` per `onScroll` jeden Scroll zurück. (2) `html { touch-action: manipulation }`,
+  weil Safari `user-scalable=no` ignoriert — sonst zoomt der Doppeltipp beim schnellen Antippen zweier
+  Steine ins Brett. (3) `:active`-Versatz nur unter `@media (hover: hover)`, sonst bleibt der Zustand auf
+  iOS am Stein hängen. Messskript-Muster: `scrollWidth/clientWidth` von `.board-wrap` prüfen und einen
+  Test-Scroll setzen — bleibt er stehen, kann Safari das Brett verschieben.
 - **Stein-Design** (`src/ui/Tile.tsx`): Motive stammen aus **Gemini-Bildern des Nutzers**. Rohbilder liegen
   im Repo unter `design-sources/gemini-tiles/`, freigestellt per `scripts/extract-tiles.py magenta <in> <out>`
   (Magenta-Key, 320 px, WebP) nach `src/assets/tiles/*.webp`; `motif()` lädt sie per `import.meta.glob`
