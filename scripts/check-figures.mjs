@@ -41,24 +41,32 @@ console.log(`max Brett: ${maxCols}×${maxRows} · Steine ${Math.min(...counts)}�
 
 check(maxCols <= 8 && maxRows <= 9, `Brett global ≤ 8×9 (ist ${maxCols}×${maxRows})`);
 
-const bad = all.slice(0, 100).filter((f) => f.cols > 5 || f.rows > 6);
-check(bad.length === 0, `Level 1–100 alle ≤ 5×6 (${bad.length} Verstöße)`);
+// --- Level-Rampe: nicht jede Figur wird ein Level (levelFigures) -------------
+const lvl = figs.levelFigures();
+console.log(`Level-Rampe: ${lvl.length} Level aus ${all.length} Figuren\n`);
+
+check(lvl.every((f) => f.cells.length >= 36), `kein Level unter 36 Steinen (${lvl.filter((f) => f.cells.length < 36).length} Verstöße)`);
+const bad = lvl.slice(0, 15).filter((f) => f.cols > 5 || f.rows > 6);
+check(bad.length === 0, `Level 1–15 klein (≤5×6, große Steine) — ${bad.length} Verstöße`);
 for (const [c, r] of [[5, 6], [6, 7], [7, 8]]) {
-  const i = all.findIndex((f) => f.cols > c || f.rows > r);
+  const i = lvl.findIndex((f) => f.cols > c || f.rows > r);
   console.log(`       erstes Brett > ${c}×${r}: Level ${i + 1}`);
 }
 
 check(all.every((f) => f.layerCount >= 2), `keine flachen Bretter (${all.filter((f) => f.layerCount < 2).length} einschichtige)`);
-const layAvg = (from, to) => {
-  const s = all.slice(from, to);
-  return s.reduce((a, f) => a + f.layerCount, 0) / s.length;
+const avg = (from, to, pick) => {
+  const s = lvl.slice(from, to);
+  return s.reduce((a, f) => a + pick(f), 0) / s.length;
 };
-check(layAvg(0, 200) < layAvg(600, all.length), `Stapelung steigt (früh ${layAvg(0, 200).toFixed(2)} < spät ${layAvg(600, all.length).toFixed(2)} Ebenen)`);
+const layFr = avg(0, 25, (f) => f.layerCount), laySp = avg(200, lvl.length, (f) => f.layerCount);
+check(layFr < laySp, `Stapelung steigt (Level 1–25 ${layFr.toFixed(2)} < ab 200 ${laySp.toFixed(2)} Ebenen)`);
+const tilesFr = avg(0, 25, (f) => f.cells.length), tilesSp = avg(200, lvl.length, (f) => f.cells.length);
+check(tilesSp > tilesFr * 1.5, `Steinzahl steigt deutlich (Level 1–25 ${tilesFr.toFixed(1)} -> ab 200 ${tilesSp.toFixed(1)})`);
 
-// Rampe: maxDim je 100er-Band nicht fallend
+// Rampe: maxDim je 50er-Band nicht fallend
 let prev = 0, mono = true;
-for (let i = 0; i < all.length; i += 100) {
-  const band = all.slice(i, i + 100);
+for (let i = 0; i < lvl.length; i += 50) {
+  const band = lvl.slice(i, i + 50);
   const dim = Math.max(...band.map((f) => Math.max(f.cols, f.rows)));
   if (dim < prev) mono = false;
   prev = Math.max(prev, dim);
@@ -111,9 +119,9 @@ for (const name of ['daily', 'blitz']) {
 
 // Level-Stichproben
 console.log('\nStichproben:');
-for (const lvl of [1, 50, 300, 354, 579, 900, all.length]) {
-  const f = figs.figureForLevel(lvl);
-  console.log(`  Level ${String(lvl).padStart(4)}: ${f.shape.padEnd(12)} ${f.cols}×${f.rows}  n=${String(f.cells.length).padStart(3)}  Ebenen ${f.layerCount}`);
+for (const n of [1, 5, 10, 25, 50, 100, 200, 300, lvl.length]) {
+  const f = figs.figureForLevel(n);
+  console.log(`  Level ${String(n).padStart(4)}: ${f.shape.padEnd(12)} ${f.cols}×${f.rows}  n=${String(f.cells.length).padStart(3)}  Ebenen ${f.layerCount}  (${f.profile})`);
 }
 
 console.log(fails === 0 ? '\n✅ alle Prüfungen bestanden\n' : `\n❌ ${fails} Prüfung(en) fehlgeschlagen\n`);

@@ -180,12 +180,22 @@ function buildFigures(): Figure[] {
     const e1 = erode(b.mask), e2 = erode(e1), e3 = erode(e2);
     // Kein flaches Profil mehr – einschichtige Bretter sind trivial. Jede Figur
     // hat mindestens zwei Ebenen (unten erzwungen, falls eine Ebene wegdünnt).
+    // Erodieren verjüngt jede Ebene um einen Ring — auf kleinen Grundflächen ist
+    // damit nach zwei Stufen Schluss (e2 hat dort <4 Zellen). Deshalb zusätzlich
+    // Profile, die eine Ebene WIEDERHOLEN statt sie weiter zu verjüngen: Der
+    // Innenblock wird zwei- bis dreifach gestapelt. Das bringt echte Blockaden
+    // (Schwierigkeit) auf kleiner Fläche — die Steine bleiben also groß.
+    // Jede Ebene ist Teilmenge der darunter, damit kein Stein schwebt.
     const profiles: [string, Mask[]][] = [
       ['2 Ebenen', [b.mask, e1]],
       ['3 Ebenen', [b.mask, e1, e2]],
       ['4 Ebenen', [b.mask, e1, e2, e3]],
       ['Randkrone', [b.mask, ringOf(b.mask)]],
       ['Zinnen', [b.mask, e1, ringOf(e1)]],
+      ['Sockel', [b.mask, e1, e1]],
+      ['Turm', [b.mask, e1, e1, e1]],
+      ['Stufenturm', [b.mask, e1, e2, e2]],
+      ['Kranzturm', [b.mask, e1, ringOf(e1), ringOf(e1)]],
     ];
 
     // Aushöhlungen stanzen ganze Säulen (gleiches Prädikat auf ALLEN Ebenen),
@@ -294,9 +304,32 @@ export function allFigures(): Figure[] {
   return cache;
 }
 
+// ---------------------------------------------------------------------------
+//  Level-Rampe
+//  Nicht jede Figur wird ein Level: Bretter unter LEVEL_MIN_TILES sind für ein
+//  Solitaire-Level schlicht zu schnell weggeräumt, und mit LEVEL_STEP wird der
+//  Vorrat schneller durchlaufen, damit die Schwierigkeit spürbar steigt statt
+//  hundert Level lang auf der Stelle zu treten.
+//  Mit diesen Werten: Level 1 = 36 Steine/2 Ebenen, Level 25 ≈ 42/2,
+//  Level 100 ≈ 50 Steine, Level 300 ≈ 72 Steine/4 Ebenen; im Schnitt steigt es
+//  von 40 Steinen/2,6 Ebenen (Level 1–25) auf 85/3,3 (ab Level 200).
+//  Beide Zahlen sind die Stellschrauben für „zu leicht/zu schwer".
+// ---------------------------------------------------------------------------
+const LEVEL_MIN_TILES = 36;
+const LEVEL_STEP = 3;
+
+let levelCache: Figure[] | null = null;
+export function levelFigures(): Figure[] {
+  if (!levelCache) {
+    const pool = allFigures().filter((f) => f.cells.length >= LEVEL_MIN_TILES);
+    levelCache = pool.filter((_, i) => i % LEVEL_STEP === 0);
+  }
+  return levelCache;
+}
+
 // Level -> Figur entlang der Rampe; nach der letzten Figur beginnt sie von vorn.
 export function figureForLevel(level: number): Figure {
-  const figs = allFigures();
+  const figs = levelFigures();
   return figs[(Math.max(1, Math.floor(level)) - 1) % figs.length];
 }
 

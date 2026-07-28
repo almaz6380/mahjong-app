@@ -29,16 +29,22 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   Tippen auf „Weiter"; wird die App vorher geschlossen, hebt die Selbstheilung in `useProgress` (erstes
   Level ohne `bestStars`-Eintrag) den Stand nach.
 - `src/game/figures.ts` — **Figuren-Generator**: 29 Grundformen × 5 Größen × Höhenprofil × Aushöhlung
-  = **834** einzigartige, deterministische Level-Boards (`layoutForLevel`; Namen `fig-<n>`, i18n `fig.*`).
+  = **1392** einzigartige, deterministische Boards (Namen `fig-<n>`, i18n `fig.*`).
   **Kein flaches Profil** – jede Figur hat ≥2 Ebenen (einschichtige Bretter sind trivial), erzwungen über
   entfernte 'flach'-Stufe + `layers.length < 2`-Filter.
   **Bretter bleiben klein, damit die Steine groß sind** (max 8×9 Zellen): `SIZES` = 4×5 … 8×9, ASCII-Formen
-  werden per `resample()` auf dieselben Raster gebracht. Die Level-Rampe sortiert nach
-  `cells.length + 30 × tier + 12 × layerCount` (tier: ≤5×6 = 0, ≤6×7 = 1, ≤7×8 = 2, sonst 3) — dadurch
-  wächst mit dem Level BEIDES: Grundfläche (Steingröße-Rampe, **Level 1–100 ≤5×6** ≈ 75–81 px, bis ~278
-  ≤6×7 ≈ 63, dann bis 8×9 ≈ 48) UND Stapel-Tiefe (früh Ø 2 Ebenen, spät 3–4). Scale-Deckel in
+  werden per `resample()` auf dieselben Raster gebracht. Die Sortierung nutzt
+  `cells.length + 30 × tier + 12 × layerCount` (tier: ≤5×6 = 0, ≤6×7 = 1, ≤7×8 = 2, sonst 3).
+  **Tiefe statt Fläche:** Erodieren verjüngt jede Ebene um einen Ring, auf kleiner Fläche ist damit nach
+  zwei Stufen Schluss. Die Profile `Sockel`/`Turm`/`Stufenturm`/`Kranzturm` WIEDERHOLEN deshalb eine
+  Ebene, statt sie weiter zu verjüngen — dadurch gibt es 4 Ebenen auch auf ≤5×6 (Steine bleiben ~75 px).
+  Jede Ebene muss Teilmenge der darunter sein, sonst schweben Steine.
+  **Level-Rampe (`levelFigures`)**: nicht jede Figur wird ein Level — Filter `LEVEL_MIN_TILES` = 36 und
+  Schrittweite `LEVEL_STEP` = 3 ergeben **370 Level**; das sind die Stellschrauben für „zu leicht/zu
+  schwer". Ergebnis: Level 1 = 36 Steine/2 Ebenen (~75 px), Level 25 ≈ 42/2 (~63 px), Level 100 ≈ 50/2
+  (~55 px), Level 300 ≈ 72/4 (~48 px); Ø steigt von 40 Steinen/2,6 Ebenen auf 85/3,3. Scale-Deckel in
   `Board.tsx` = 1.85. Prüfskript:
-  `node scripts/check-figures.mjs` (Maße, Rampe, Parität, Schweben, Lösbarkeit aller 1050, Modus-Filter).
+  `node scripts/check-figures.mjs` (Maße, Rampe, Parität, Schweben, Lösbarkeit aller 1392, Modus-Filter).
   Steine im Solitaire mit 3D-Korpus (`<Tile solid>`, CSS `.tile.solid`); ab 40 Steinen (`SERIES_MIN_TILES`)
   mischen die Serien **Mythen** (龍鳳麒龜) & **Schätze** (Laterne/Fächer/Münze/Knoten) ins Deck
   (`deckForCount`) — Schwelle muss zur Brettgröße passen, sonst bleibt das Album leer.
