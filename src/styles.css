@@ -19,6 +19,12 @@
   --accent-ink: #ffffff;
   --danger: #ef5b52;
 
+  /* Angetippter Stein: Gold für Kontur und Flächen-Tönung. Bewusst themenfest,
+     damit die Auswahl auf jedem Filz und in jedem Skin gleich warm aussieht.
+     Dezenter: Alpha auf 0.28 senken, kräftiger: auf 0.55. */
+  --sel-gold: #e6b74a;
+  --sel-tint: rgba(255, 199, 62, 0.42);
+
   /* Filz (Spielfläche) – von Themes gesetzt */
   --felt: #0b3d2e;
   --felt-2: #0f4a37;
@@ -688,9 +694,16 @@ body {
   outline: none;
 }
 .tile.solid.selected {
-  outline: 3px solid var(--accent);
+  outline: 3px solid var(--sel-gold);
   outline-offset: -1px;
   border-radius: 9px; /* 20 % der Steinbreite – passt zur Ecken-Rundung rx11 */
+}
+/* Angetippter Stein: warme Goldtönung der Deckfläche. Das Rechteck steckt im
+   Stein-SVG (Tile.tsx, `.sel-tint`) über der Marmor-Textur, aber unter Glanz und
+   Motiv — die Fläche färbt sich, Ziffern und Glyphen bleiben scharf. `fill` ist
+   ein reiner Malvorgang; ein CSS-Filter würde hier das Brett ruckeln lassen. */
+.tile.solid.selected .tileface .sel-tint {
+  fill: var(--sel-tint);
 }
 .tile.solid.hint {
   outline: 3px solid #56c8ff;
@@ -723,7 +736,7 @@ body {
 }
 @keyframes selectflash {
   0% { outline-color: #ffffff; }
-  100% { outline-color: var(--accent); }
+  100% { outline-color: var(--sel-gold); }
 }
 /* Verschwindende Steine: Auf Touch-Geräten OHNE Animation. Sowohl transform als
    auch opacity sind Compositing-Eigenschaften — WebKit hebt den Stein dafür auf

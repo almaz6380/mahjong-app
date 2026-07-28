@@ -218,6 +218,13 @@ function TileBody({ children }: { children: React.ReactNode }) {
           stroke="url(#gold)" strokeWidth="1.4" opacity="0.9" className="face-tex"
         />
       )}
+      {/* Auswahl-Tönung: Farbe setzt das CSS, und nur beim ausgewählten Stein
+          (.tile.solid.selected). Liegt ÜBER der Marmor-Textur, aber UNTER Glanz
+          und Motiv — die Fläche färbt sich, das Motiv bleibt unangetastet.
+          Reiner Malvorgang (fill), bewusst KEIN CSS-Filter: der würde den Stein
+          auf eine eigene Compositing-Ebene heben und auf iOS das ganze Brett
+          verrutschen lassen (siehe CLAUDE.md, „iOS-Safari-Fallen"). */}
+      <rect className="sel-tint" x="3" y="3" width="54" height="72" rx="11" fill="none" />
       <path d="M8 15 Q8 6 17 6 H43 Q52 6 52 15 Q52 20 30 20.5 Q8 21 8 15" fill="url(#tgloss)" opacity="0.55" />
       {children}
     </>

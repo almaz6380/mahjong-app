@@ -83,6 +83,11 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   (schärfer in Kleinstgrößen, `Glyph`-Helper mit Goldkante): Zahlen = Lapis-Ziffer + Rubin-萬,
   Winde = Onyx, 中 rot / 發 jade / 白 schiefer, Blume = rote Scheibe. Skins mit eigener Flächenfarbe
   blenden Marmor+Goldrand aus (`.face-tex`), Neon hellt Lapis/Onyx/Slate auf (sonst unlesbar).
+  **Auswahl-Tönung:** Der angetippte Stein wird golden (`--sel-tint` Fläche, `--sel-gold` Kontur).
+  Das macht ein Rechteck `.sel-tint` IM SVG (`TileBody`, über der Marmor-Textur, unter Glanz und
+  Motiv) — so färbt sich nur die Fläche, das Motiv bleibt scharf. Bewusst `fill` statt CSS-Filter:
+  ein Filter hebt den Stein auf eine eigene Compositing-Ebene und lässt auf iOS das ganze Brett
+  ruckeln (siehe „iOS-Safari-Fallen").
   **Hinweis:** Am 16./17.7.2026 lief parallel eine zweite Session am selben Thema (30 Commits,
   flacher „StoneTile"-Look + `src/assets/flat/`). Deren Roh-Designs liegen weiterhin in
   `design-sources/gemini-tiles/` (`README-parallel-session.md`); der Bambus stammt daher.
