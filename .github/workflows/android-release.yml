@@ -1,0 +1,118 @@
+# Android bauen, signieren und zu Google Play hochladen — auf GitHubs Rechnern.
+# Damit braucht ein Release keinen Mac mehr und lässt sich aus jeder Claude-Sitzung
+# auslösen (Actions -> "Android Release" -> Run workflow).
+#
+# Einmalige Einrichtung: siehe store/ci-setup.md (fünf Secrets).
+# WICHTIG: versionCode in android/app/build.gradle vorher erhöhen — Play lehnt
+# einen bereits benutzten versionCode ab.
+name: Android Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      rollout:
+        description: 'An wie viele Nutzer veröffentlichen?'
+        type: choice
+        default: 'complete'
+        options: ['complete', '0.2', '0.5']
+      notes:
+        description: 'Was-ist-neu-Text (de-DE)'
+        type: string
+        default: 'Fehlerkorrekturen und Verbesserungen.'
+      upload:
+        description: 'Wirklich zu Play hochladen? (aus = nur bauen und als Artefakt ablegen)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'   # AGP 8.2.1 braucht mindestens 17
+
+      - name: Abhängigkeiten
+        run: npm ci
+
+      - name: Prüfungen
+        run: |
+          npx tsc --noEmit
+          node scripts/check-figures.mjs
+
+      - name: Versionsnummer anzeigen
+        run: |
+          VC=$(grep -m1 versionCode android/app/build.gradle | tr -dc '0-9')
+          VN=$(grep -m1 versionName android/app/build.gradle | cut -d'"' -f2)
+          echo "versionCode $VC · versionName $VN"
+          echo "VC=$VC" >> "$GITHUB_ENV"
+          echo "VN=$VN" >> "$GITHUB_ENV"
+
+      - name: Web-Bundle + Capacitor-Sync
+        run: |
+          npm run build
+          npx cap sync android
+
+      - name: Signaturschlüssel bereitstellen
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_B64" | base64 -d > android/upload-keystore.jks
+          cat > android/keystore.properties <<EOF
+          storeFile=upload-keystore.jks
+          storePassword=$STORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+
+      - name: AAB bauen
+        run: cd android && ./gradlew --no-daemon bundleRelease
+
+      - name: Keine Test-Werbe-IDs im Release
+        run: |
+          AAB=android/app/build/outputs/bundle/release/app-release.aab
+          if unzip -p "$AAB" base/dex/classes.dex | grep -qa 3940256099942544; then
+            echo "ABBRUCH: Google-Test-Werbe-ID im Bundle — USE_TEST_ADS steht auf true!"
+            exit 1
+          fi
+          echo "ok — keine Test-IDs"
+
+      - name: AAB als Artefakt ablegen
+        uses: actions/upload-artifact@v4
+        with:
+          name: MahjongRoyale-${{ env.VN }}-vc${{ env.VC }}
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 30
+
+      - name: Zu Google Play hochladen
+        if: ${{ inputs.upload }}
+        env:
+          PLAY_KEY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          ROLLOUT: ${{ inputs.rollout }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          pip3 install --quiet pyjwt cryptography
+          printf '%s' "$PLAY_KEY_JSON" > /tmp/play-key.json
+          if [ "$ROLLOUT" = "complete" ]; then ARG="--complete"; else ARG="--fraction $ROLLOUT"; fi
+          PLAY_KEY=/tmp/play-key.json python3 scripts/play-upload.py \
+            --aab android/app/build/outputs/bundle/release/app-release.aab \
+            $ARG --notes "$NOTES"
+          rm -f /tmp/play-key.json
+
+      - name: Schlüssel aufräumen
+        if: always()
+        run: rm -f android/upload-keystore.jks android/keystore.properties /tmp/play-key.json

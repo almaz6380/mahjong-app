@@ -1,0 +1,122 @@
+# iOS bauen, signieren und zu App Store Connect hochladen — auf einem macOS-Rechner
+# von GitHub. Damit braucht ein Release keinen eigenen Mac mehr.
+#
+# Einmalige Einrichtung: siehe store/ci-setup.md (vier Secrets).
+# WICHTIG: CURRENT_PROJECT_VERSION in ios/App/App.xcodeproj/project.pbxproj vorher
+# erhöhen (2 Stellen) — Apple lehnt eine bereits benutzte Build-Nummer ab.
+#
+# Hinweis: macOS-Läufer verbrauchen 10× so viele Minuten wie Linux. Der Lauf
+# dauert ~15-25 min. Das Einreichen zur Prüfung bleibt bewusst manuell.
+name: iOS Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: 'Wirklich zu App Store Connect hochladen? (aus = nur bauen)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Abhängigkeiten
+        run: npm ci
+
+      - name: Prüfungen
+        run: |
+          npx tsc --noEmit
+          node scripts/check-figures.mjs
+
+      - name: Build-Nummer anzeigen
+        run: |
+          B=$(grep -m1 CURRENT_PROJECT_VERSION ios/App/App.xcodeproj/project.pbxproj | tr -dc '0-9')
+          V=$(grep -m1 MARKETING_VERSION ios/App/App.xcodeproj/project.pbxproj | cut -d'=' -f2 | tr -d ' ;')
+          echo "Version $V · Build $B"
+          echo "B=$B" >> "$GITHUB_ENV"
+          echo "V=$V" >> "$GITHUB_ENV"
+
+      - name: Web-Bundle + Capacitor-Sync
+        run: |
+          npm run build
+          npx cap sync ios
+
+      - name: Signierung einrichten
+        env:
+          CERT_B64: ${{ secrets.IOS_CERT_P12_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.IOS_CERT_PASSWORD }}
+          PROFILE_B64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          # Eigener Schlüsselbund, damit nichts am Läufer hängen bleibt
+          security create-keychain -p ci build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p ci build.keychain
+          security set-keychain-settings -t 3600 -u build.keychain
+          echo "$CERT_B64" | base64 -d > /tmp/cert.p12
+          security import /tmp/cert.p12 -k build.keychain -P "$CERT_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k ci build.keychain
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "$PROFILE_B64" | base64 -d > ~/Library/MobileDevice/Provisioning\ Profiles/app.mobileprovision
+          rm -f /tmp/cert.p12
+
+      - name: ExportOptions schreiben
+        run: |
+          cat > /tmp/ExportOptions.plist <<'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store</string>
+            <key>teamID</key><string>JU8STVD4SJ</string>
+            <key>uploadSymbols</key><true/>
+            <key>signingStyle</key><string>manual</string>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Archivieren
+        run: |
+          cd ios/App
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Release \
+            -destination "generic/platform=iOS" \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" archive
+
+      - name: Exportieren
+        run: |
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -exportOptionsPlist /tmp/ExportOptions.plist -exportPath "$RUNNER_TEMP/export"
+
+      - name: IPA als Artefakt ablegen
+        uses: actions/upload-artifact@v4
+        with:
+          name: MahjongRoyale-ios-${{ env.V }}-b${{ env.B }}
+          path: ${{ runner.temp }}/export/*.ipa
+          retention-days: 30
+
+      - name: Zu App Store Connect hochladen
+        if: ${{ inputs.upload }}
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "$ASC_KEY_P8_BASE64" | base64 -d > ~/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8
+          xcrun altool --upload-app -f "$RUNNER_TEMP/export/App.ipa" -t ios \
+            --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+          rm -rf ~/.appstoreconnect
+
+      - name: Schlüsselbund aufräumen
+        if: always()
+        run: security delete-keychain build.keychain || true

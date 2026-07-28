@@ -31,7 +31,8 @@ import urllib.parse
 import urllib.request
 
 PKG = 'com.mahjongroyale.app'
-KEY = os.path.expanduser('~/.config/play-publisher/key.json')
+# Pfad zum Dienstkonto-Key; in der CI über die Umgebungsvariable PLAY_KEY gesetzt.
+KEY = os.environ.get('PLAY_KEY') or os.path.expanduser('~/.config/play-publisher/key.json')
 API = 'https://androidpublisher.googleapis.com/androidpublisher/v3'
 UPLOAD = 'https://androidpublisher.googleapis.com/upload/androidpublisher/v3'
 
