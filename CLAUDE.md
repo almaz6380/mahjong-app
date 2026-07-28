@@ -70,8 +70,10 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   kann kein MP4/HEVC) als rawvideo ziehen, die Änderung je Rasterzelle vergleichen (ändert sich das GANZE
   Brett? → globales Neurastern) und die Verschiebung über einen Parabel-Fit auf die SAD-Kurve bei ±1 px
   sub-pixelgenau schätzen. Verstärkte Differenzbilder täuschen — die HEVC-Kompression re-quantisiert bei
-  jeder Änderung das ganze Bild. Noch offen: `removefade` (Match-Animation) nutzt weiter `transform`;
-  dort fällt das Ruckeln nicht auf, weil gleichzeitig zwei Steine verschwinden.
+  jeder Änderung das ganze Bild. Betrifft **alle** Compositing-Eigenschaften, also auch `opacity`:
+  Die Match-Animation `removefade` ist deshalb ebenfalls nur noch unter `@media (hover: hover)` aktiv;
+  auf Touch-Geräten verschwindet das Paar sofort (`.tile.removing { visibility: hidden }`), Rückmeldung
+  kommt aus dem Klang. Auf Touch-Geräten animiert damit KEIN Stein mehr transform/filter/opacity.
 - **Stein-Design** (`src/ui/Tile.tsx`): Motive stammen aus **Gemini-Bildern des Nutzers**. Rohbilder liegen
   im Repo unter `design-sources/gemini-tiles/`, freigestellt per `scripts/extract-tiles.py magenta <in> <out>`
   (Magenta-Key, 320 px, WebP) nach `src/assets/tiles/*.webp`; `motif()` lädt sie per `import.meta.glob`

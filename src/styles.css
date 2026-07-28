@@ -725,9 +725,20 @@ body {
   0% { outline-color: #ffffff; }
   100% { outline-color: var(--accent); }
 }
+/* Verschwindende Steine: Auf Touch-Geräten OHNE Animation. Sowohl transform als
+   auch opacity sind Compositing-Eigenschaften — WebKit hebt den Stein dafür auf
+   eine eigene Ebene, rastert das Brett neu und schnappt es um ~1 Gerätepixel zur
+   Seite (siehe Hinweis bei .tile). Das Paar verschwindet deshalb hier sofort;
+   die Rückmeldung kommt aus dem Match-Klang. Mit Maus ist der Effekt unschädlich. */
 .tile.removing {
   pointer-events: none;
-  animation: removefade 0.26s ease forwards;
+  visibility: hidden;
+}
+@media (hover: hover) {
+  .tile.removing {
+    visibility: visible;
+    animation: removefade 0.26s ease forwards;
+  }
 }
 @keyframes removefade {
   0% { transform: scale(1); opacity: 1; }
