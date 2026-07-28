@@ -71,7 +71,28 @@ jobs:
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
+          fehlt=""
+          [ -n "$KEYSTORE_B64" ]  || fehlt="$fehlt ANDROID_KEYSTORE_BASE64"
+          [ -n "$STORE_PASSWORD" ] || fehlt="$fehlt ANDROID_KEYSTORE_PASSWORD"
+          [ -n "$KEY_ALIAS" ]      || fehlt="$fehlt ANDROID_KEY_ALIAS"
+          [ -n "$KEY_PASSWORD" ]   || fehlt="$fehlt ANDROID_KEY_PASSWORD"
+          if [ -n "$fehlt" ]; then
+            echo "ABBRUCH: Diese Secrets fehlen im Repo:$fehlt"
+            echo "Anleitung: store/ci-setup.md (Settings -> Secrets and variables -> Actions)"
+            exit 1
+          fi
           echo "$KEYSTORE_B64" | base64 -d > android/upload-keystore.jks
+          # Grobprüfung, bevor Gradle vier Minuten später am Signieren scheitert.
+          # Ein echter Upload-Keystore ist einige Kilobyte groß und beginnt mit der
+          # JKS-Kennung 0xFEEDFEED bzw. ist ein PKCS#12-Container.
+          bytes=$(wc -c < android/upload-keystore.jks)
+          echo "Keystore entschlüsselt: $bytes Bytes"
+          if [ "$bytes" -lt 512 ]; then
+            echo "ABBRUCH: Das ist kein Keystore. ANDROID_KEYSTORE_BASE64 enthält nicht die"
+            echo "Datei android/upload-keystore.jks. Am Mac erzeugen mit:"
+            echo "  base64 -i android/upload-keystore.jks | pbcopy"
+            exit 1
+          fi
           cat > android/keystore.properties <<EOF
           storeFile=upload-keystore.jks
           storePassword=$STORE_PASSWORD
