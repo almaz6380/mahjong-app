@@ -238,3 +238,11 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   4 Spieler") per API ersetzt (de-DE). Render-Rezept: HTML mit eingebetteten `src/assets`-Bildern
   (`tiles/face-marble.webp` + Motive + `symbol-zhong.webp`, Inter-woff2) → puppeteer-core/System-Chrome,
   viewport 1024×500 dsf 1, screenshot clip. App Store hat keine Feature-Grafik.
+- **28.7.2026 — Versionsnummern auf iOS Build 14 / Android vc15 gesetzt, NOCH NICHT gebaut/hochgeladen.**
+  Inhalt gegenüber Build 13/vc14 (alles bereits live im Web, `main`): Levelwechsel repariert (es kam
+  immer wieder dasselbe Brett), Belohnungskarte blitzt nach der Infokarte nicht mehr auf, Sackgassen-
+  Ausweg statt wirkungslosem „Mischen", iOS-Ruckeln beim Antippen beseitigt, angetippter Stein wird
+  golden getönt. **Bauen und signieren geht nur auf dem Mac** (Android-SDK + `upload-keystore.jks`
+  liegen nicht im Repo): `git pull && npm run build && npx cap sync`, dann die Rezepte unter
+  „Native Builds". Für iOS zuerst prüfen, ob Build 13 noch in Prüfung hängt — dann abbrechen
+  (PATCH `/v1/reviewSubmissions/{id}` `{canceled:true}`) und Build 14 einreichen.
