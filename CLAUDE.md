@@ -191,6 +191,18 @@ Build bricht mit „Failed to apply patch" ab → einmalig ohne Cache deployen
 
 ## Native Builds (Launch-Rezept, verifiziert 12.7.2026)
 
+**Skripte im Repo** (nur auf dem Mac lauffähig — Android-SDK, Keystore und Signier-Zertifikate liegen
+nicht im Repo). Sie machen Vorprüfung + Build + Upload in einem Rutsch:
+```
+bash scripts/release-android.sh     # tsc + check-figures + build + sync + signiertes AAB
+python3 scripts/play-upload.py --aab <pfad>.aab --fraction 0.2 --notes "…"   # gestuft veröffentlichen
+python3 scripts/play-upload.py --promote <vc> --complete                     # später an alle
+bash scripts/release-ios.sh         # archivieren, exportieren, per altool hochladen
+python3 scripts/asc-status.py       # Versionen/Builds/offene Prüfungen (nur lesend)
+```
+`release-android.sh` bricht ab, wenn die Google-Test-Werbe-ID im Bundle steckt (USE_TEST_ADS).
+Die Schritte darunter sind dieselben von Hand — falls ein Skript klemmt.
+
 Vorher immer: `npm run build && npx cap sync`, Build-Nummern erhöhen
 (iOS: `CURRENT_PROJECT_VERSION` in project.pbxproj ×2 Stellen; Android: `versionCode` in app/build.gradle).
 
