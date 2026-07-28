@@ -31,7 +31,7 @@ import { loadSession, clearSession, type SavedGame } from './game/session';
 import { makeDailyBoard, dailyLayoutName, dailyDoneToday } from './game/daily';
 import { todayEvent } from './game/events';
 import { todayStr } from './game/progress';
-import { setSoundEnabled } from './audio/sound';
+import { setSoundEnabled, setHapticsEnabled } from './audio/sound';
 import { setLanguage, detectLang, t } from './i18n';
 import { setAdsRemoved } from './ads/admob';
 import { setupDailyReminder } from './notify';
@@ -89,6 +89,9 @@ export default function App() {
   useEffect(() => {
     if (progress) setSoundEnabled(progress.soundOn);
   }, [progress?.soundOn]);
+  useEffect(() => {
+    if (progress) setHapticsEnabled(progress.vibrate);
+  }, [progress?.vibrate]);
   useEffect(() => {
     if (progress) setAdsRemoved(progress.removeAds);
   }, [progress?.removeAds]);
@@ -238,7 +241,7 @@ export default function App() {
       />
     );
   if (screen === 'settings')
-    return <SettingsScreen progress={progress} setSoundOn={p.setSoundOn} setNotify={p.setNotify} setShowFacts={p.setShowFacts} setAiLevel={p.setAiLevel} setLang={p.setLang} resetProgress={p.resetProgress} go={(s) => setScreen(s as Screen)} onBack={() => setScreen('menu')} />;
+    return <SettingsScreen progress={progress} setSoundOn={p.setSoundOn} setVibrate={p.setVibrate} setNotify={p.setNotify} setShowFacts={p.setShowFacts} setAiLevel={p.setAiLevel} setLang={p.setLang} resetProgress={p.resetProgress} go={(s) => setScreen(s as Screen)} onBack={() => setScreen('menu')} />;
   if (screen === 'stats') return <StatsScreen progress={progress} onBack={() => setScreen('menu')} />;
 
   // Spezialmodi. recordModeBest ist zugleich der Hook fürs Tages-Event:

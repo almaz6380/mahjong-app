@@ -70,7 +70,7 @@ export function useMahjong4(opts: {
     playMatch();
     schedule(() => {
       discard(g, chooseDiscard(g, g.turn, diff.current));
-      playTap();
+      playTap(false); // Gegner-Abwurf: Klang ja, Vibration nein
       bump();
       drive();
     });
@@ -116,7 +116,7 @@ export function useMahjong4(opts: {
           if (g.phase === 'over') { bump(); drive(); return; }
           if (t && canWinSelfDraw(g, g.turn)) { declareWin(g, g.turn, null, t); playWin(); bump(); drive(); return; }
           discard(g, chooseDiscard(g, g.turn, diff.current));
-          playTap();
+          playTap(false); // Gegner-Abwurf: Klang ja, Vibration nein
           bump();
           drive();
         });

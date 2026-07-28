@@ -26,6 +26,7 @@ function ScreenHeader({ title, onBack }: { title: string; onBack: () => void }) 
 export function SettingsScreen({
   progress,
   setSoundOn,
+  setVibrate,
   setNotify,
   setShowFacts,
   setAiLevel,
@@ -36,6 +37,7 @@ export function SettingsScreen({
 }: {
   progress: Progress;
   setSoundOn: (on: boolean) => void;
+  setVibrate: (on: boolean) => void;
   setNotify: (on: boolean) => void;
   setShowFacts: (on: boolean) => void;
   setAiLevel: (l: 'easy' | 'normal' | 'hard') => void;
@@ -71,6 +73,16 @@ export function SettingsScreen({
             className={'toggle' + (progress.soundOn ? ' on' : '')}
             onClick={() => setSoundOn(!progress.soundOn)}
             aria-label="Sound umschalten"
+          >
+            <span className="knob" />
+          </button>
+        </div>
+        <div className="row">
+          <span>{t('set.vibrate')}</span>
+          <button
+            className={'toggle' + (progress.vibrate ? ' on' : '')}
+            onClick={() => setVibrate(!progress.vibrate)}
+            aria-label={t('set.vibrate')}
           >
             <span className="knob" />
           </button>

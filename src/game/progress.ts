@@ -21,6 +21,7 @@ export interface Progress {
   totalWins: number;
   // v0.3
   soundOn: boolean;
+  vibrate: boolean; // Vibration beim Antippen/Treffer (getrennt vom Klang)
   removeAds: boolean;
   theme: string;
   ownedThemes: string[];
@@ -63,6 +64,7 @@ const DEFAULT: Progress = {
   lastRewardClaim: '',
   totalWins: 0,
   soundOn: true,
+  vibrate: true,
   removeAds: false,
   theme: 'classic',
   ownedThemes: ['classic'],
@@ -253,6 +255,15 @@ export function useProgress() {
       const s = stateRef.current;
       if (!s) return;
       persist({ ...s, soundOn: on });
+    },
+    [persist],
+  );
+
+  const setVibrate = useCallback(
+    (on: boolean) => {
+      const s = stateRef.current;
+      if (!s) return;
+      persist({ ...s, vibrate: on });
     },
     [persist],
   );
@@ -479,6 +490,7 @@ export function useProgress() {
     recordWin,
     advanceLevel,
     setSoundOn,
+    setVibrate,
     setNotify,
     setShowFacts,
     claimEvent,

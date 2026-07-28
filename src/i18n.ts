@@ -174,7 +174,8 @@ const D: Record<string, Entry> = {
 
   // Einstellungen
   'set.title': { de: 'Einstellungen', en: 'Settings' },
-  'set.sound': { de: 'Sound & Haptik', en: 'Sound & haptics' },
+  'set.sound': { de: 'Sound', en: 'Sound' },
+  'set.vibrate': { de: 'Vibration', en: 'Vibration' },
   'set.notify': { de: 'Tägliche Erinnerung', en: 'Daily reminder' },
   'set.facts': { de: 'Infokarten zwischen Runden', en: 'Info cards between rounds' },
   'fact.cat.culture': { de: 'Wusstest du?', en: 'Did you know?' },

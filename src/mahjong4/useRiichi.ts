@@ -101,7 +101,7 @@ export function useRiichi(opts: { addCoins: (n: number) => void; onResult?: (won
         ex.riichi[p] = true; // Riichi ansagen (der gewählte Abwurf hält i.d.R. Tenpai)
       }
     }
-    discard(g, disc); playTap(); bump();
+    discard(g, disc); playTap(false); bump(); // Gegner-Abwurf: Klang ja, Vibration nein
     afterDiscard(p, disc);
   }, [win, endDraw]);
 

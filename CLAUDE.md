@@ -153,6 +153,12 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   Check im fertigen Build: `grep 3940256099942544` (Test-ID) im entpackten JS-Bundle → darf im Release NICHT vorkommen.
 - `src/store/iap.ts` — IAP via cordova-plugin-purchase v13 (kein RevenueCat). Produkte:
   `remove_ads` (Non-Consumable), `coins_small/medium/large` (Consumable)
+- `src/audio/sound.ts` — WebAudio-Synth **und Haptik**: `playTap`/`playMatch`/`playWin` lösen zusätzlich
+  eine Vibration aus (nativ `@capacitor/haptics`, im Web `navigator.vibrate`; die VIBRATE-Berechtigung
+  bringt das Plugin über sein eigenes Manifest mit). **iOS-Safari kennt `navigator.vibrate` nicht** —
+  in der Web-App auf dem iPhone vibriert also nichts, nur in der nativen App. Getrennt vom Klang
+  schaltbar (`progress.vibrate` + `setHapticsEnabled`, Schalter „Vibration" in den Einstellungen).
+  KI-Abwürfe im 4-Spieler/Riichi rufen `playTap(false)` — Klang ja, Vibration nein.
 - `src/i18n.ts` — DE/EN, alle UI-Labels sind Keys
 - Persistenz via `@capacitor/preferences` (`src/progress.ts`)
 
