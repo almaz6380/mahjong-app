@@ -60,6 +60,18 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   Steine ins Brett. (3) `:active`-Versatz nur unter `@media (hover: hover)`, sonst bleibt der Zustand auf
   iOS am Stein hängen. Messskript-Muster: `scrollWidth/clientWidth` von `.board-wrap` prüfen und einen
   Test-Scroll setzen — bleibt er stehen, kann Safari das Brett verschieben.
+  (4) **Keine transform-/filter-Animationen auf Steinen** (`.tile`): Das Brett liegt unter einem
+  gebrochenen `transform: scale(...)`. Hebt WebKit einen Stein darin für eine transform-/filter-Animation
+  auf eine eigene Compositing-Ebene, rastert es den Rest neu und schnappt ihn um ~1 Gerätepixel zur Seite —
+  die ganze Figur ruckt beim Antippen. Aus einer Bildschirmaufnahme gemessen: −0,88 px beim Auswählen,
+  +1,28 px zurück genau 183 ms später (= Ende der alten `selectpop`-Animation von 0,18 s). Auswahl-
+  Rückmeldung darum nur über Kontur/Farbe (`selectflash` animiert `outline-color`, reiner Malvorgang).
+  Analyse-Rezept für solche Videos: Bilder per ffmpeg (npm-Paket `ffmpeg-static`, das Playwright-ffmpeg
+  kann kein MP4/HEVC) als rawvideo ziehen, die Änderung je Rasterzelle vergleichen (ändert sich das GANZE
+  Brett? → globales Neurastern) und die Verschiebung über einen Parabel-Fit auf die SAD-Kurve bei ±1 px
+  sub-pixelgenau schätzen. Verstärkte Differenzbilder täuschen — die HEVC-Kompression re-quantisiert bei
+  jeder Änderung das ganze Bild. Noch offen: `removefade` (Match-Animation) nutzt weiter `transform`;
+  dort fällt das Ruckeln nicht auf, weil gleichzeitig zwei Steine verschwinden.
 - **Stein-Design** (`src/ui/Tile.tsx`): Motive stammen aus **Gemini-Bildern des Nutzers**. Rohbilder liegen
   im Repo unter `design-sources/gemini-tiles/`, freigestellt per `scripts/extract-tiles.py magenta <in> <out>`
   (Magenta-Key, 320 px, WebP) nach `src/assets/tiles/*.webp`; `motif()` lädt sie per `import.meta.glob`

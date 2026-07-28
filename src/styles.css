@@ -651,7 +651,20 @@ body {
   border: none;
   background: none;
   cursor: pointer;
-  transition: transform 0.06s ease, filter 0.1s ease;
+}
+/* WICHTIG (iOS): KEINE transform-/filter-Übergänge und -Animationen auf den
+   Steinen. Das Brett liegt unter einem gebrochenen `transform: scale(...)`;
+   sobald WebKit einen Stein darin für eine transform-/filter-Animation auf eine
+   eigene Compositing-Ebene hebt, rastert es den Rest neu und schnappt ihn um
+   ~1 Gerätepixel zur Seite — die ganze Figur ruckt beim Antippen (gemessen an
+   einer Bildschirmaufnahme: −0,88 px beim Auswählen, +1,28 px zurück beim Ende
+   der 0,18-s-Animation). Im Android-WebView passiert das nicht. Rückmeldung
+   kommt deshalb nur über Rahmenfarbe/Kontur — reine Malvorgänge ohne neue Ebene.
+   Mit Maus ist der Effekt unschädlich und bleibt erhalten. */
+@media (hover: hover) {
+  .tile {
+    transition: transform 0.06s ease, filter 0.1s ease;
+  }
 }
 .tile .tileface {
   width: 100%;
@@ -691,26 +704,26 @@ body {
   cursor: default;
 }
 /* Druck-Feedback nur mit Maus: Auf iOS bleibt :active nach dem Antippen am Stein
-   hängen, er stünde dann dauerhaft 1 px tiefer als seine Nachbarn. Auf Touch-
-   Geräten reicht die selectpop-Animation als Rückmeldung. */
+   hängen, er stünde dann dauerhaft 1 px tiefer als seine Nachbarn. */
 @media (hover: hover) {
   .tile.free:active {
     transform: translateY(1px);
   }
-}
-.tile.selected {
-  filter: drop-shadow(0 0 0 var(--accent));
-  animation: selectpop 0.18s ease;
 }
 .tile.selected .tileface {
   outline: 3px solid var(--accent);
   outline-offset: -1px;
   border-radius: 9px;
 }
-@keyframes selectpop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.12); }
-  100% { transform: scale(1); }
+/* „Pop" beim Auswählen ohne Geometrie: Die Kontur blitzt kurz hell auf. Reiner
+   Malvorgang — kein transform, kein filter, also keine neue Compositing-Ebene
+   und damit kein Ruckeln des Bretts (siehe Hinweis bei .tile). */
+.tile.solid.selected {
+  animation: selectflash 0.2s ease-out;
+}
+@keyframes selectflash {
+  0% { outline-color: #ffffff; }
+  100% { outline-color: var(--accent); }
 }
 .tile.removing {
   pointer-events: none;
