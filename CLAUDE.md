@@ -288,7 +288,7 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
 - **18.7.2026 — Build 13 / vc14 in beide Stores hochgeladen (v1.0, per API):** kleine Verbesserungen
   (Level schwerer, Achter-Kreis-Stein zentriert). iOS Build 13 per altool → alte Build-10-Prüfung
   abgebrochen → Build 13 + neue Screenshots (de-DE+en-US, iPhone+iPad) zugewiesen → neu eingereicht
-  (**WAITING_FOR_REVIEW**). Android **vc14 per Play-API in Produktion** veröffentlicht (Release „14 (1.0)",
+  (**am 29.7.2026 freigegeben, siehe unten**). Android **vc14 per Play-API in Produktion** veröffentlicht (Release „14 (1.0)",
   status completed) inkl. neuer Telefon- **und** 7-Zoll-Tablet-Screenshots + neuem 512-Icon.
   Artefakte: `~/Desktop/MahjongRoyale-ios-1.0-b13.ipa`, `MahjongRoyale-android-1.0-vc14.aab`.
   Store-Screenshots in `store/ios-screenshots/*` + `store/play-screenshots/*` (Play-Tablet = iPad-Set).
@@ -303,8 +303,18 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   Ausweg statt wirkungslosem „Mischen", iOS-Ruckeln beim Antippen beseitigt, angetippter Stein wird
   golden getönt. **Bauen und signieren geht nur auf dem Mac** (Android-SDK + `upload-keystore.jks`
   liegen nicht im Repo): `git pull && npm run build && npx cap sync`, dann die Rezepte unter
-  „Native Builds". Für iOS zuerst prüfen, ob Build 13 noch in Prüfung hängt — dann abbrechen
-  (PATCH `/v1/reviewSubmissions/{id}` `{canceled:true}`) und Build 14 einreichen.
+  „Native Builds". Für iOS ist **nichts mehr abzubrechen** — Build 13 ist seit 29.7. freigegeben,
+  Build 14 kann direkt eingereicht werden. (Der Abbruch-Weg, falls doch mal eine Prüfung hängt:
+  PATCH `/v1/reviewSubmissions/{id}` `{canceled:true}` — siehe `scripts/asc-status.py`.)
+- **29.7.2026 — iOS v1.0 (Build 13) ist im App Store live** (`READY_FOR_SALE`, automatische
+  Veröffentlichung nach Freigabe). Damit ist die App auf **beiden** Plattformen veröffentlicht.
+  Bemerkenswert für die Planung künftiger Einreichungen: die Prüfung lag **11 Tage** in
+  `WAITING_FOR_REVIEW` (18.7. 08:21 UTC bis 29.7. vormittags) und war dann in gut zwei Stunden
+  durch. Das ist die Nachwirkung der 4.3(a)-Ablehnung — nach einer Spam-Ablehnung landet die
+  erneute Einreichung in einer vertieft geprüften Warteschlange. **Nicht in Panik abbrechen und
+  neu einreichen**: geprüft waren damals Verträge (alle aktiv), Resolution Center (keine
+  Nachricht), Exportcompliance, Build-Zuordnung und Metadaten — alles einwandfrei, es war reine
+  Wartezeit. Ein Abbruch hätte die 11 Tage verschenkt. Statusabfrage: `python3 scripts/asc-status.py`.
 
 ---
 
