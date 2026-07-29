@@ -162,6 +162,23 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   gesetzt wird sie aus dem `SizeChanged`-Ereignis des Plugins (dp = CSS-px), bei Fehler/Entfernen auf 0.
   Fehlt das, liegt die Werbung auf der Bedienleiste (Neu/Zurück/Tipp/Mischen) — war bis vc14 so.
   Prüfen ohne Gerät: `--banner-space` im Browser von Hand setzen, der Inhalt muss nach oben rücken.
+- **`public/app-ads.txt` — Verkäufer-Autorisierung (bares Geld).** Eine Zeile:
+  `google.com, pub-8860791993288062, DIRECT, f08c47fec0942fa0`. Ohne diese Datei kaufen
+  Werbetreibende, die nur bei autorisierten Verkäufern einkaufen, unser Inventar **nicht** —
+  ohne dass irgendwo eine Fehlermeldung auftaucht, der eCPM ist einfach niedriger. Die
+  **Publisher-ID gilt kontoweit**, nicht pro App: dieselbe Zeile liegt bei Swaply, und jede
+  weitere ausliefernde App braucht sie unter *ihrer* eigenen Website (bei Apps ohne Auslieferung
+  bringt sie nichts). Vercel kopiert `public/` in die Deploy-Wurzel, damit liegt sie unter
+  `https://mahjong-app-plum.vercel.app/app-ads.txt` als `text/plain`.
+  **Entscheidend ist nicht die Datei, sondern wo Google sie sucht:** der Crawler nimmt die
+  **Entwickler-Website aus dem Store-Eintrag** und hängt `/app-ads.txt` an — Play
+  `contactWebsite`, App Store `marketingUrl`. Steht dort eine andere oder keine Domain, ist die
+  Datei wirkungslos. Beides prüft `python3 scripts/check-website-fields.py` (rein lesend,
+  Exit-Code 1 bei Abweichung) — **vor jedem Release laufen lassen**, besonders wenn sich die
+  Domain ändert. AdMob meldet „autorisiert" erst nach dem nächsten Crawl (~24 h).
+  **Für iOS bis zur Freigabe gegenstandslos:** solange die App nicht im Store ist, gibt es keine
+  Store-Seite, aus der der Crawler eine Website lesen könnte. Die Felder sind aber korrekt
+  hinterlegt und greifen ab Veröffentlichung von selbst.
 - `src/store/iap.ts` — IAP via cordova-plugin-purchase v13 (kein RevenueCat). Produkte:
   `remove_ads` (Non-Consumable), `coins_small/medium/large` (Consumable)
 - `src/audio/sound.ts` — WebAudio-Synth **und Haptik**: `playTap`/`playMatch`/`playWin` lösen zusätzlich
