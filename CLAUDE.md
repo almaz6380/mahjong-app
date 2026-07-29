@@ -288,3 +288,49 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   liegen nicht im Repo): `git pull && npm run build && npx cap sync`, dann die Rezepte unter
   „Native Builds". Für iOS zuerst prüfen, ob Build 13 noch in Prüfung hängt — dann abbrechen
   (PATCH `/v1/reviewSubmissions/{id}` `{canceled:true}`) und Build 14 einreichen.
+
+---
+
+## Handy-Betrieb: Builds, Deploys und fal.ai auf Zuruf
+
+Josef arbeitet meist vom Handy. Für **alle** Sitzungen dieses Repos gilt darum eine
+Dauer-Freigabe. Sie sagt nur, *dass* Claude das darf — sie ersetzt nie das „ja" zum
+einzelnen Lauf.
+
+**Grundsätzlich erlaubt:**
+- die App bauen, signieren und in die Stores hochladen — auf GitHubs Rechnern, ohne Mac
+- Deploys auslösen
+- fal.ai für Bildmaterial nutzen (Store-Screenshots, Icons, Grafiken)
+
+**Bedingung, ausnahmslos:** Jeder einzelne Lauf braucht vorher ein ausdrückliches
+„ja" von Josef im Chat. Davor in drei Zeilen zusammenfassen: *was* passiert, *welche
+Versionsnummer*, *wohin* es geht (Store / Produktion / nur Artefakt zum Ansehen) —
+bei fal.ai zusätzlich Modell, Anzahl Bilder und ungefähre Kosten. Geht etwas schief:
+melden und stehen bleiben, nicht auf eigene Faust nachbessern und noch einmal
+hochladen. Ergebnisse (Bilder, Build-Artefakte, Logs) mit `SendUserFile` direkt im
+Chat zeigen — auf dem Handy gibt es keinen Dateimanager.
+
+**Schlüssel gehören weder ins Repo noch in den Chat:**
+
+| Zweck | Ort |
+|---|---|
+| Signierung + Store-Upload | GitHub → Repo → Settings → Secrets and variables → Actions |
+| `FAL_KEY` | Umgebungsvariable der Claude-Umgebung (claude.ai/code → Environment) |
+| Vercel / Supabase | Vercel-Env bzw. lokale `.env` (gitignored) |
+
+Ein Schlüssel, der im Chat steht, steht dauerhaft im Sitzungsprotokoll → gilt als
+verbrannt und muss ersetzt werden. Fehlt einer: sagen **welcher** und **wo er
+hingehört**, statt zu raten oder einen Umweg zu bauen.
+
+**fal.ai läuft in der Sitzung** (Josef braucht dafür kein Terminal):
+`curl -s https://fal.run/<modell> -H "Authorization: Key $FAL_KEY" -H 'Content-Type: application/json' -d '{"prompt":"…"}'`
+→ Bild herunterladen, ins Repo legen, committen, im Chat zeigen. Ohne gesetzten
+`FAL_KEY` ist der Weg zu: dann sagen, dass die Variable in der Umgebung fehlt.
+
+**Auslösen in diesem Repo:** Beide Workflows sind fertig eingerichtet — „Android
+Release" und „iOS Release", Start per `workflow_dispatch` (Werkzeug
+`mcp__github__actions_run_trigger`), Secrets und Einrichtung in `store/ci-setup.md`.
+Davor Versionsnummern erhöhen und committen (`versionCode` in
+`android/app/build.gradle`, `CURRENT_PROJECT_VERSION` ×2 im pbxproj). Einen
+geänderten Workflow immer zuerst mit dem Schalter „nur bauen" testen. Und:
+`USE_TEST_ADS` muss für ein Release `false` sein.

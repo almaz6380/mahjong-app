@@ -22,7 +22,11 @@ permissions:
 
 jobs:
   build:
-    runs-on: macos-14
+    # macos-26 bringt Xcode 26 mit. Apple verlangt seit 2026 mindestens das
+    # iOS-26-SDK für Uploads (sonst Fehler 90725) — ein älterer Läufer baut zwar
+    # durch, scheitert aber beim Hochladen.
+    runs-on: macos-26
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
