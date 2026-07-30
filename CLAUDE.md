@@ -284,14 +284,24 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
 - Name „Mahjong Royale", appId `com.mahjongroyale.app`, ASC-App-ID 6787721454, Team JU8STVD4SJ
 - AdMob-Publisher pub-8860791993288062 (Konto 63almaz80@gmail.com), IDs in `admob-ids.md`
 - Store-Texte/Screenshots/Rezepte in `store/` (texts.md)
-- **Store-Lokalisierung (30.07.2026):** Play-Listings live in **de-DE, en-US, es-ES, pt-BR, fr-FR,
-  it-IT, ja-JP** (per Edits-API; de-DE-Tippfehler „MSolitaire" dabei behoben). iOS: dieselben
-  5 neuen Sprachen liegen in `store/ios-locales.json`, ließen sich aber **nicht anlegen, solange
-  1.0.1 in der Prüfung ist** (Apple sperrt Metadaten → 409). **Nach der Freigabe:**
-  `python3 scripts/add-ios-locales.py` (idempotent, sucht sich die bearbeitbare Version selbst;
-  die Sprachen erscheinen mit der nächsten eingereichten Version). App-Sprache bleibt DE/EN —
-  Store-Texte und App-Texte sind unabhängig; weitere App-Sprachen wären reine i18n-Arbeit
-  (`src/i18n.ts` ist schlüsselbasiert) + neuer Build.
+- **Store-Lokalisierung (30.07.2026) — 7 Sprachen auf beiden Plattformen:** de-DE, en-US, es-ES,
+  pt-BR, fr-FR, it-IT, ja-JP. Texte in `store/ios-locales.json`.
+  **Skripte (alle idempotent, rein additiv):**
+  `scripts/add-ios-locales.py` (Beschreibung/Keywords/whatsNew + Name/Untertitel),
+  `scripts/upload-ios-screenshots.py` (spiegelt die englischen Sätze in neue Sprachen),
+  `scripts/render-feature-graphic.mjs` + `scripts/upload-feature-graphics.py` (Play, 1024×500 je Sprache),
+  `scripts/render-app-icon.mjs` (App-Icon aus den drei Steinen).
+  **Fallen, die uns eingeholt haben:**
+  (1) Apple **sperrt Metadaten während der Prüfung** → 409 auf jeden POST. Neue Sprachen nur
+  anlegen, wenn die Version `PREPARE_FOR_SUBMISSION`/`DEVELOPER_REJECTED` ist.
+  (2) Legt man eine Sprache an, erzeugt Apple die `appInfoLocalization` **selbsttätig und kopiert
+  den deutschen Untertitel** — danach immer prüfen und per PATCH korrigieren.
+  (3) **Ohne Screenshots je Sprache lässt sich nicht einreichen** (Apple erbt sie nicht).
+  (4) Play zeigt die **Feature-Grafik der Standardsprache**, wenn eine Sprachfassung fehlt —
+  darum stand „4 Spieler" auch im japanischen Eintrag. Grafik gibt es **nur bei Play**, der
+  App Store kennt keine; Play-Listings sind zudem vom Build entkoppelt und lösen keine Prüfung aus.
+  (5) `@capacitor/assets generate` schreibt die PWA-Icons nach `icons/`, ausgeliefert wird aber
+  `public/icons/` + `public/pwa-*.png` + `public/apple-touch-icon.png` — die von Hand nachziehen.
 - Ersteinreichung 6.7.2026 (iOS Build 2 / Android vc3); **iOS wegen 4.3(a) „Design: Spam" abgelehnt**.
 - **Neu eingereicht 12.7.2026, v1.0 — iOS Build 10 / Android versionCode 11**: mit Riichi, natürlichem
   Jade-Look, drehendem 3D-Stein, neuem Icon/Splash, neuen Screenshots (iPhone+iPad / Handy+Tablet),
