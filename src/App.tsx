@@ -96,7 +96,7 @@ export default function App() {
     if (progress) setAdsRemoved(progress.removeAds);
   }, [progress?.removeAds]);
   useEffect(() => {
-    if (progress) setupDailyReminder(progress.notify, progress.lang === 'en' ? 'en' : 'de');
+    if (progress) setupDailyReminder(progress.notify, progress.lang || detectLang());
   }, [progress?.notify]);
   useEffect(() => {
     if (progress) setFactsEnabled(progress.showFacts);
@@ -127,7 +127,7 @@ export default function App() {
   }
 
   // Sprache synchron setzen, bevor Kinder rendern (t() liest modulglobal).
-  setLanguage(progress.lang === 'de' || progress.lang === 'en' ? progress.lang : detectLang());
+  setLanguage(progress.lang || detectLang());
 
   const api = {
     useBooster: p.useBooster,

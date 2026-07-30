@@ -6,7 +6,7 @@ import { ACHIEVEMENTS } from '../game/achievements';
 import { PRODUCTS, purchase, displayPrice, canRestore, restorePurchases, type Product } from '../store/iap';
 import { setAdsRemoved, canChangeAdConsent, changeAdConsent } from '../ads/admob';
 import { Icon } from './Icon';
-import { t } from '../i18n';
+import { t, LANGS, type Lang } from '../i18n';
 
 function ScreenHeader({ title, onBack }: { title: string; onBack: () => void }) {
   return (
@@ -41,7 +41,7 @@ export function SettingsScreen({
   setNotify: (on: boolean) => void;
   setShowFacts: (on: boolean) => void;
   setAiLevel: (l: 'easy' | 'normal' | 'hard') => void;
-  setLang: (l: 'de' | 'en' | '') => void;
+  setLang: (l: Lang | '') => void;
   resetProgress: () => void;
   go: (screen: string) => void;
   onBack: () => void;
@@ -52,10 +52,9 @@ export function SettingsScreen({
     ['normal', t('set.normal')],
     ['hard', t('set.hard')],
   ];
-  const langs: [('de' | 'en' | ''), string][] = [
+  const langs: [(Lang | ''), string][] = [
     ['', t('set.langAuto')],
-    ['de', 'DE'],
-    ['en', 'EN'],
+    ...LANGS.map((l): [Lang, string] => [l, l.toUpperCase()]),
   ];
   return (
     <div className="app screen">

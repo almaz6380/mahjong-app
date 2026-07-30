@@ -3,7 +3,7 @@
 
 import { useSyncExternalStore } from 'react';
 import { nextFact, type Fact } from '../game/facts';
-import { currentLang, t } from '../i18n';
+import { factText, t } from '../i18n';
 import { Tile } from './Tile';
 
 let enabled = true;
@@ -52,7 +52,7 @@ const getSnapshot = () => current;
 export function FactHost() {
   const fact = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
   if (!fact) return null;
-  const text = currentLang() === 'en' ? fact.en : fact.de;
+  const text = factText(fact);
   return (
     <div className="overlay fact-overlay" onClick={dismiss}>
       <div className="fact-card" onClick={dismiss}>

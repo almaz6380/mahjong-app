@@ -28,7 +28,7 @@ export interface Progress {
   achievements: string[]; // freigeschaltete IDs
   lastDailyChallenge: string; // 'YYYY-MM-DD' der letzten erledigten Tages-Challenge
   aiLevel: AiLevel;
-  lang: 'de' | 'en' | ''; // '' = automatisch (Systemsprache)
+  lang: import('../i18n').Lang | ''; // '' = automatisch (Systemsprache)
   seenM4Tutorial: boolean;
   notify: boolean; // tägliche Erinnerung an
   showFacts: boolean; // „Wusstest du?“-Karten zwischen den Runden
@@ -465,7 +465,7 @@ export function useProgress() {
   );
 
   const setLang = useCallback(
-    (lang: 'de' | 'en' | '') => {
+    (lang: import('../i18n').Lang | '') => {
       const s = stateRef.current;
       if (!s) return;
       persist({ ...s, lang });

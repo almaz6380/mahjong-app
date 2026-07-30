@@ -11,7 +11,7 @@ import homeTemple from './assets/home-temple.webp'
 import emblemShield from './assets/emblem-shield.webp'
 import symbolZhong from './assets/symbol-zhong.webp'
 import { nextFact } from './game/facts'
-import { detectLang } from './i18n'
+import { detectLang, setLanguage, factText } from './i18n'
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -28,14 +28,15 @@ createRoot(document.getElementById('root')!).render(
   if (!splash) return
   const fill = document.getElementById('splash-bar-fill')
   const tipEl = document.getElementById('splash-tip')
-  const lang = detectLang()
+  // Vorläufig die Systemsprache aktivieren; App.tsx überstimmt später mit
+  // der gespeicherten Wahl aus dem Fortschritt.
+  setLanguage(detectLang())
 
   const showTip = () => {
     if (!tipEl) return
     tipEl.style.opacity = '0'
     setTimeout(() => {
-      const f = nextFact()
-      tipEl.textContent = lang === 'en' ? f.en : f.de
+      tipEl.textContent = factText(nextFact())
       tipEl.style.opacity = '1'
     }, 200)
   }

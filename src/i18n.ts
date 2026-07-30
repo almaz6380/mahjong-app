@@ -1,13 +1,47 @@
-// Leichtes i18n (de/en). App setzt die Sprache vor dem Rendern der Kinder
+// Leichtes i18n. App setzt die Sprache vor dem Rendern der Kinder
 // (setLanguage in App.tsx); t() liest synchron. Platzhalter: {name}.
+// de/en leben vollständig in D unten; die weiteren Sprachen sind
+// Schlüssel→Text-Overrides in src/locales/* mit Fallback auf Englisch.
 
-export type Lang = 'de' | 'en';
+import es from './locales/es';
+import pt from './locales/pt';
+import fr from './locales/fr';
+import it from './locales/it';
+import ja from './locales/ja';
+import { FACTS, type Fact } from './game/facts';
+
+export type Lang = 'de' | 'en' | 'es' | 'pt' | 'fr' | 'it' | 'ja';
+export const LANGS: Lang[] = ['de', 'en', 'es', 'pt', 'fr', 'it', 'ja'];
+
+// Gestalt der Locale-Module: ui = Schlüssel→Text, facts = 34 Texte in
+// Original-Reihenfolge, notify = Text der Tages-Erinnerung.
+export interface LocalePack {
+  ui: Record<string, string>;
+  facts: string[];
+  notify: { title: string; body: string };
+}
+
+const EXTRA: Partial<Record<Lang, LocalePack>> = { es, pt, fr, it, ja };
+
+// Text einer „Wusstest du?"-Karte in der aktiven Sprache (Fallback en).
+export function factText(f: Fact): string {
+  if (lang === 'de') return f.de;
+  if (lang === 'en') return f.en;
+  return EXTRA[lang]?.facts[FACTS.indexOf(f)] ?? f.en;
+}
+
+// Text der Tages-Erinnerung in einer gegebenen Sprache (Fallback en).
+export function notifyText(l: Lang): { title: string; body: string } {
+  if (l === 'de') return { title: 'Mahjong Royale', body: 'Deine Tages-Challenge wartet! 🀄' };
+  return EXTRA[l]?.notify ?? { title: 'Mahjong Royale', body: 'Your daily challenge is waiting! 🀄' };
+}
 
 let lang: Lang = 'de';
 
 export function detectLang(): Lang {
-  const nav = (typeof navigator !== 'undefined' && navigator.language) || 'de';
-  return nav.toLowerCase().startsWith('de') ? 'de' : 'en';
+  const nav = ((typeof navigator !== 'undefined' && navigator.language) || 'de').toLowerCase();
+  for (const l of LANGS) if (nav.startsWith(l)) return l;
+  return 'en';
 }
 
 export function setLanguage(l: Lang) {
@@ -414,7 +448,9 @@ const D: Record<string, Entry> = {
 
 export function t(key: string, vars?: Record<string, string | number>): string {
   const entry = D[key];
-  let s = entry ? entry[lang] : key;
+  let s: string;
+  if (lang === 'de' || lang === 'en') s = entry ? entry[lang] : key;
+  else s = EXTRA[lang]?.ui[key] ?? (entry ? entry.en : key);
   if (vars) for (const [k, v] of Object.entries(vars)) s = s.replace(`{${k}}`, String(v));
   return s;
 }

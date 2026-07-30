@@ -187,7 +187,13 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   in der Web-App auf dem iPhone vibriert also nichts, nur in der nativen App. Getrennt vom Klang
   schaltbar (`progress.vibrate` + `setHapticsEnabled`, Schalter „Vibration" in den Einstellungen).
   KI-Abwürfe im 4-Spieler/Riichi rufen `playTap(false)` — Klang ja, Vibration nein.
-- `src/i18n.ts` — DE/EN, alle UI-Labels sind Keys
+- `src/i18n.ts` — **7 Sprachen** (seit 30.07.2026): DE/EN vollständig in `i18n.ts` (maßgebliche
+  Quelle), ES/PT/FR/IT/JA als generierte Sprachpakete in `src/locales/*.ts` (`LocalePack`:
+  ui-Overrides + 34 Fakten + Erinnerungstext; fehlt ein Schlüssel → Fallback Englisch, die App
+  bricht also nie). Neue UI-Keys nur in `i18n.ts` anlegen; die Sprachpakete beim nächsten
+  Übersetzungslauf nachziehen. Fakten-Texte über `factText()`, Erinnerung über `notifyText()` —
+  nirgends mehr `lang === 'en' ? … : …` hart verdrahten. Smoke-Test-Muster: Vite-Preview +
+  puppeteer mit überschriebenem `navigator.language` (alle 7 Sprachen am Play-Knopf verifiziert).
 - Persistenz via `@capacitor/preferences` (`src/progress.ts`)
 
 ## WICHTIG: patch-package

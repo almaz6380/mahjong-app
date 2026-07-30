@@ -1,9 +1,10 @@
 // Tägliche lokale Erinnerung (nur nativ; im Web No-op).
 import { Capacitor } from '@capacitor/core';
+import { notifyText, type Lang } from './i18n';
 
 const REMINDER_ID = 1001;
 
-export async function setupDailyReminder(enabled: boolean, lang: 'de' | 'en' = 'de'): Promise<void> {
+export async function setupDailyReminder(enabled: boolean, lang: Lang = 'de'): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
   try {
     const { LocalNotifications } = await import('@capacitor/local-notifications');
@@ -19,10 +20,7 @@ export async function setupDailyReminder(enabled: boolean, lang: 'de' | 'en' = '
     }
     if (!granted) return;
 
-    const texts = {
-      de: { title: 'Mahjong Royale', body: 'Deine Tages-Challenge wartet! 🀄' },
-      en: { title: 'Mahjong Royale', body: 'Your daily challenge is waiting! 🀄' },
-    }[lang];
+    const texts = notifyText(lang);
 
     await LocalNotifications.schedule({
       notifications: [
