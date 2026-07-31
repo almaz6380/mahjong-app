@@ -360,10 +360,18 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   man blank war. Jetzt fragt derselbe Dialog wie im Solitaire („Münzen" oder „Video ansehen"),
   global gemountet als `src/ui/BuyPrompt.tsx` (Muster `FactHost`), Ausführung über
   `payOrWatch()` in `src/ui/pay.ts`. Dafür hat `ModeApi` ein Feld `coins` bekommen (der Münz-Knopf
-  muss ausgegraut werden können). **iOS bleibt vorerst auf 1.0.2/Build 17**: die Prüfung von 1.0.2
-  lief noch, und App Store Connect erlaubt nur EINE offene Einreichung — ein Abbruch hätte die
-  Warteposition gekostet (siehe 29.7.). iOS 1.0.3 also erst nach der Freigabe von 1.0.2 bauen,
-  dann Build 18 und `MARKETING_VERSION` auf 1.0.3 ziehen.
+  muss ausgegraut werden können). **Android vc19 sofort live; iOS auf Josefs Wunsch nachgezogen**,
+  damit beide Plattformen denselben Stand tragen: die laufende Prüfung von 1.0.2 (Build 17) wurde
+  abgebrochen und stattdessen **1.0.3 / Build 18** eingereicht.
+  **Rezept „Build gegen laufende Prüfung austauschen"** (drei Schritte, Skripte im Repo):
+  1. `python3 scripts/asc-cancel.py --yes` — Version fällt auf `DEVELOPER_REJECTED` und ist wieder
+     editierbar. **Kostet die Warteposition** (nach der 4.3a-Ablehnung waren das einmal 11 Tage) —
+     deshalb erst den neuen Build hochladen und verarbeiten lassen, dann abbrechen.
+  2. Die vorhandene Version **umbenennen statt eine zweite anzulegen**: Apple erlaubt nur EINE
+     Version in Arbeit, und ihre Nummer muss zur `CFBundleShortVersionString` des Builds passen —
+     `scripts/asc-submit.py --version 1.0.3 --rename-from 1.0.2 …`.
+  3. Derselbe Aufruf setzt whatsNew je Sprache, weist den Build zu und reicht ein (`--submit`).
+  Ohne `--yes` bzw. `--submit` sind beide Skripte reine Probeläufe.
 
 ---
 

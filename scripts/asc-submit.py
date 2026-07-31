@@ -65,6 +65,7 @@ def main():
     ap.add_argument('--version', required=True, help='z. B. 1.0.2')
     ap.add_argument('--build', required=True, help='Build-Nummer, z. B. 17')
     ap.add_argument('--notes-file', required=True, help='JSON: {"de-DE": "…", "en-US": "…"}')
+    ap.add_argument('--rename-from', help='vorhandene (editierbare) Version umbenennen, z. B. 1.0.2 -> --version')
     ap.add_argument('--submit', action='store_true', help='wirklich schreiben und einreichen')
     args = ap.parse_args()
 
@@ -87,6 +88,27 @@ def main():
     # --- Version anlegen oder wiederverwenden ---
     versions = call(tok, 'GET', f'/v1/apps/{APP_ID}/appStoreVersions?limit=10')['data']
     ver = next((v for v in versions if v['attributes']['versionString'] == args.version), None)
+
+    # Eine schon angelegte, editierbare Version umbenennen statt eine zweite
+    # anzulegen — Apple erlaubt nur EINE Version in Arbeit, und die Nummer muss
+    # zur CFBundleShortVersionString des Builds passen.
+    if not ver and args.rename_from:
+        old = next((v for v in versions if v['attributes']['versionString'] == args.rename_from), None)
+        if not old:
+            sys.exit(f'Version {args.rename_from} nicht gefunden.')
+        st = old['attributes']['appStoreState']
+        if st not in EDITABLE:
+            sys.exit(f'Version {args.rename_from} ist {st} — erst die Prüfung abbrechen '
+                     '(scripts/asc-cancel.py --yes).')
+        print(f'Version {args.rename_from} -> {args.version} umbenennen …{tag}')
+        if write:
+            call(tok, 'PATCH', f'/v1/appStoreVersions/{old["id"]}', {
+                'data': {'type': 'appStoreVersions', 'id': old['id'],
+                         'attributes': {'versionString': args.version}},
+            })
+            ver = old
+        else:
+            return print('Probelauf endet hier.')
     if ver:
         st = ver['attributes']['appStoreState']
         print(f'Version {args.version} existiert bereits: {st}')
