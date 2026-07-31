@@ -339,6 +339,22 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   neu einreichen**: geprüft waren damals Verträge (alle aktiv), Resolution Center (keine
   Nachricht), Exportcompliance, Build-Zuordnung und Metadaten — alles einwandfrei, es war reine
   Wartezeit. Ein Abbruch hätte die 11 Tage verschenkt. Statusabfrage: `python3 scripts/asc-status.py`.
+- **31.7.2026 — v1.0.2 (Android vc18 / iOS Build 17): Bugfix für belohnte Videos.** Gemeldet aus der
+  Store-Version: Video fürs Mischen komplett angesehen, danach weder Booster noch Münzen.
+  **Merken für jede künftige Rewarded-Arbeit:** `showRewardVideoAd()` löst im Plugin
+  ausschließlich im Belohnungs-Callback auf (iOS `userDidEarnRewardHandler`, Android
+  `onUserEarnedReward`). Bricht der Nutzer ab, antwortet das Plugin **nie** — ein blankes `await`
+  hängt für immer und die Oberfläche tut stumm gar nichts. Darum hört `requestReward()`
+  (`src/ads/admob.ts`) zusätzlich auf `Showed`/`Dismissed`/`FailedToShow`, wertet die Auflösung der
+  Plugin-Promise selbst als Beleg (nicht nur das `Rewarded`-Ereignis — sonst entscheidet ein
+  Reihenfolge-Rennen über die Belohnung), begrenzt hart auf Zeit und verwirft eine zweite
+  gleichzeitige Anfrage. Ergebnis `'earned' | 'aborted' | 'unavailable'`; **jeder** Fehlschlag muss
+  eine Meldung zeigen (`watchRewardedAd()` in `src/ui/reward.ts` + globaler `ToastHost`) — vorher
+  stiegen alle Modi bei `false` wortlos aus. Zweiter Teil des Fehlers: Die Belohnung wurde
+  unsichtbar sofort verbraucht statt gutgeschrieben, das Abzeichen blieb zwangsläufig auf 0;
+  jetzt `refillBooster(+1)` mit Toast. Android ging per Play-API sofort an alle Nutzer, iOS am
+  selben Tag eingereicht (neues `scripts/asc-submit.py`: Version anlegen + whatsNew in allen
+  Sprachen + Build zuweisen + einreichen; ohne `--submit` reiner Probelauf).
 
 ---
 
