@@ -249,6 +249,7 @@ export default function App() {
   // schließt man den Event-Modus ab, gibt es einmal täglich einen Bonus.
   const event = todayEvent();
   const modeApi = {
+    coins: progress.coins,
     addCoins: p.addCoins,
     spendCoins: p.spendCoins,
     recordModeBest: (key: string, value: number, higher?: boolean) => {

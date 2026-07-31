@@ -1,6 +1,7 @@
 // Gemeinsame Schnittstelle, die jeder Spezialmodus vom App-Rahmen bekommt.
 
 export interface ModeApi {
+  coins: number; // aktueller Stand, für die Kaufabfrage
   addCoins: (n: number) => void;
   spendCoins: (n: number) => boolean;
   recordModeBest: (key: string, value: number, higher?: boolean) => boolean;

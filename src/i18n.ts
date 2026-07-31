@@ -106,6 +106,7 @@ const D: Record<string, Entry> = {
   'game.refill': { de: 'Hol dir Nachschub:', en: 'Get a refill:' },
   'game.coinsBtn': { de: '{n} Münzen', en: '{n} coins' },
   'game.watchVideo': { de: 'Video ansehen', en: 'Watch video' },
+  'buy.how': { de: 'Wie möchtest du bezahlen?', en: 'How do you want to pay?' },
   'game.videoLoading': { de: 'Video wird geladen …', en: 'Loading video …' },
   'game.rewardGranted': { de: '+1 {b} gutgeschrieben', en: '+1 {b} added' },
   'game.rewardAborted': {

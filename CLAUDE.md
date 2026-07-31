@@ -355,6 +355,15 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   jetzt `refillBooster(+1)` mit Toast. Android ging per Play-API sofort an alle Nutzer, iOS am
   selben Tag eingereicht (neues `scripts/asc-submit.py`: Version anlegen + whatsNew in allen
   Sprachen + Build zuweisen + einreichen; ohne `--submit` reiner Probelauf).
+- **31.7.2026 — v1.0.3 (Android vc19): Kaufabfrage in Connect und Dimensions 3D.** Beide Modi haben
+  Münzen für Tipp/Mischen **wortlos abgebucht**, sobald genug da waren — ein Video gab es nur, wenn
+  man blank war. Jetzt fragt derselbe Dialog wie im Solitaire („Münzen" oder „Video ansehen"),
+  global gemountet als `src/ui/BuyPrompt.tsx` (Muster `FactHost`), Ausführung über
+  `payOrWatch()` in `src/ui/pay.ts`. Dafür hat `ModeApi` ein Feld `coins` bekommen (der Münz-Knopf
+  muss ausgegraut werden können). **iOS bleibt vorerst auf 1.0.2/Build 17**: die Prüfung von 1.0.2
+  lief noch, und App Store Connect erlaubt nur EINE offene Einreichung — ein Abbruch hätte die
+  Warteposition gekostet (siehe 29.7.). iOS 1.0.3 also erst nach der Freigabe von 1.0.2 bauen,
+  dann Build 18 und `MARKETING_VERSION` auf 1.0.3 ziehen.
 
 ---
 

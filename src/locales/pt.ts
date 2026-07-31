@@ -48,6 +48,7 @@ const pack: LocalePack = {
   "game.refill": "Consiga mais:",
   "game.coinsBtn": "{n} moedas",
   "game.watchVideo": "Assistir vídeo",
+  "buy.how": "Como queres pagar?",
   "game.videoLoading": "A carregar vídeo …",
   "game.rewardGranted": "+1 {b} adicionado",
   "game.rewardAborted": "Vídeo não foi visto até ao fim – sem recompensa.",

@@ -4,7 +4,7 @@ import { Icon } from '../../ui/Icon';
 import { t } from '../../i18n';
 import { playTap, playMatch, playInvalid, playWin } from '../../audio/sound';
 import { maybeShowInterstitialModes } from '../../ads/admob';
-import { watchRewardedAd } from '../../ui/reward';
+import { payOrWatch } from '../../ui/pay';
 import { presentFact } from '../../ui/FactHost';
 import type { ModeProps } from '../types';
 import {
@@ -66,13 +66,13 @@ export function DimensionsScreen({ api, onExit }: ModeProps) {
     if (won) return;
     const h = findHint(board);
     if (!h) return;
-    if (!(api.spendCoins(HINT_COST) || (await watchRewardedAd()))) return;
+    if (!(await payOrWatch({ what: t('mode.hint'), cost: HINT_COST, coins: api.coins, spendCoins: api.spendCoins }))) return;
     setHint(h);
     setTimeout(() => setHint(null), 1200);
   };
   const doShuffle = async () => {
     if (won) return;
-    if (!(api.spendCoins(SHUFFLE_COST) || (await watchRewardedAd()))) return;
+    if (!(await payOrWatch({ what: t('game.shuffle'), cost: SHUFFLE_COST, coins: api.coins, spendCoins: api.spendCoins }))) return;
     const nb = clone(board); shuffleRemaining(nb); setBoard(nb); setSel(-1);
   };
   const restart = (lv: number) => { setLevel(lv); setBoard(makeBoard(lv)); setSel(-1); setHint(null); setWon(false); };

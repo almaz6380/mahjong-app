@@ -48,6 +48,7 @@ const pack: LocalePack = {
   "game.refill": "補充しよう：",
   "game.coinsBtn": "コイン{n}枚",
   "game.watchVideo": "動画を見る",
+  "buy.how": "お支払い方法を選んでください",
   "game.videoLoading": "動画を読み込み中 …",
   "game.rewardGranted": "{b} を1回追加しました",
   "game.rewardAborted": "動画を最後まで見なかったため、報酬はありません。",
