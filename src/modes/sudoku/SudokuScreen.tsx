@@ -3,7 +3,8 @@ import { PinDigit } from '../../ui/Tile';
 import { Icon } from '../../ui/Icon';
 import { t } from '../../i18n';
 import { playTap, playInvalid, playWin } from '../../audio/sound';
-import { maybeShowInterstitialModes, showRewarded } from '../../ads/admob';
+import { maybeShowInterstitialModes } from '../../ads/admob';
+import { watchRewardedAd } from '../../ui/reward';
 import { presentFact } from '../../ui/FactHost';
 import { generate, canPlace, isComplete, type Board, type Difficulty, type Puzzle } from './logic';
 import type { ModeProps } from '../types';
@@ -62,7 +63,7 @@ export function SudokuScreen({ api, onExit }: ModeProps) {
 
   const hint = useCallback(async () => {
     if (sel < 0 || pz.given[sel] || won) return;
-    const ok = await showRewarded();
+    const ok = await watchRewardedAd();
     if (ok) place(pz.solution[sel]);
   }, [sel, pz, won, place]);
 

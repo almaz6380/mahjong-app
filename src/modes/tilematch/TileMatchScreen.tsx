@@ -3,7 +3,8 @@ import { Tile } from '../../ui/Tile';
 import { Icon } from '../../ui/Icon';
 import { t } from '../../i18n';
 import { playTap, playMatch, playWin, playInvalid } from '../../audio/sound';
-import { maybeShowInterstitialModes, showRewarded } from '../../ads/admob';
+import { maybeShowInterstitialModes } from '../../ads/admob';
+import { watchRewardedAd } from '../../ui/reward';
 import { presentFact } from '../../ui/FactHost';
 import type { ModeProps } from '../types';
 import {
@@ -66,7 +67,7 @@ export function TileMatchScreen({ api, onExit }: ModeProps) {
     const nb = cloneBoard(board); shuffleRemaining(nb); setBoard(nb);
   };
   const doRemoveThree = async () => {
-    const ok = await showRewarded();
+    const ok = await watchRewardedAd();
     if (!ok) return;
     const nb = cloneBoard(board); removeThree(nb); setBoard(nb); setResult(null);
   };

@@ -8,7 +8,7 @@ import { chooseDiscard, decideClaim, type Difficulty } from './ai';
 import { scoreWin, coinsForWin, type ScoreResult } from './scoring4';
 import { createMatch, applyResult, type MatchState } from './match4';
 import { playTap, playMatch, playWin } from '../audio/sound';
-import { showRewarded } from '../ads/admob';
+import { watchRewardedAd } from '../ui/reward';
 
 type ClaimType = 'win' | 'kong' | 'pung' | 'chow';
 interface AiClaim { player: number; type: ClaimType; tiles?: [TileCode, TileCode]; dist: number; prio: number }
@@ -213,7 +213,7 @@ export function useMahjong4(opts: {
 
   const hint = useCallback(async () => {
     if (interactionRef.current?.kind !== 'discard') return;
-    const ok = await showRewarded();
+    const ok = await watchRewardedAd();
     if (ok) setSuggested(chooseDiscard(stateRef.current, 0, 'hard'));
   }, []);
 

@@ -3,7 +3,8 @@ import { Tile } from '../../ui/Tile';
 import { Icon } from '../../ui/Icon';
 import { t } from '../../i18n';
 import { playTap, playMatch, playInvalid, playWin } from '../../audio/sound';
-import { maybeShowInterstitialModes, showRewarded } from '../../ads/admob';
+import { maybeShowInterstitialModes } from '../../ads/admob';
+import { watchRewardedAd } from '../../ui/reward';
 import { presentFact } from '../../ui/FactHost';
 import { newBoard, findMatches, swapped, adjacent, resolve, anyValidMove, ROWS, COLS, MOVES, type Grid } from './logic';
 import type { ModeProps } from '../types';
@@ -62,7 +63,7 @@ export function Match3Screen({ api, onExit }: ModeProps) {
   };
 
   const extraMoves = async () => {
-    const ok = await showRewarded();
+    const ok = await watchRewardedAd();
     if (ok) { setMoves((m) => m + 5); setOver(false); }
   };
 

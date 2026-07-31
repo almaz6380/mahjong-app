@@ -131,6 +131,7 @@ export default function App() {
 
   const api = {
     useBooster: p.useBooster,
+    refillBooster: p.refillBooster,
     spendCoins: p.spendCoins,
     addCoins: p.addCoins,
     recordWin: p.recordWin,

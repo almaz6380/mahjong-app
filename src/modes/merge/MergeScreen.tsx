@@ -3,7 +3,8 @@ import { Tile } from '../../ui/Tile';
 import { Icon } from '../../ui/Icon';
 import { t } from '../../i18n';
 import { playTap, playMatch, playWin } from '../../audio/sound';
-import { maybeShowInterstitialModes, showRewarded } from '../../ads/admob';
+import { maybeShowInterstitialModes } from '../../ads/admob';
+import { watchRewardedAd } from '../../ui/reward';
 import { presentFact } from '../../ui/FactHost';
 import { newGame, move, spawn, canMove, SIZE, type Grid, type Dir } from './logic';
 import type { ModeProps } from '../types';
@@ -86,7 +87,7 @@ export function MergeScreen({ api, onExit }: ModeProps) {
 
   const undo = async () => {
     if (!history.current.length) return;
-    const ok = await showRewarded();
+    const ok = await watchRewardedAd();
     if (!ok) return;
     const last = history.current.pop()!;
     setGrid(last.grid);

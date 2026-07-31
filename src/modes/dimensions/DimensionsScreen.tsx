@@ -3,7 +3,8 @@ import { Tile } from '../../ui/Tile';
 import { Icon } from '../../ui/Icon';
 import { t } from '../../i18n';
 import { playTap, playMatch, playInvalid, playWin } from '../../audio/sound';
-import { maybeShowInterstitialModes, showRewarded } from '../../ads/admob';
+import { maybeShowInterstitialModes } from '../../ads/admob';
+import { watchRewardedAd } from '../../ui/reward';
 import { presentFact } from '../../ui/FactHost';
 import type { ModeProps } from '../types';
 import {
@@ -65,13 +66,13 @@ export function DimensionsScreen({ api, onExit }: ModeProps) {
     if (won) return;
     const h = findHint(board);
     if (!h) return;
-    if (!(api.spendCoins(HINT_COST) || (await showRewarded()))) return;
+    if (!(api.spendCoins(HINT_COST) || (await watchRewardedAd()))) return;
     setHint(h);
     setTimeout(() => setHint(null), 1200);
   };
   const doShuffle = async () => {
     if (won) return;
-    if (!(api.spendCoins(SHUFFLE_COST) || (await showRewarded()))) return;
+    if (!(api.spendCoins(SHUFFLE_COST) || (await watchRewardedAd()))) return;
     const nb = clone(board); shuffleRemaining(nb); setBoard(nb); setSel(-1);
   };
   const restart = (lv: number) => { setLevel(lv); setBoard(makeBoard(lv)); setSel(-1); setHint(null); setWon(false); };

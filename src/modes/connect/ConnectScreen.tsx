@@ -3,7 +3,8 @@ import { Tile } from '../../ui/Tile';
 import { Icon } from '../../ui/Icon';
 import { t } from '../../i18n';
 import { playTap, playMatch, playInvalid, playWin } from '../../audio/sound';
-import { maybeShowInterstitialModes, showRewarded } from '../../ads/admob';
+import { maybeShowInterstitialModes } from '../../ads/admob';
+import { watchRewardedAd } from '../../ui/reward';
 import { presentFact } from '../../ui/FactHost';
 import { buildDeck } from '../../game/tiles';
 import { connectConfig } from './levels';
@@ -106,7 +107,7 @@ export function ConnectScreen(props: ConnectProps) {
     if (busy.current || result) return;
     const pair = findAnyPair(board);
     if (!pair) return;
-    const paid = props.spendCoins(HINT_COST) || (await showRewarded());
+    const paid = props.spendCoins(HINT_COST) || (await watchRewardedAd());
     if (!paid) return;
     setHint(pair);
     setHintsUsed((n) => n + 1);
@@ -115,7 +116,7 @@ export function ConnectScreen(props: ConnectProps) {
 
   const doShuffle = useCallback(async () => {
     if (busy.current || result) return;
-    const paid = props.spendCoins(SHUFFLE_COST) || (await showRewarded());
+    const paid = props.spendCoins(SHUFFLE_COST) || (await watchRewardedAd());
     if (!paid) return;
     setBoard((prev) => { const nb = { ...prev, g: prev.g.slice() }; shuffleRemaining(nb); return nb; });
     setSel(-1);

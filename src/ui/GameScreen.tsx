@@ -7,8 +7,9 @@ import { starsFor, coinsFor } from '../game/scoring';
 import { BOOSTER_COST, type BoosterType, type Progress } from '../game/progress';
 import { DAILY_REWARD } from '../game/daily';
 import { saveSession, clearSession } from '../game/session';
-import { maybeShowInterstitial, showRewarded } from '../ads/admob';
+import { maybeShowInterstitial, requestReward, type RewardOutcome } from '../ads/admob';
 import { presentFact } from './FactHost';
+import { showToast } from './ToastHost';
 import { WinCeremony } from './WinCeremony';
 import { Sakura } from './Sakura';
 import { setAmbientLevel } from './SumiE';
@@ -18,6 +19,7 @@ import type { PlacedTile } from '../game/engine';
 
 interface Api {
   useBooster: (t: BoosterType) => boolean;
+  refillBooster: (t: BoosterType, amount?: number) => void;
   spendCoins: (n: number) => boolean;
   addCoins: (n: number) => void;
   recordWin: (level: number, stars: number, coins: number, elapsedMs?: number) => void;
@@ -61,6 +63,7 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
   });
 
   const [purchase, setPurchase] = useState<BoosterType | null>(null);
+  const [adBusy, setAdBusy] = useState(false); // Video läuft/lädt gerade
   const [noShuffle, setNoShuffle] = useState(false); // Mischen kann nicht mehr helfen
   const [win, setWin] = useState<{ stars: number; coins: number; doubled: boolean } | null>(null);
   const winHandled = useRef(false);
@@ -106,13 +109,27 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
     setPurchase(null);
   }, [purchase, api, doAction]);
 
+  // Video schreibt den Booster GUT (Zähler +1) statt ihn unsichtbar sofort zu
+  // verbrauchen — sonst blieb das Abzeichen nach dem Video auf 0 und es sah aus,
+  // als wäre nichts passiert. Bleibt die Belohnung aus, sagt der Toast warum.
   const buyWithVideo = useCallback(async () => {
-    if (!purchase) return;
-    const t = purchase;
+    if (!purchase || adBusy) return;
+    const type = purchase;
+    setAdBusy(true);
+    let outcome: RewardOutcome;
+    try {
+      outcome = await requestReward();
+    } finally {
+      setAdBusy(false); // sonst blieben die Knöpfe für immer gesperrt
+    }
     setPurchase(null);
-    const ok = await showRewarded();
-    if (ok) doAction(t);
-  }, [purchase, doAction]);
+    if (outcome === 'earned') {
+      api.refillBooster(type, 1);
+      showToast(t('game.rewardGranted', { b: t(BOOSTER_LABEL[type]) }));
+    } else {
+      showToast(t(outcome === 'aborted' ? 'game.rewardAborted' : 'game.rewardUnavailable'));
+    }
+  }, [purchase, adBusy, api]);
 
   // Laufendes Spiel sichern (nur normale Level, nicht Daily).
   useEffect(() => {
@@ -145,13 +162,21 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
   }, [game.won, game, api, level, mode]);
 
   const doubleCoins = useCallback(async () => {
-    if (!win || win.doubled) return;
-    const ok = await showRewarded();
-    if (ok) {
+    if (!win || win.doubled || adBusy) return;
+    setAdBusy(true);
+    let outcome: RewardOutcome;
+    try {
+      outcome = await requestReward();
+    } finally {
+      setAdBusy(false);
+    }
+    if (outcome === 'earned') {
       api.addCoins(win.coins);
       setWin({ ...win, doubled: true });
+    } else {
+      showToast(t(outcome === 'aborted' ? 'game.rewardAborted' : 'game.rewardUnavailable'));
     }
-  }, [win, api]);
+  }, [win, api, adBusy]);
 
   const nextLevel = useCallback(async () => {
     await maybeShowInterstitial(level, progress.totalWins);
@@ -237,23 +262,32 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
       )}
 
       {purchase && (
-        <div className="overlay" onClick={() => setPurchase(null)}>
+        // Solange das Video lädt/läuft nicht wegtippen können — sonst wirkt die
+        // Belohnung ins Leere und der Dialog wäre schon zu.
+        <div className="overlay" onClick={() => !adBusy && setPurchase(null)}>
           <div className="card" onClick={(e) => e.stopPropagation()}>
             <div className="logo">✨</div>
             <h2>{t('game.boosterEmpty', { b: t(BOOSTER_LABEL[purchase]) })}</h2>
             <p>{t('game.refill')}</p>
-            <button className="big-btn" onClick={buyWithCoins} disabled={progress.coins < BOOSTER_COST[purchase]}>
+            <button
+              className="big-btn"
+              onClick={buyWithCoins}
+              disabled={adBusy || progress.coins < BOOSTER_COST[purchase]}
+            >
               <span className="btn-ico"><Icon name="coin" /> {t('game.coinsBtn', { n: BOOSTER_COST[purchase] })}</span>
             </button>
-            <button className="big-btn ghost solid" onClick={buyWithVideo}>
-              <span className="btn-ico"><Icon name="video" /> {t('game.watchVideo')}</span>
+            <button className="big-btn ghost solid" onClick={buyWithVideo} disabled={adBusy}>
+              <span className="btn-ico">
+                <Icon name="video" /> {adBusy ? t('game.videoLoading') : t('game.watchVideo')}
+              </span>
             </button>
-            <button className="text-btn" onClick={() => setPurchase(null)}>
+            <button className="text-btn" onClick={() => setPurchase(null)} disabled={adBusy}>
               {t('common.cancel')}
             </button>
           </div>
         </div>
       )}
+
 
       {win && (
         <div className="overlay">
@@ -273,8 +307,10 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
               {win.doubled && <span className="doubled"> ×2!</span>}
             </p>
             {!win.doubled && (
-              <button className="big-btn ghost solid" onClick={doubleCoins}>
-                <span className="btn-ico"><Icon name="video" /> {t('game.doubleCoins')}</span>
+              <button className="big-btn ghost solid" onClick={doubleCoins} disabled={adBusy}>
+                <span className="btn-ico">
+                  <Icon name="video" /> {adBusy ? t('game.videoLoading') : t('game.doubleCoins')}
+                </span>
               </button>
             )}
             {mode === 'daily' ? (
@@ -289,6 +325,7 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
           </div>
         </div>
       )}
+
     </div>
   );
 }

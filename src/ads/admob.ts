@@ -234,23 +234,107 @@ export async function maybeShowInterstitialModes(): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-//  Rewarded – belohntes Video. Gibt true zurück, wenn der Nutzer die Belohnung
-//  verdient hat (Video vollständig gesehen).
+//  Rewarded – belohntes Video.
+//
+//  'earned'      = Belohnung verdient, darf gutgeschrieben werden
+//  'aborted'     = Video lief, wurde aber abgebrochen -> keine Belohnung
+//  'unavailable' = gar kein Video (keine Füllung, kein Netz, Ladefehler)
+//
+//  WICHTIG (Grund für den Bug „Video gesehen, nichts passiert"):
+//  `showRewardVideoAd()` löst im Plugin AUSSCHLIESSLICH im Belohnungs-Callback
+//  auf (iOS: userDidEarnRewardHandler, Android: onUserEarnedReward). Bricht der
+//  Nutzer ab oder bleibt das Ereignis aus, kommt NIE eine Antwort — ein blankes
+//  `await` hängt dann für immer und die Oberfläche tut stumm gar nichts.
+//  Deshalb: zusätzlich auf Dismissed/FailedToShow hören und hart auf Zeit
+//  begrenzen. Außerdem zählt die Auflösung der Plugin-Promise selbst als Beleg
+//  für die Belohnung — nicht nur das Rewarded-Ereignis (sonst kippt ein
+//  Reihenfolge-Rennen zwischen Ereignis und Antwort die Belohnung weg).
+//
 //  Im Web (kein AdMob): simuliert Erfolg, damit sich die Belohnung testen lässt.
 // ---------------------------------------------------------------------------
-export async function showRewarded(): Promise<boolean> {
-  if (!ready) return true; // Web/Dev-Fallback: Belohnung simulieren.
+export type RewardOutcome = 'earned' | 'aborted' | 'unavailable';
+
+const REWARD_HARD_TIMEOUT_MS = 180_000; // Notbremse: Video hängt/bleibt offen
+const REWARD_AFTER_EARN_MS = 15_000; // Belohnung sicher, Dismissed bleibt aus
+const REWARD_AFTER_DISMISS_MS = 400; // kurze Nachfrist für ein spätes Ereignis
+
+// Zwei gleichzeitige Anfragen (Doppeltipp) würden sich dieselben Ereignisse
+// teilen — im schlimmsten Fall wird EIN Video zweimal gutgeschrieben.
+let rewardInFlight = false;
+
+export async function requestReward(): Promise<RewardOutcome> {
+  if (!ready) return 'earned'; // Web/Dev-Fallback: Belohnung simulieren.
+  if (rewardInFlight) {
+    console.warn('Rewarded-Ad läuft bereits – zweite Anfrage verworfen.');
+    return 'unavailable';
+  }
+  rewardInFlight = true;
+
+  const handles: Array<{ remove: () => Promise<void> }> = [];
+  let earned = false;
+  let shown = false;
+  let done!: () => void;
+  const finished = new Promise<void>((resolve) => {
+    done = resolve;
+  });
+  let timer = setTimeout(done, REWARD_HARD_TIMEOUT_MS);
+  const rearm = (ms: number) => {
+    clearTimeout(timer);
+    timer = setTimeout(done, ms);
+  };
+
   try {
-    let earned = false;
-    const listener = await AdMob.addListener(RewardAdPluginEvents.Rewarded, () => {
-      earned = true;
-    });
-    await AdMob.prepareRewardVideoAd({ adId: ids().rewarded, isTesting: USE_TEST_ADS });
-    await AdMob.showRewardVideoAd();
-    await listener.remove();
-    return earned;
+    handles.push(
+      await AdMob.addListener(RewardAdPluginEvents.Showed, () => {
+        shown = true;
+      }),
+    );
+    handles.push(
+      await AdMob.addListener(RewardAdPluginEvents.Rewarded, () => {
+        earned = true;
+        rearm(REWARD_AFTER_EARN_MS); // gleich sollte Dismissed folgen
+      }),
+    );
+    handles.push(
+      await AdMob.addListener(RewardAdPluginEvents.Dismissed, () => {
+        rearm(REWARD_AFTER_DISMISS_MS);
+      }),
+    );
+    handles.push(await AdMob.addListener(RewardAdPluginEvents.FailedToShow, () => done()));
+
+    try {
+      await AdMob.prepareRewardVideoAd({ adId: ids().rewarded, isTesting: USE_TEST_ADS });
+    } catch (e) {
+      console.warn('Rewarded-Ad konnte nicht geladen werden:', e);
+      return 'unavailable';
+    }
+
+    // Bewusst ohne await (siehe Kopfkommentar): die Promise kann ewig offen
+    // bleiben. Sie zählt nur als zusätzlicher Beleg für die Belohnung.
+    AdMob.showRewardVideoAd()
+      .then(() => {
+        earned = true;
+        rearm(REWARD_AFTER_EARN_MS);
+      })
+      .catch((e: unknown) => {
+        console.warn('Rewarded-Ad fehlgeschlagen:', e);
+        done();
+      });
+
+    await finished;
+    return earned ? 'earned' : shown ? 'aborted' : 'unavailable';
   } catch (e) {
     console.warn('Rewarded-Ad fehlgeschlagen:', e);
-    return false;
+    return 'unavailable';
+  } finally {
+    rewardInFlight = false;
+    clearTimeout(timer);
+    for (const h of handles) {
+      try {
+        await h.remove();
+      } catch {
+        /* Listener schon weg – egal */
+      }
+    }
   }
 }

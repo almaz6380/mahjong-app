@@ -106,6 +106,16 @@ const D: Record<string, Entry> = {
   'game.refill': { de: 'Hol dir Nachschub:', en: 'Get a refill:' },
   'game.coinsBtn': { de: '{n} Münzen', en: '{n} coins' },
   'game.watchVideo': { de: 'Video ansehen', en: 'Watch video' },
+  'game.videoLoading': { de: 'Video wird geladen …', en: 'Loading video …' },
+  'game.rewardGranted': { de: '+1 {b} gutgeschrieben', en: '+1 {b} added' },
+  'game.rewardAborted': {
+    de: 'Video nicht zu Ende gesehen – keine Belohnung.',
+    en: 'Video not finished – no reward.',
+  },
+  'game.rewardUnavailable': {
+    de: 'Gerade kein Video verfügbar. Bitte später nochmal.',
+    en: 'No video available right now. Please try again later.',
+  },
   'game.levelDone': { de: 'Level {n} geschafft!', en: 'Level {n} complete!' },
   'game.levelWord': { de: 'Level', en: 'Level' },
   'game.dailyDone': { de: 'Tages-Challenge geschafft!', en: 'Daily challenge complete!' },

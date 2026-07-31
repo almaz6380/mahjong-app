@@ -817,6 +817,10 @@ body {
   left: 50%;
   bottom: calc(100px + env(safe-area-inset-bottom) + var(--banner-space));
   transform: translateX(-50%);
+  /* über .overlay (z-index 60), sonst schluckt der Sieg-/Kauf-Dialog die Meldung */
+  z-index: 70;
+  max-width: min(80vw, 420px);
+  text-align: center;
   background: rgba(10, 12, 16, 0.9);
   border: 1px solid var(--line);
   padding: 10px 16px;
