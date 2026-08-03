@@ -178,7 +178,34 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   Domain ändert. AdMob meldet „autorisiert" erst nach dem nächsten Crawl (~24 h).
   **Für iOS bis zur Freigabe gegenstandslos:** solange die App nicht im Store ist, gibt es keine
   Store-Seite, aus der der Crawler eine Website lesen könnte. Die Felder sind aber korrekt
-  hinterlegt und greifen ab Veröffentlichung von selbst.
+  hinterlegt und greifen ab Veröffentlichung von selbst. **Seit der iOS-Freigabe am 29.7.2026 ist
+  das nicht mehr theoretisch** — es gibt jetzt eine Store-Seite mit `marketingUrl`, der Crawler
+  kann also greifen. Einmal in AdMob (Einstellungen → app-ads.txt) nachsehen, ob **beide** Apps als
+  „autorisiert" geführt werden; steht dort etwas anderes, kauft ein Teil der Nachfrage stumm nicht
+  mit — ohne Fehlermeldung, nur mit niedrigerem eCPM.
+- **AdMob-Zahlen lesen (3.8.2026 einmal komplett falsch gedeutet, daher hier notiert).**
+  Der **eCPM auf der App-Übersicht ist bei kleinen Mengen wertlos** — er ist nur
+  `Einnahmen / Impressionen × 1000` über *alle* Formate zusammen. Beispiel aus der Praxis:
+  iOS zeigte 1,95 €, Android 10,41 € und es sah nach einem schweren iOS-Problem aus. Tatsächlich
+  standen dahinter 220 bzw. 73 Impressionen und zusammen 1,19 € Umsatz.
+  **Regeln, die sich daraus ergeben:**
+  (1) Unter ~1000 Impressionen je Plattform **gar nicht erst interpretieren** — Android schwankte
+  mit sich selbst um +45 % pro Woche, und die Rangfolge der Formate kippte komplett (Interstitial
+  0,62 € → 0,13 €).
+  (2) **Immer nach Format aufschlüsseln, sonst vergleicht man Äpfel mit Birnen:** Banner ~0,2–1 €,
+  Interstitial ~3–8 €, Rewarded ~8–25 € eCPM. Der Übersichtswert mittelt das zu einer Zahl, die von
+  der Formatverteilung dominiert wird und nicht vom Preisniveau. Aufschlüsselung: App-Übersicht →
+  Karte „Leistung des Anzeigenblocks" (Einnahmen je Block) bzw. „Bericht ansehen" → Dimension
+  „Anzeigenformat" für Impressionen/eCPM. **Die Seite *Anzeigenblöcke* zeigt keine Zahlen**, nur
+  die Einrichtung — dort nicht suchen.
+  (3) **Ausreißer nach oben sind meistens Klicks**, nicht bessere Preise: AdMob zahlt auch pro
+  Klick (0,20–0,50 € pro Banner-Klick). Bei 73 Impressionen hebt ein einziger Klick den
+  Plattform-eCPM um mehrere Euro — genau das war der Android-„Vorsprung", der komplett in der
+  Banner-Zeile steckte (0,58 € von 0,77 €).
+  (4) Wenn die **Banner-Klickrate über ~2 %** liegt, ist das kein Grund zur Freude, sondern ein
+  Prüfpunkt: Der Banner sitzt unten direkt unter der Bedienleiste (Neu/Zurück/Tipp/Mischen, bis
+  vc14 lag er sogar darauf). Versehentliche Klicks wertet Google als ungültigen Traffic, bucht sie
+  rückwirkend ab und verwarnt im Wiederholungsfall — dann Abstand über `--banner-space` erhöhen.
 - `src/store/iap.ts` — IAP via cordova-plugin-purchase v13 (kein RevenueCat). Produkte:
   `remove_ads` (Non-Consumable), `coins_small/medium/large` (Consumable)
 - `src/audio/sound.ts` — WebAudio-Synth **und Haptik**: `playTap`/`playMatch`/`playWin` lösen zusätzlich
