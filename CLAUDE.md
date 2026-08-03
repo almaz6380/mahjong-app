@@ -363,6 +363,11 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   muss ausgegraut werden können). **Android vc19 sofort live; iOS auf Josefs Wunsch nachgezogen**,
   damit beide Plattformen denselben Stand tragen: die laufende Prüfung von 1.0.2 (Build 17) wurde
   abgebrochen und stattdessen **1.0.3 / Build 18** eingereicht.
+  **Stand 3.8.2026: iOS 1.0.3 (Build 18) ist freigegeben und live** — beide Plattformen tragen
+  damit denselben Stand (Android vc19 / iOS Build 18). Zur Planung: von der Einreichung am 31.7.
+  bis zur Freigabe vergingen **rund drei Tage** — die 11 Tage vor Build 13 waren also wirklich die
+  einmalige Nachwirkung der 4.3(a)-Ablehnung und nicht die Regel. Auch der Abbruch der laufenden
+  1.0.2-Prüfung (Schritt 1 des Rezepts unten) hat die Freigabe nicht spürbar verzögert.
   **Rezept „Build gegen laufende Prüfung austauschen"** (drei Schritte, Skripte im Repo):
   1. `python3 scripts/asc-cancel.py --yes` — Version fällt auf `DEVELOPER_REJECTED` und ist wieder
      editierbar. **Kostet die Warteposition** (nach der 4.3a-Ablehnung waren das einmal 11 Tage) —
