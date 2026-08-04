@@ -113,14 +113,39 @@ jobs:
       - name: AAB bauen
         run: cd android && ./gradlew --no-daemon bundleRelease
 
+      # Prueft den Schalter selbst statt im fertigen Paket nach einer Zeichenkette
+      # zu suchen. Die alte Fassung durchsuchte base/dex/classes.dex und schlug
+      # dort an, obwohl USE_TEST_ADS auf false steht: Googles Anzeigen-SDK bringt
+      # dieselben Beispiel-IDs in seinem EIGENEN Java-Code mit. Unsere IDs stehen
+      # in src/ads/admob.ts und landen im Web-Bundle, nie im dex — die Prueffrage
+      # war also von vornherein an der falschen Stelle gestellt.
       - name: Keine Test-Werbe-IDs im Release
         run: |
-          AAB=android/app/build/outputs/bundle/release/app-release.aab
-          if unzip -p "$AAB" base/dex/classes.dex | grep -qa 3940256099942544; then
-            echo "ABBRUCH: Google-Test-Werbe-ID im Bundle — USE_TEST_ADS steht auf true!"
+          if ! grep -q 'const USE_TEST_ADS = false' src/ads/admob.ts; then
+            echo "ABBRUCH: USE_TEST_ADS steht nicht auf false — es wuerden"
+            echo "Google-Test-Anzeigen ausgeliefert (also null Einnahmen)."
             exit 1
           fi
-          echo "ok — keine Test-IDs"
+          echo "ok — echte Anzeigen-IDs"
+
+      # Nur zur Information, bricht nie ab: zeigt, WO die Test-Zeichenkette im
+      # Paket steckt. Steht sie ausschliesslich im dex (SDK/Plugin), ist alles in
+      # Ordnung; taucht sie im Web-Bundle unter base/assets/public auf, wirft der
+      # Bundler den inaktiven TEST-Block doch nicht weg — dann hier nachschaerfen.
+      - name: Diagnose — wo steckt die Test-Zeichenkette?
+        if: always()
+        run: |
+          AAB=android/app/build/outputs/bundle/release/app-release.aab
+          [ -f "$AAB" ] || { echo "kein AAB vorhanden"; exit 0; }
+          rm -rf /tmp/aab && mkdir -p /tmp/aab && unzip -q -o "$AAB" -d /tmp/aab
+          echo "### Google-TEST-ID (3940256099942544):"
+          grep -rla '3940256099942544' /tmp/aab | sed 's|/tmp/aab/|  · |' || echo "  (kein Treffer)"
+          echo
+          echo "### Unsere echte Publisher-ID (8860791993288062):"
+          grep -rla '8860791993288062' /tmp/aab | sed 's|/tmp/aab/|  · |' || echo "  (kein Treffer)"
+          echo
+          echo "### Web-Bundle im Paket:"
+          ls -1 /tmp/aab/base/assets/public/assets/*.js 2>/dev/null | sed 's|.*/|  · |' | head -5 || echo "  (nicht gefunden)"
 
       - name: AAB als Artefakt ablegen
         uses: actions/upload-artifact@v4
