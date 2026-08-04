@@ -76,7 +76,18 @@ jobs:
 
       - name: ExportOptions schreiben
         run: |
-          cat > /tmp/ExportOptions.plist <<'EOF'
+          set -euo pipefail
+          # Bei manueller Signierung verlangt xcodebuild beim Export die
+          # Zuordnung Bundle-ID -> Profilname. Beides steht im Profil selbst,
+          # also lesen wir es dort aus, statt es fest einzutippen. Ohne diesen
+          # Block bricht der Export mit "requires a provisioning profile" ab.
+          PROFIL="$HOME/Library/MobileDevice/Provisioning Profiles/app.mobileprovision"
+          security cms -D -i "$PROFIL" > /tmp/profil.plist
+          NAME=$(plutil -extract Name raw -o - /tmp/profil.plist)
+          APPID=$(plutil -extract Entitlements.application-identifier raw -o - /tmp/profil.plist)
+          BUNDLE=${APPID#*.}
+          echo "Profil \"$NAME\" fuer $BUNDLE"
+          cat > /tmp/ExportOptions.plist <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
@@ -85,9 +96,14 @@ jobs:
             <key>teamID</key><string>JU8STVD4SJ</string>
             <key>uploadSymbols</key><true/>
             <key>signingStyle</key><string>manual</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>$BUNDLE</key><string>$NAME</string>
+            </dict>
           </dict>
           </plist>
           EOF
+          rm -f /tmp/profil.plist
 
       - name: Archivieren
         run: |
