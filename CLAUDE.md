@@ -443,10 +443,19 @@ hingehört**, statt zu raten oder einen Umweg zu bauen.
 → Bild herunterladen, ins Repo legen, committen, im Chat zeigen. Ohne gesetzten
 `FAL_KEY` ist der Weg zu: dann sagen, dass die Variable in der Umgebung fehlt.
 
-**Auslösen in diesem Repo:** Beide Workflows sind fertig eingerichtet — „Android
-Release" und „iOS Release", Start per `workflow_dispatch` (Werkzeug
-`mcp__github__actions_run_trigger`), Secrets und Einrichtung in `store/ci-setup.md`.
-Davor Versionsnummern erhöhen und committen (`versionCode` in
-`android/app/build.gradle`, `CURRENT_PROJECT_VERSION` ×2 im pbxproj). Einen
-geänderten Workflow immer zuerst mit dem Schalter „nur bauen" testen. Und:
-`USE_TEST_ADS` muss für ein Release `false` sein.
+**Auslösen in diesem Repo:** „Android Release" und „iOS Release" sind fertig
+eingerichtet (Secrets und Einrichtung in `store/ci-setup.md`), Start per
+`workflow_dispatch`. **iOS am 4.8.2026 grün getestet** (Bau + Signierung, Upload aus,
+2,6 min). **Android baut und signiert ebenfalls sauber, bricht aber bewusst ab**: Die
+Sicherung „Keine Test-Werbe-IDs im Release" findet die Google-Test-ID im Bundle, weil
+`USE_TEST_ADS` in `src/ads/admob.ts` noch auf `true` steht. Vor einem Release umlegen —
+vorher nicht, sonst laufen beim Testen echte Anzeigen. Ebenfalls vorher: Versionsnummern
+erhöhen (`versionCode`, `CURRENT_PROJECT_VERSION` ×2 im pbxproj).
+
+⚠ **Falle beim iOS-Export** (4.8.26 zweimal reingelaufen): Bei manueller
+Signierung braucht `ExportOptions.plist` die Zuordnung **Bundle-ID → Profilname**.
+Fehlt sie, läuft der Bau vollständig durch und erst der Export bricht ab —
+`exportArchive "App.app" requires a provisioning profile`. Das liest sich wie ein
+fehlendes Profil, obwohl das Profil längst installiert ist. Der Workflow zieht beides
+jetzt zur Laufzeit aus dem Profil selbst (`security cms -D` + `plutil -extract`),
+damit es auch nach einer Profilerneuerung bei Apple stimmt.
