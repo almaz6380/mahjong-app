@@ -446,11 +446,18 @@ hingehört**, statt zu raten oder einen Umweg zu bauen.
 **Auslösen in diesem Repo:** „Android Release" und „iOS Release" sind fertig
 eingerichtet (Secrets und Einrichtung in `store/ci-setup.md`), Start per
 `workflow_dispatch`. **iOS am 4.8.2026 grün getestet** (Bau + Signierung, Upload aus,
-2,6 min). **Android baut und signiert ebenfalls sauber, bricht aber bewusst ab**: Die
-Sicherung „Keine Test-Werbe-IDs im Release" findet die Google-Test-ID im Bundle, weil
-`USE_TEST_ADS` in `src/ads/admob.ts` noch auf `true` steht. Vor einem Release umlegen —
-vorher nicht, sonst laufen beim Testen echte Anzeigen. Ebenfalls vorher: Versionsnummern
-erhöhen (`versionCode`, `CURRENT_PROJECT_VERSION` ×2 im pbxproj).
+2,6 min). **Android baut und signiert sauber, bricht dann aber an der eigenen Sicherung
+ab** — und das ist ⚠ **ungeklärt**: „Keine Test-Werbe-IDs im Release" findet die
+Google-Test-ID in `base/dex/classes.dex`, obwohl `USE_TEST_ADS` in `src/ads/admob.ts`
+seit dem 14.7. auf `false` steht. Die ausgelieferten Store-Versionen sind davon NICHT
+betroffen (vc19 lief über dieselbe Prüfung und liefert nachweislich echte Anzeigen mit
+Umsatz). Naheliegendste Erklärung: Die Zeichenkette stammt gar nicht aus unserer
+Konfiguration, sondern aus dem Anzeigen-SDK bzw. dem AdMob-Plugin, das im dex landet —
+die Prüfung greift also zu weit. **Vor dem nächsten Android-Release einmal diagnostisch
+klären** (ein Lauf genügt: im Bundle nachsehen, WO die Zeichenkette steckt), sonst
+blockiert die Sicherung jedes Release grundlos. Nicht einfach entfernen — sie hat ihren
+Zweck, sie ist nur zu unscharf. Ebenfalls vor jedem Release: Versionsnummern erhöhen
+(`versionCode`, `CURRENT_PROJECT_VERSION` ×2 im pbxproj).
 
 ⚠ **Falle beim iOS-Export** (4.8.26 zweimal reingelaufen): Bei manueller
 Signierung braucht `ExportOptions.plist` die Zuordnung **Bundle-ID → Profilname**.
