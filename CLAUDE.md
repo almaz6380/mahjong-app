@@ -446,17 +446,30 @@ hingehört**, statt zu raten oder einen Umweg zu bauen.
 **Auslösen in diesem Repo:** „Android Release" und „iOS Release" sind fertig
 eingerichtet (Secrets und Einrichtung in `store/ci-setup.md`), Start per
 `workflow_dispatch`. **iOS am 4.8.2026 grün getestet** (Bau + Signierung, Upload aus,
-2,6 min). **Android baut und signiert sauber, bricht dann aber an der eigenen Sicherung
-ab** — und das ist ⚠ **ungeklärt**: „Keine Test-Werbe-IDs im Release" findet die
-Google-Test-ID in `base/dex/classes.dex`, obwohl `USE_TEST_ADS` in `src/ads/admob.ts`
-seit dem 14.7. auf `false` steht. Die ausgelieferten Store-Versionen sind davon NICHT
-betroffen (vc19 lief über dieselbe Prüfung und liefert nachweislich echte Anzeigen mit
-Umsatz). Naheliegendste Erklärung: Die Zeichenkette stammt gar nicht aus unserer
-Konfiguration, sondern aus dem Anzeigen-SDK bzw. dem AdMob-Plugin, das im dex landet —
-die Prüfung greift also zu weit. **Vor dem nächsten Android-Release einmal diagnostisch
-klären** (ein Lauf genügt: im Bundle nachsehen, WO die Zeichenkette steckt), sonst
-blockiert die Sicherung jedes Release grundlos. Nicht einfach entfernen — sie hat ihren
-Zweck, sie ist nur zu unscharf. Ebenfalls vor jedem Release: Versionsnummern erhöhen
+2,6 min). **Android und iOS sind beide gruen** (4.8.2026, Upload jeweils aus).
+
+⚠ **Die alte Test-Werbe-Pruefung war ein Fehlalarm — Ursache geklaert, nicht raten.**
+Sie durchsuchte `base/dex/classes.dex` nach Googles Beispiel-ID `3940256099942544`
+und schlug an, obwohl `USE_TEST_ADS` seit dem 14.7. auf `false` steht. Ein
+Diagnoselauf am 4.8. (vc19, also derselbe Stand wie im Store) hat gezeigt, wo die
+Zeichenkette wirklich sitzt:
+
+| Zeichenkette | gefunden in |
+|---|---|
+| Test-ID `3940256099942544` | **nur** `base/dex/classes.dex` |
+| echte Publisher-ID `8860791993288062` | `AndroidManifest.xml`, `app-ads.txt`, `assets/index-*.js` |
+
+Das dex enthaelt uebersetzten Java-Code, also SDK und Plugins — Googles Anzeigen-SDK
+bringt seine Beispiel-IDs dort selbst mit. Unsere Konfiguration steckt im Web-Bundle,
+und dort steht die **echte** ID und keine Test-ID: Der Bundler wirft den inaktiven
+TEST-Block also tatsaechlich weg, wie immer angenommen. Die Pruefung stellte die Frage
+schlicht an der falschen Stelle.
+**Geprueft wird deshalb jetzt der Schalter selbst** (`const USE_TEST_ADS = false` in
+`src/ads/admob.ts`); ein Diagnoseschritt listet zusaetzlich auf, wo beide IDs im Paket
+vorkommen, ohne je abzubrechen. Wer die Pruefung kuenftig wieder auf Zeichenketten im
+fertigen Paket umstellt, baut denselben Fehlalarm erneut ein.
+
+Ebenfalls vor jedem Release: Versionsnummern erhöhen
 (`versionCode`, `CURRENT_PROJECT_VERSION` ×2 im pbxproj).
 
 ⚠ **Falle beim iOS-Export** (4.8.26 zweimal reingelaufen): Bei manueller
