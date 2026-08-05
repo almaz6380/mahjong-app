@@ -1,0 +1,91 @@
+name: App Store Connect
+
+# Nur manuell. Laeuft auf Linux — die ASC-API braucht keinen Mac, anders als
+# der Build. Der .p8-Schluessel wird aus dem base64-Secret dekodiert und nur
+# als Umgebungsvariable weitergereicht, nie in eine Datei geschrieben.
+#
+#   status          liest nur
+#   name            Anzeigename + Untertitel auf FullRep
+#   build           Build 4 der offenen Version zuweisen
+#   screenshots     iPhone- + iPad-Bilder ersetzen
+#   abo-screenshot  Paywall-Bild an alle Abos (gegen "Missing Metadata")
+#   abo-namen       Abo-Anzeigenamen MyPeak -> FullRep
+#   einreichungen   alle Einreichungen samt Zustand zeigen (liest nur)
+#   aufraeumen      festhaengende Einreichungen zurueckziehen
+#   abo-notiz       Prueferhinweis am Abo setzen
+#   inhaberrechte   contentRightsDeclaration setzen (app-weit)
+#   warum           liest nur: was blockiert die Einreichung?
+#   exportfrage     usesNonExemptEncryption am Build beantworten
+#   pruefnotiz      App-Review-Notiz: was sich seit der Ablehnung aendert
+#   einreichen      Version samt Abos zur Pruefung
+#   alles           die sechs schreibenden der Reihe nach
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Was getan wird'
+        type: choice
+        options:
+          - status
+          - build
+          - screenshots
+          - einreichungen
+          - aufraeumen
+          - inhaberrechte
+          - warum
+          - exportfrage
+          - einreichen
+        default: status
+      dry_run:
+        description: 'Nur zeigen, nichts an Apple senden'
+        type: boolean
+        default: true
+      trotzdem:
+        description: 'Einreichen, auch wenn die Abos nicht mitkoennen (2.1b-Risiko)'
+        type: boolean
+        default: false
+
+jobs:
+  asc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Abhaengigkeiten
+        run: pip3 install --quiet pyjwt cryptography
+
+      - name: App Store Connect
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          MODE: ${{ inputs.mode }}
+          DRY: ${{ inputs.dry_run }}
+          TROTZDEM: ${{ inputs.trotzdem }}
+        run: |
+          set -euo pipefail
+          ASC_KEY_P8=$(printf '%s' "$ASC_KEY_P8_BASE64" | tr -cd 'A-Za-z0-9+/=' | base64 -d)
+          if [ -z "$ASC_KEY_P8" ]; then
+            echo "::error::ASC_KEY_P8_BASE64 laesst sich nicht dekodieren."
+            exit 1
+          fi
+          export ASC_KEY_P8
+
+          # --build braucht eine Nummer, die uebrigen nicht. Der Trockenlauf
+          # gilt nur fuer die schreibenden Befehle; --status kennt ihn nicht.
+          if [ "$MODE" = "build" ]; then
+            ARGS="--build 4"
+          else
+            ARGS="--$MODE"
+          fi
+          # warum liest nur, kennt --dry-run also nicht.
+          if [ "$MODE" != "status" ] && [ "$MODE" != "warum" ] && [ "$MODE" != "einreichungen" ] && [ "$DRY" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+          # Nur beim Einreichen sinnvoll; ueberall sonst waere er wirkungslos
+          # und wuerde nur den Eindruck erwecken, es sei etwas erzwungen worden.
+          if [ "$MODE" = "einreichen" ] && [ "$TROTZDEM" = "true" ]; then
+            ARGS="$ARGS --trotzdem"
+          fi
+          echo "scripts/asc.py $ARGS"
+          python3 scripts/asc.py $ARGS

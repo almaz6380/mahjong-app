@@ -1,0 +1,78 @@
+name: Play-Eintrag aktualisieren
+
+# Nur manuell. Der Store-Eintrag ist oeffentlich — den aendert man absichtlich,
+# nicht als Nebenwirkung eines Push. Standard ist der Trockenlauf.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Was aktualisiert wird'
+        type: choice
+        options: [screenshots, texte, grafiken]
+        default: screenshots
+      lang:
+        description: 'Sprache des Store-Eintrags'
+        default: 'de-DE'
+        required: true
+      dry_run:
+        description: 'Trockenlauf (nur anzeigen, nichts aendern)'
+        type: boolean
+        default: true
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Abhaengigkeiten
+        run: pip3 install --quiet pyjwt cryptography
+
+      - name: Play-Eintrag aktualisieren
+        env:
+          # Der Schluessel verlaesst die GitHub-Secrets nicht. Er wird nur in die
+          # Datei geschrieben, die scripts/play-upload.py erwartet.
+          PLAY_KEY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          MODE: ${{ inputs.mode }}
+          LANG_INPUT: ${{ inputs.lang }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          if [ -z "${PLAY_KEY_JSON:-}" ]; then
+            echo "Secret PLAY_SERVICE_ACCOUNT_JSON fehlt im Repository." >&2
+            exit 1
+          fi
+          mkdir -p ~/.config/play-publisher
+          printf '%s' "$PLAY_KEY_JSON" > ~/.config/play-publisher/key.json
+
+          GEMEINSAM=(--lang "$LANG_INPUT")
+          if [ "$DRY_RUN" = "true" ]; then
+            GEMEINSAM+=(--dry-run)
+            echo "::notice::Trockenlauf — es wird nichts am Store-Eintrag geaendert."
+          else
+            echo "::warning::Echter Lauf — der oeffentliche Play-Eintrag wird jetzt geaendert."
+          fi
+
+          case "$MODE" in
+            texte)
+              python3 scripts/play-upload.py \
+                --listing "store/play-listing.$LANG_INPUT.json" "${GEMEINSAM[@]}"
+              ;;
+            grafiken)
+              # App-Symbol und Vorstellungsgrafik sind zwei getrennte Uploads;
+              # jeder braucht seine eigene Edit-Transaktion.
+              python3 scripts/play-upload.py \
+                --icon store/play-icon-512.png "${GEMEINSAM[@]}"
+              echo
+              python3 scripts/play-upload.py \
+                --feature store/play-feature-graphic.png "${GEMEINSAM[@]}"
+              ;;
+            *)
+              python3 scripts/play-upload.py \
+                --screenshots store/play-screenshots "${GEMEINSAM[@]}"
+              ;;
+          esac
+
+      - name: Schluessel entfernen
+        if: always()
+        run: rm -f ~/.config/play-publisher/key.json
