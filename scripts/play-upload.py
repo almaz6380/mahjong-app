@@ -25,6 +25,7 @@ import argparse
 import glob
 import json
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -183,9 +184,29 @@ def lade_screenshots(tok, verzeichnis, lang, dry_run=False, image_type='phoneScr
     Achtung: Das Listing ist oeffentlich. Ohne --dry-run ist die Aenderung nach
     dem Commit sofort sichtbar.
     """
-    bilder = sorted(glob.glob(os.path.join(verzeichnis, '[0-9][0-9]-*.png')))
+    # Dateien muessen mit einer Nummer beginnen — sie bestimmt die Reihenfolge
+    # im Store. Sortiert wird NUMERISCH, nicht alphabetisch: sonst stuende
+    # "10-…" vor "2-…". Ein- und zweistellig ist beides erlaubt, weil die Repos
+    # es unterschiedlich halten (01-menu.png hier, 1-menu.png dort).
+    bilder = []
+    for pfad in glob.glob(os.path.join(verzeichnis, '*')):
+        name = os.path.basename(pfad)
+        if not name.lower().endswith(('.png', '.jpg', '.jpeg')):
+            continue
+        m = re.match(r'(\d+)[-_ ]', name)
+        if m:
+            bilder.append((int(m.group(1)), name, pfad))
+    bilder.sort()
     if not bilder:
-        sys.exit(f'Keine Screenshots in {verzeichnis} (erwartet: 01-….png)')
+        vorhanden = sorted(os.path.basename(p) for p in glob.glob(os.path.join(verzeichnis, '*')))
+        sys.exit(
+            f'Keine nummerierten Bilder in {verzeichnis}.\n'
+            'Erwartet werden Dateinamen, die mit einer Nummer beginnen — sie legt\n'
+            'die Reihenfolge im Store fest, z. B. 1-start.png oder 01-start.png.\n'
+            + (f'Gefunden wurde stattdessen: {", ".join(vorhanden[:8])}' if vorhanden
+               else 'Das Verzeichnis ist leer oder fehlt.')
+        )
+    bilder = [p for _, _, p in bilder]
 
     print(f'{len(bilder)} Screenshots fuer {lang} / {image_type}:')
     for b in bilder:
