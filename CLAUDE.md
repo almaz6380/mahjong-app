@@ -423,6 +423,13 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   **Der Auto-Modus von Claude Code blockt das Auslösen der Release-Workflows** (`gh workflow run`):
   Josef muss sie per `!`-Prefix selbst starten, die ASC-Skripte liefen dann durch. Das kostet zwei
   Chat-Runden — beim Planen einrechnen.
+  **Nachspiel ITMS-90068 („MinimumOSVersion too low"):** Apple hat Build 19 zwar angenommen
+  (reine Warnung, „delivery was successful"), verlangt aber **ab Frühjahr 2027 mindestens iOS 15**
+  für jeden Upload. Deshalb steht das Deployment-Target jetzt auf **15.0** — an **vier** Stellen im
+  `project.pbxproj` *und* in `ios/App/Podfile` (`platform :ios, '15.0'`); danach `pod install`
+  (aktualisiert `Podfile.lock`). Verifiziert mit einem Simulator-Build
+  (`xcodebuild -sdk iphonesimulator … CODE_SIGNING_ALLOWED=NO build` → BUILD SUCCEEDED). Greift mit
+  dem nächsten Build, 1.0.4 selbst wurde dafür bewusst nicht neu gebaut.
 
 ---
 
