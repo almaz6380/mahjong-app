@@ -157,11 +157,14 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
 - `src/ads/admob.ts` — **`USE_TEST_ADS`-Flag**: `false` = echte Anzeigen (Launch), `true` = Google-Test-IDs.
   Prod-IDs siehe `admob-ids.md`. Der Bundler eliminiert den jeweils inaktiven ID-Block!
   Check im fertigen Build: `grep 3940256099942544` (Test-ID) im entpackten JS-Bundle → darf im Release NICHT vorkommen.
-  **Banner-Platz (`--banner-space`):** Der Banner ist eine native View ÜBER der WebView — er schiebt
-  nichts weg. Jede Layout-Wurzel (`.app`, `.home`, `.m4`, `.mode-play`) rechnet die Höhe unten mit ein;
-  gesetzt wird sie aus dem `SizeChanged`-Ereignis des Plugins (dp = CSS-px), bei Fehler/Entfernen auf 0.
-  Fehlt das, liegt die Werbung auf der Bedienleiste (Neu/Zurück/Tipp/Mischen) — war bis vc14 so.
-  Prüfen ohne Gerät: `--banner-space` im Browser von Hand setzen, der Inhalt muss nach oben rücken.
+  **Kein Banner mehr (8.8.2026, auf Josefs Wunsch):** Der Streifen unten hat gestört. `showBanner()`,
+  die Banner-Ereignisse, der Retry und die CSS-Variable `--banner-space` sind ersatzlos raus — die
+  Layout-Wurzeln (`.app`, `.home`, `.m4`, `.mode-play`) rechnen nur noch `env(safe-area-inset-bottom)`.
+  Die Banner-Anzeigenblöcke bleiben in AdMob bestehen (IDs in `admob-ids.md`), falls es je zurück soll;
+  dann kommt auch der reservierte Platz zurück — ohne ihn lag die Werbung auf der Bedienleiste
+  (Neu/Zurück/Tipp/Mischen), so war es bis vc14. Als Ausgleich zeigt das **Interstitial jetzt jedes 2.
+  gewonnene Level** statt jedes 3. (`shouldShowInterstitial`); die eigentliche Bremse bleibt der
+  Mindestabstand von 75 s.
 - **`public/app-ads.txt` — Verkäufer-Autorisierung (bares Geld).** Eine Zeile:
   `google.com, pub-8860791993288062, DIRECT, f08c47fec0942fa0`. Ohne diese Datei kaufen
   Werbetreibende, die nur bei autorisierten Verkäufern einkaufen, unser Inventar **nicht** —
@@ -202,10 +205,10 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   Klick (0,20–0,50 € pro Banner-Klick). Bei 73 Impressionen hebt ein einziger Klick den
   Plattform-eCPM um mehrere Euro — genau das war der Android-„Vorsprung", der komplett in der
   Banner-Zeile steckte (0,58 € von 0,77 €).
-  (4) Wenn die **Banner-Klickrate über ~2 %** liegt, ist das kein Grund zur Freude, sondern ein
-  Prüfpunkt: Der Banner sitzt unten direkt unter der Bedienleiste (Neu/Zurück/Tipp/Mischen, bis
-  vc14 lag er sogar darauf). Versehentliche Klicks wertet Google als ungültigen Traffic, bucht sie
-  rückwirkend ab und verwarnt im Wiederholungsfall — dann Abstand über `--banner-space` erhöhen.
+  (4) Der Banner ist seit 8.8.2026 raus (siehe oben) — die Banner-Zeile in den Berichten läuft also
+  aus. Damit fällt auch das alte Risiko weg, dass Fehltipps auf den Streifen unter der Bedienleiste
+  als ungültiger Traffic gewertet werden. Beim Vergleich alter und neuer Wochen daran denken: der
+  Rückgang der Gesamteinnahmen ist erwartet, entscheidend ist die Interstitial-/Rewarded-Zeile.
 - `src/store/iap.ts` — IAP via cordova-plugin-purchase v13 (kein RevenueCat). Produkte:
   `remove_ads` (Non-Consumable), `coins_small/medium/large` (Consumable)
 - `src/audio/sound.ts` — WebAudio-Synth **und Haptik**: `playTap`/`playMatch`/`playWin` lösen zusätzlich

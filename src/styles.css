@@ -34,7 +34,6 @@
   --r-lg: 22px;
   --sh-1: 0 2px 10px rgba(0, 0, 0, 0.35);
   --sh-2: 0 18px 44px rgba(0, 0, 0, 0.55);
-  --banner-space: 0px;
 }
 
 * {
@@ -569,7 +568,7 @@ body {
   display: flex;
   flex-direction: column;
   padding-top: env(safe-area-inset-top);
-  padding-bottom: calc(env(safe-area-inset-bottom) + var(--banner-space));
+  padding-bottom: env(safe-area-inset-bottom);
 }
 .hud {
   display: flex;
@@ -815,7 +814,7 @@ body {
 .toast {
   position: fixed;
   left: 50%;
-  bottom: calc(100px + env(safe-area-inset-bottom) + var(--banner-space));
+  bottom: calc(100px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
   /* über .overlay (z-index 60), sonst schluckt der Sieg-/Kauf-Dialog die Meldung */
   z-index: 70;
@@ -944,10 +943,8 @@ body {
   position: relative;
   overflow: hidden;
   color: #f4ecd8;
-  /* Unten zusätzlich die Bannerhöhe (--banner-space), sonst liegt die Werbung
-     auf „Alle Spiele" und den Seiten-Symbolen. */
   padding: calc(env(safe-area-inset-top) + 14px) calc(env(safe-area-inset-right) + 16px)
-           calc(env(safe-area-inset-bottom) + 18px + var(--banner-space)) calc(env(safe-area-inset-left) + 16px);
+           calc(env(safe-area-inset-bottom) + 18px) calc(env(safe-area-inset-left) + 16px);
   /* Hintergrund liefert die fixe Vollbild-Ebene .home-bg (Tempel-Motiv). */
   background: transparent;
 }
@@ -1296,7 +1293,7 @@ html.on-home .app-bg {
   display: flex;
   flex-direction: column;
   padding-top: env(safe-area-inset-top);
-  padding-bottom: calc(env(safe-area-inset-bottom) + var(--banner-space));
+  padding-bottom: env(safe-area-inset-bottom);
   background: radial-gradient(120% 80% at 50% 42%, var(--felt-2), var(--felt) 82%);
 }
 .seat {
@@ -1497,7 +1494,7 @@ html.on-home .app-bg {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(env(safe-area-inset-bottom) + var(--banner-space));
+  bottom: env(safe-area-inset-bottom);
   display: flex;
   gap: 8px;
   justify-content: center;
@@ -1666,7 +1663,7 @@ html.on-home .app-bg {
   display: flex;
   flex-direction: column;
   padding-top: env(safe-area-inset-top);
-  padding-bottom: calc(env(safe-area-inset-bottom) + var(--banner-space));
+  padding-bottom: env(safe-area-inset-bottom);
 }
 .mode-head {
   display: flex;
