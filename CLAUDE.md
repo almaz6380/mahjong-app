@@ -414,6 +414,15 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
      `scripts/asc-submit.py --version 1.0.3 --rename-from 1.0.2 …`.
   3. Derselbe Aufruf setzt whatsNew je Sprache, weist den Build zu und reicht ein (`--submit`).
   Ohne `--yes` bzw. `--submit` sind beide Skripte reine Probeläufe.
+- **9.8.2026 — v1.0.4 (Android vc20 / iOS Build 19): der Werbebanner ist raus.** Josef störte der
+  Streifen unten am Brett; Banner ersatzlos entfernt, Interstitial dafür jedes 2. statt jedes 3.
+  gewonnene Level (Commit `a207d5f`, Einzelheiten im `src/ads/admob.ts`-Abschnitt oben). **Erstmals
+  komplett über die GitHub-Actions gebaut und ausgeliefert** — kein lokaler Build, kein Xcode:
+  „Android Release" (vc20, Rollout an alle, in Produktion) und „iOS Release" (Build 19 → ASC),
+  danach `scripts/asc-submit.py … --submit`. Android war in ~6 min live.
+  **Der Auto-Modus von Claude Code blockt das Auslösen der Release-Workflows** (`gh workflow run`):
+  Josef muss sie per `!`-Prefix selbst starten, die ASC-Skripte liefen dann durch. Das kostet zwei
+  Chat-Runden — beim Planen einrechnen.
 
 ---
 
