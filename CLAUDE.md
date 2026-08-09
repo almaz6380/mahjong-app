@@ -332,6 +332,13 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   App Store kennt keine; Play-Listings sind zudem vom Build entkoppelt und lösen keine Prüfung aus.
   (5) `@capacitor/assets generate` schreibt die PWA-Icons nach `icons/`, ausgeliefert wird aber
   `public/icons/` + `public/pwa-*.png` + `public/apple-touch-icon.png` — die von Hand nachziehen.
+  (6) **Die Sprachcodes an der Version heißen nicht überall gleich** (bei 1.0.4 reingefallen):
+  Apple führt unsere sieben als `de-DE`, `en-US`, `es-ES`, `pt-BR`, `fr-FR` — aber **`it` und `ja`
+  ohne Länderteil**. Steht in der `--notes-file` von `asc-submit.py` `it-IT`/`ja-JP`, findet das
+  Skript den Schlüssel nicht und setzt still den englischen Text. Vorlage mit den richtigen
+  Schlüsseln: `store/whatsnew-1.0.4.json`. Die tatsächliche Liste druckt das Skript als
+  „Sprachen an der Version" — **vor dem `--submit` einmal ansehen**, danach sind die Metadaten
+  bis zum Prüfungsende gesperrt.
 - Ersteinreichung 6.7.2026 (iOS Build 2 / Android vc3); **iOS wegen 4.3(a) „Design: Spam" abgelehnt**.
 - **Neu eingereicht 12.7.2026, v1.0 — iOS Build 10 / Android versionCode 11**: mit Riichi, natürlichem
   Jade-Look, drehendem 3D-Stein, neuem Icon/Splash, neuen Screenshots (iPhone+iPad / Handy+Tablet),
