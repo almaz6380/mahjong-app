@@ -3,6 +3,12 @@
 //
 //   node scripts/reel/record-solitaire.mjs [--level 12] [--lang en] [--paare 14]
 //                                          [--out out/reels] [--server http://localhost:5199]
+//                                          [--nur-brett]
+//
+// Voreinstellung ist die Aufnahme des GANZEN Bildschirms — mit Kopfzeile
+// (Level, Muenzen) und Bedienleiste. Das sieht aus wie eine echte
+// Bildschirmaufnahme vom Handy und wirkt dadurch glaubwuerdiger als ein
+// freigestelltes Brett. `--nur-brett` blendet beides aus.
 //
 // Voraussetzung: `npm run build && npx vite preview --port 5199` laeuft,
 // dazu einmalig `npm i --no-save playwright ffmpeg-static`.
@@ -38,6 +44,7 @@ const LEVEL = Number(arg('level', 12));
 const LANG = arg('lang', 'en');
 const PAARE = Number(arg('paare', 14));
 const SERVER = arg('server', 'http://localhost:5199');
+const NUR_BRETT = process.argv.includes('--nur-brett');
 const OUT = join(WURZEL, arg('out', 'out/reels'));
 const FPS = 30;
 
@@ -76,43 +83,37 @@ await page.waitForTimeout(2200);
 await page.click('.play-btn').catch(() => {});
 await page.waitForSelector('.board .tile', { timeout: 15000 });
 
-// Spiel-Chrome ausblenden: Kopfzeile (`header.hud`) und Bedienleiste
-// (`nav.controls`) lenken vom Brett ab, und "Undo/Hint/Shuffle" haben in einer
-// Werbung nichts verloren. Die Klassennamen stammen aus src/ui/GameScreen.tsx —
-// geraten hatte ich vorher `.bottom-bar`, und die Leiste blieb stehen.
+// Nur auf Wunsch freistellen. Standard ist der ganze Bildschirm: Kopfzeile
+// und Bedienleiste gehoeren zu einer echten Bildschirmaufnahme dazu.
 //
-// ⚠ Nicht per Element-Selektor `header` ausblenden: Auf gleicher Ebene haengen
-// die SVG-Definitionen aus main.tsx (`TileDefs`), auf die jeder Stein per
-// url(#gold) verweist.
-await page.addStyleTag({
-  content: `
-    .hud, .controls { display: none !important; }
-    .app { padding-top: 0 !important; padding-bottom: 0 !important; }
-    body { overflow: hidden !important; }
-  `,
-});
-
-// ⚠ `.app` NICHT zu einer Flexbox machen, um das Brett zu zentrieren — dabei
-// kollabiert die Breite, das Brett schrumpft auf einen schmalen Streifen.
-// Stattdessen nur den Wrapper mittig setzen und das Brett um sich selbst
-// vergroessern: Board.tsx deckelt seine Skalierung bei 1.85, weil in der App
-// Kopf und Leiste Platz brauchen — die sind hier weg, also ist Luft.
-await page.waitForTimeout(400);
-await page.evaluate(() => {
-  const wrap = document.querySelector('.board-wrap');
-  const el = document.querySelector('.board-scale');
-  if (!wrap || !el) return;
-  const r = el.getBoundingClientRect();
-  const f = Math.min(window.innerWidth * 0.94 / r.width, window.innerHeight * 0.80 / r.height);
-  wrap.style.display = 'flex';
-  wrap.style.alignItems = 'center';
-  wrap.style.justifyContent = 'center';
-  wrap.style.height = '100dvh';
-  if (f > 1.02) {
-    el.style.transformOrigin = 'center center';
-    el.style.zoom = f.toFixed(3);   // zoom statt transform: rechnet das Layout mit
-  }
-});
+// ⚠ Falls doch freigestellt wird: die echten Klassen sind `.hud` und
+// `.controls`. NICHT per Element-Selektor `header` — auf gleicher Ebene
+// haengen die SVG-Definitionen aus main.tsx (`TileDefs`), auf die jeder Stein
+// per url(#gold) verweist. Und `.app` NICHT zu einer Flexbox machen, um das
+// Brett zu zentrieren: dabei kollabiert die Breite und das Brett schrumpft
+// auf einen schmalen Streifen.
+if (NUR_BRETT) {
+  await page.addStyleTag({
+    content: `
+      .hud, .controls { display: none !important; }
+      .app { padding-top: 0 !important; padding-bottom: 0 !important; }
+      body { overflow: hidden !important; }
+    `,
+  });
+  await page.waitForTimeout(400);
+  await page.evaluate(() => {
+    const wrap = document.querySelector('.board-wrap');
+    const el = document.querySelector('.board-scale');
+    if (!wrap || !el) return;
+    const r = el.getBoundingClientRect();
+    const f = Math.min(window.innerWidth * 0.94 / r.width, window.innerHeight * 0.80 / r.height);
+    wrap.style.display = 'flex';
+    wrap.style.alignItems = 'center';
+    wrap.style.justifyContent = 'center';
+    wrap.style.height = '100dvh';
+    if (f > 1.02) { el.style.transformOrigin = 'center center'; el.style.zoom = f.toFixed(3); }
+  });
+}
 await page.waitForTimeout(900);
 
 // ---------------------------------------------------------------------------
