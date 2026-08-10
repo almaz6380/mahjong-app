@@ -164,7 +164,10 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   dann kommt auch der reservierte Platz zurück — ohne ihn lag die Werbung auf der Bedienleiste
   (Neu/Zurück/Tipp/Mischen), so war es bis vc14. Als Ausgleich zeigt das **Interstitial jetzt jedes 2.
   gewonnene Level** statt jedes 3. (`shouldShowInterstitial`); die eigentliche Bremse bleibt der
-  Mindestabstand von 75 s.
+  Mindestabstand. **Seit 10.8.2026 (v1.0.6) wieder entzerrt: jedes 3. gewonnene Level und 120 s
+  Sperre** (`INTERSTITIAL_EVERY_NTH_WIN` + `INTERSTITIAL_MIN_GAP_MS`) — Josef war die Taktung zu dicht.
+  Der Mindestabstand ist die eigentliche Bremse und gilt über dieselbe Konstante auch für
+  `maybeShowInterstitialModes`, also für die Bonus-Spiele, die keinen Level-Zähler haben.
 - **`public/app-ads.txt` — Verkäufer-Autorisierung (bares Geld).** Eine Zeile:
   `google.com, pub-8860791993288062, DIRECT, f08c47fec0942fa0`. Ohne diese Datei kaufen
   Werbetreibende, die nur bei autorisierten Verkäufern einkaufen, unser Inventar **nicht** —
@@ -469,6 +472,22 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   Versionsverlauf im App Store zeigt die **veröffentlichte**, nicht die **installierte** Fassung.
   Bei „Fix wirkt nicht"-Meldungen also immer zuerst die installierte Version klären; genau dafür gibt
   es die Versionszeile jetzt in der App.
+- **10.8.2026 — v1.0.6 (Android vc22 / iOS Build 21): Werbung entzerrt.** Josef wollte gleich nach
+  1.0.5 größere Abstände: Interstitial nur noch **jedes 3.** gewonnene Level (statt jedes 2.) und
+  **120 s** Mindestabstand (statt 75 s). Damit ist die Taktung wieder wie vor dem Wegfall des Banners,
+  nur mit längerer Sperre.
+  **Release-Entscheidung, die sich lohnt zu merken:** 1.0.5 war zu diesem Zeitpunkt schon gebaut —
+  Android vc21 war ausgerollt, **iOS Build 20 lag hochgeladen, aber noch nicht eingereicht**. Deshalb
+  wurde Build 20 **gar nicht erst eingereicht**, sondern gleich Build 21 mit beiden Änderungen als
+  1.0.6 geschickt. Das spart eine komplette Prüfrunde, ohne den Sprachfix zu verzögern: Beide Wege
+  brauchen genau eine Prüfung. **Ein hochgeladener, nicht eingereichter Build kostet nichts** — er
+  bleibt in ASC liegen und kann übersprungen werden.
+  **Bei Play gibt es kein Zurücknehmen:** Ein Release mit `status: completed` (100 %) lässt sich nicht
+  anhalten — `halt` geht nur bei laufendem Stufen-Rollout (`inProgress`). Der einzige Weg, ein
+  ausgeliefertes Release zu ersetzen, ist ein **neues Release mit höherem versionCode** auf demselben
+  Track; es überschreibt das alte für alle Nutzer. Wer also „abbrechen" möchte, bekommt in der Praxis
+  „überschreiben" — und sollte den Rollout beim nächsten heiklen Release lieber gestuft starten
+  (`--fraction 0.2`), dann ist ein echtes `halt` möglich.
 
 ---
 

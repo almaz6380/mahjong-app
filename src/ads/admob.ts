@@ -119,16 +119,20 @@ export async function initAds(): Promise<void> {
 
 // ---------------------------------------------------------------------------
 //  Interstitial – sanfte Policy:
-//  erst ab Level 3, nur jedes 2. gewonnene Level, mind. 75s Abstand.
-//  (War jedes 3., seit dem Wegfall des Banners jedes 2. — der Mindestabstand
-//  von 75 s bleibt die eigentliche Bremse.)
+//  erst ab Level 3, nur jedes 3. gewonnene Level, mind. 120 s Abstand.
+//  Verlauf: ursprünglich jedes 3. Level / 75 s → mit dem Wegfall des Banners
+//  am 8.8.2026 auf jedes 2. verdichtet → am 10.8.2026 auf Josefs Wunsch wieder
+//  entzerrt: jedes 3. Level UND 120 s Sperre. Der Mindestabstand ist dabei die
+//  eigentliche Bremse — er greift auch für die Spezialmodi
+//  (`maybeShowInterstitialModes`), die keinen Level-Zähler haben.
 // ---------------------------------------------------------------------------
-const INTERSTITIAL_MIN_GAP_MS = 75_000;
+const INTERSTITIAL_MIN_GAP_MS = 120_000;
+const INTERSTITIAL_EVERY_NTH_WIN = 3;
 let lastInterstitial = 0;
 
 export function shouldShowInterstitial(level: number, totalWins: number): boolean {
   if (level < 3) return false;
-  if (totalWins % 2 !== 0) return false;
+  if (totalWins % INTERSTITIAL_EVERY_NTH_WIN !== 0) return false;
   if (Date.now() - lastInterstitial < INTERSTITIAL_MIN_GAP_MS) return false;
   return true;
 }
