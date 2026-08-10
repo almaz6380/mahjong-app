@@ -1142,6 +1142,11 @@ html.on-home .app-bg {
 .screen-body {
   flex: 1;
   overflow-y: auto;
+  /* WICHTIG: ohne diese Zeile rechnet CSS `overflow-x` von `visible` auf `auto`
+     hoch, sobald eine Achse scrollt. Ein einziges zu breites Kind (bis 10.8.2026
+     die Sprachauswahl mit 8 Knöpfen) machte damit den GANZEN Bildschirm seitlich
+     verschiebbar — Überschriften und Beschriftungen rutschten aus dem Bild. */
+  overflow-x: hidden;
   padding: 8px 16px 24px;
   display: flex;
   flex-direction: column;
@@ -1559,10 +1564,33 @@ html.on-home .app-bg {
 /* Segment-Auswahl (z. B. KI-Schwierigkeit) */
 .segment {
   display: flex;
+  /* umbrechen statt über den Bildschirmrand hinauswachsen: die Sprachauswahl
+     hat seit den 7 Sprachen 8 Knöpfe und passt auf keinem Handy in eine Zeile.
+     `min-width: 0` erlaubt dem Flex-Kind, unter seine Inhaltsbreite zu schrumpfen. */
+  flex-wrap: wrap;
+  min-width: 0;
+  justify-content: flex-end;
   gap: 4px;
   background: var(--surface-2);
   border-radius: 12px;
   padding: 3px;
+}
+/* Zeile mit Beschriftung ÜBER der Auswahl — für Auswahlen, die zu breit für
+   eine Zeile neben ihrer Beschriftung sind (Sprache). */
+.row-stack {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+.row-stack .segment {
+  justify-content: center;
+}
+/* Sprachauswahl als festes 4er-Raster: 8 Knöpfe ergeben zwei gleich lange
+   Reihen. Reiner Umbruch sähe unruhig aus (7 Knöpfe oben, einer allein unten),
+   und die Knopfbreite schwankte mit der Beschriftung. */
+.segment-lang {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
 }
 .segment button {
   padding: 7px 12px;

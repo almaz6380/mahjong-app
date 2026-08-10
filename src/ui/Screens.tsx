@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Progress } from '../game/progress';
 import { THEMES, TILE_SKINS, SKIN_FILTER } from '../game/themes';
 import { Tile } from './Tile';
@@ -7,6 +7,7 @@ import { PRODUCTS, purchase, displayPrice, canRestore, restorePurchases, type Pr
 import { setAdsRemoved, canChangeAdConsent, changeAdConsent } from '../ads/admob';
 import { Icon } from './Icon';
 import { t, LANGS, type Lang } from '../i18n';
+import { appVersionLabel } from '../appVersion';
 
 function ScreenHeader({ title, onBack }: { title: string; onBack: () => void }) {
   return (
@@ -47,6 +48,14 @@ export function SettingsScreen({
   onBack: () => void;
 }) {
   const [confirm, setConfirm] = useState(false);
+  const [version, setVersion] = useState('');
+  useEffect(() => {
+    let live = true;
+    appVersionLabel().then((v) => live && setVersion(v));
+    return () => {
+      live = false;
+    };
+  }, []);
   const levels: [('easy' | 'normal' | 'hard'), string][] = [
     ['easy', t('set.easy')],
     ['normal', t('set.normal')],
@@ -106,9 +115,9 @@ export function SettingsScreen({
             <span className="knob" />
           </button>
         </div>
-        <div className="row">
+        <div className="row row-stack">
           <span>{t('set.lang')}</span>
-          <div className="segment">
+          <div className="segment segment-lang">
             {langs.map(([id, label]) => (
               <button key={id || 'auto'} className={progress.lang === id ? 'on' : ''} onClick={() => setLang(id)}>
                 {label}
@@ -116,7 +125,7 @@ export function SettingsScreen({
             ))}
           </div>
         </div>
-        <div className="row">
+        <div className="row row-stack">
           <span>{t('set.ai')}</span>
           <div className="segment">
             {levels.map(([id, label]) => (
@@ -140,7 +149,7 @@ export function SettingsScreen({
             {t('set.resetBtn')}
           </button>
         </div>
-        <div className="credit">v1.0 · Mahjong Royale</div>
+        <div className="credit">{version ? `${version} · ` : ''}Mahjong Royale</div>
       </div>
 
       {confirm && (

@@ -217,6 +217,32 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   in der Web-App auf dem iPhone vibriert also nichts, nur in der nativen App. Getrennt vom Klang
   schaltbar (`progress.vibrate` + `setHapticsEnabled`, Schalter „Vibration" in den Einstellungen).
   KI-Abwürfe im 4-Spieler/Riichi rufen `playTap(false)` — Klang ja, Vibration nein.
+- **Einstellungen (`src/ui/Screens.tsx` + `.row`/`.segment` in styles.css) — Bildschirmbreite.**
+  ⚠ **`overflow-y: auto` macht die andere Achse stillschweigend ebenfalls scrollbar.** Das ist
+  CSS-Spezifikation: Steht eine Achse auf `visible` und die andere nicht, rechnet der Browser die
+  `visible`-Achse auf `auto` hoch. Ein **einziges** zu breites Kind macht damit den GANZEN Bildschirm
+  seitlich verschiebbar — und weil dann alles nach links rutscht, sieht es nach abgeschnittenen
+  Beschriftungen und „kaputten Sprachen" aus, nicht nach einem Layout-Fehler. Genau so gemeldet am
+  10.8.2026 aus der Store-Version (1.0.4, Spanisch): Die Sprachauswahl war seit den 7 Sprachen auf
+  **8 Knöpfe** gewachsen und maß auf 402 px Bildschirmbreite **370 px ab x=96**, endete also bei 467 px —
+  „IT" und „JA" lagen komplett außerhalb und waren nicht antippbar.
+  **Regeln daraus:** (1) `.screen-body` hat jetzt ausdrücklich `overflow-x: hidden` als Riegel;
+  (2) Auswahlen, die neben ihrer Beschriftung nicht in eine Zeile passen, bekommen `.row-stack`
+  (Beschriftung darüber) — betrifft Sprache **und** KI-Stärke, deren Beschriftung in romanischen
+  Sprachen lang wird; (3) die Sprachauswahl ist ein festes 4er-Raster (`.segment-lang`, zwei Reihen
+  à vier) statt eines Umbruchs, sonst steht ein einzelner Knopf allein in Reihe zwei;
+  (4) `.segment` bricht zusätzlich um (`flex-wrap`) — Notnetz, damit eine künftige lange Übersetzung
+  Knöpfe umbricht statt sie hinter `overflow-x: hidden` unerreichbar zu machen.
+  **Prüfmuster** (jede Layout-Änderung an Einstellungen so testen, Skript im Session-Scratchpad):
+  über **mehrere Breiten × Sprachen** (320/402/430 px × de/es/ja/pt) je Element `getBoundingClientRect`
+  gegen `innerWidth` prüfen, `scrollWidth > clientWidth` auf `.app`/`.screen-body`/`.row` messen **und**
+  per `document.elementFromPoint` gegenprüfen, dass ein Tipp in die Mitte jedes Knopfes ihn wirklich
+  trifft. Auf kleinen Geräten vorher `scrollIntoView` — sonst misst der Treffertest ins Leere und
+  meldet einen Fehler, den es nicht gibt.
+- **Versionsanzeige** (`src/appVersion.ts`): Die Nummer unten in den Einstellungen kommt aus
+  `App.getInfo()` (`@capacitor/app`), also aus dem nativen Paket — im Web steht „Web". Vorher war
+  dort `v1.0` fest verdrahtet und damit **vier Releases lang falsch**. Nie wieder eine Versionsnummer
+  in den Web-Code schreiben: pbxproj und build.gradle sind die Quelle, alles andere veraltet.
 - `src/i18n.ts` — **7 Sprachen** (seit 30.07.2026): DE/EN vollständig in `i18n.ts` (maßgebliche
   Quelle), ES/PT/FR/IT/JA als generierte Sprachpakete in `src/locales/*.ts` (`LocalePack`:
   ui-Overrides + 34 Fakten + Erinnerungstext; fehlt ein Schlüssel → Fallback Englisch, die App
@@ -430,6 +456,19 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   (aktualisiert `Podfile.lock`). Verifiziert mit einem Simulator-Build
   (`xcodebuild -sdk iphonesimulator … CODE_SIGNING_ALLOWED=NO build` → BUILD SUCCEEDED). Greift mit
   dem nächsten Build, 1.0.4 selbst wurde dafür bewusst nicht neu gebaut.
+- **10.8.2026 — v1.0.5 (Android vc21 / iOS Build 20): Sprachauswahl passt wieder auf den Bildschirm.**
+  Josef meldete aus der Store-Version zwei Dinge: „Sprachen sehen komisch aus" und „Bildschirm ist
+  beweglich". Es war **ein** Fehler — die auf 8 Knöpfe gewachsene Sprachauswahl war breiter als das
+  Display und machte den Einstellungsbildschirm seitlich verschiebbar (Ursache und Regeln im Abschnitt
+  „Einstellungen — Bildschirmbreite" oben). Behoben: 4er-Raster für die Sprachen, gestapelte Zeilen für
+  Sprache und KI-Stärke, `overflow-x: hidden` als Riegel. Dazu die **Versionsanzeige** repariert (stand
+  seit vier Releases auf „v1.0", liest jetzt das native Paket).
+  Dieses Release trägt außerdem als Erstes das **iOS-Deployment-Target 15.0** (ITMS-90068, siehe 9.8.).
+  **Lehre aus der Meldung selbst:** Josef sah zuerst noch den Werbebanner und hielt 1.0.4 für nicht
+  ausgeliefert. Tatsächlich war die Store-Version live, nur sein Gerät noch nicht aktualisiert — der
+  Versionsverlauf im App Store zeigt die **veröffentlichte**, nicht die **installierte** Fassung.
+  Bei „Fix wirkt nicht"-Meldungen also immer zuerst die installierte Version klären; genau dafür gibt
+  es die Versionszeile jetzt in der App.
 
 ---
 
