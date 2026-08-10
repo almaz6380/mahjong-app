@@ -42,7 +42,12 @@ const arg = (n, s) => {
 };
 const LEVEL = Number(arg('level', 12));
 const LANG = arg('lang', 'en');
-const PAARE = Number(arg('paare', 14));
+// Voreinstellung hoch genug, um das Brett WIRKLICH leer zu spielen. Die
+// Schleife bricht von selbst ab, sobald kein Paar mehr frei liegt — der Wert
+// ist also eine Obergrenze, keine Vorgabe. Ein Reel, das mitten im halb
+// geraeumten Brett aufhoert, laesst den Zuschauer ohne Aufloesung zurueck;
+// der Sieg-Bildschirm (Ensō, Sterne, Muenzen) ist der eigentliche Schluss.
+const PAARE = Number(arg('paare', 40));
 const SERVER = arg('server', 'http://localhost:5199');
 const NUR_BRETT = process.argv.includes('--nur-brett');
 const OUT = join(WURZEL, arg('out', 'out/reels'));
@@ -87,8 +92,13 @@ await page.waitForSelector('.board .tile', { timeout: 15000 });
 // spaeter eingeblendete Uhrzeit auf der Kopfzeile der App — auf einem echten
 // Geraet haelt die App diesen Bereich ueber die Safe Area frei, im Browser
 // gibt es die nicht.
+// Der Erfolgs-Hinweis („Award unlocked") haengt an
+// `env(safe-area-inset-top)` — im Browser ist das 0, also klebt er oben und
+// ueberlappt die spaeter eingeblendete Statusleiste. Auf einem echten iPhone
+// sitzt er darunter; hier wird derselbe Abstand von Hand gesetzt.
 await page.addStyleTag({
-  content: `.app { padding-top: 52px !important; padding-bottom: 26px !important; }`,
+  content: `.app { padding-top: 52px !important; padding-bottom: 26px !important; }
+            .ach-toast { top: 64px !important; }`,
 });
 await page.waitForTimeout(300);
 
@@ -176,13 +186,19 @@ async function freiesPaar() {
 let gespielt = 0;
 await page.waitForTimeout(600);   // Ruhe vor dem ersten Zug
 
+// Die Rampe muss sich an der ECHTEN Paarzahl des Bretts ausrichten, nicht an
+// der Obergrenze `--paare`: Sonst laeuft sie bei einem Deckel von 40 nur bis
+// zur Haelfte durch und das Video bleibt gleichfoermig langsam.
+const zuege = Math.min(PAARE, await page.evaluate(
+  () => document.querySelectorAll('.board .tile').length / 2) || PAARE);
+
 // Das Tempo zieht an: erst ruhig, dann immer schneller. Ein gleichmaessiger
 // Rhythmus wirkt im Feed wie ein Bildschirmschoner — die Beschleunigung ist
 // das, was jemanden bis zum Ende schauen laesst.
 for (let i = 0; i < PAARE; i++) {
   const paar = await freiesPaar();
   if (!paar) { console.log(`  kein Paar mehr frei nach ${gespielt} Zuegen`); break; }
-  const t = PAARE > 1 ? i / (PAARE - 1) : 1;          // 0 am Anfang, 1 am Ende
+  const t = zuege > 1 ? Math.min(1, i / (zuege - 1)) : 1;   // 0 am Anfang, 1 am Ende
   const vor = Math.round(300 - 190 * t);              // 300 ms → 110 ms
   const nach = Math.round(520 - 350 * t);             // 520 ms → 170 ms
   await page.mouse.click(paar[0].x, paar[0].y);
@@ -191,7 +207,21 @@ for (let i = 0; i < PAARE; i++) {
   await page.waitForTimeout(nach);                    // Ausblende + Atempause
   gespielt++;
 }
-await page.waitForTimeout(900);          // Nachklang am Ende
+
+// Ist das Brett leer, blendet GameScreen die Sieg-Zeremonie ein (`.overlay`
+// mit `.card`): Ensō zeichnet sich, Sterne kommen, die Muenzen zaehlen hoch.
+// Das dauert rund drei Sekunden und ist der Schluss des Reels — also warten,
+// statt sofort abzuschneiden. Bleibt das Brett stehen (Sackgasse), reicht ein
+// kurzer Nachklang.
+const gewonnen = await page.waitForSelector('.overlay .card', { timeout: 2500 })
+  .then(() => true).catch(() => false);
+// Zeitpunkt des Siegs festhalten, damit make-reel.mjs den Klang GENAU dorthin
+// legen kann. Geschaetzt („etwa vier Sekunden vor Schluss") sitzt er daneben,
+// und ein Klang neben dem Bild ist schlimmer als gar keiner.
+const siegBei = gewonnen && bilder.length ? bilder[bilder.length - 1].t : null;
+await page.waitForTimeout(gewonnen ? 3800 : 900);
+if (gewonnen) console.log('  Brett leer — Sieg-Zeremonie mit aufgenommen');
+else console.log('  ⚠ kein Sieg — das Reel endet ohne Aufloesung');
 
 await cdp.send('Page.stopScreencast').catch(() => {});
 await page.waitForTimeout(400);
@@ -227,5 +257,14 @@ await new Promise((res, rej) => {
 
 rmSync(TMP, { recursive: true, force: true });
 const dauer = (bilder[bilder.length - 1].t - t0).toFixed(1);
+
+// Beipackzettel fuer make-reel.mjs. Liegt neben der mp4, gleicher Name.
+writeFileSync(ziel.replace(/\.mp4$/, '.json'), JSON.stringify({
+  level: LEVEL, lang: LANG, paare: gespielt,
+  dauer: Number(dauer),
+  siegBei: siegBei == null ? null : Number((siegBei - t0).toFixed(2)),
+}, null, 2));
+
 console.log(`✓ ${ziel}`);
 console.log(`  ${gespielt} Paare · ${bilder.length} Bilder · ${dauer} s Rohmaterial`);
+if (siegBei != null) console.log(`  Sieg bei ${(siegBei - t0).toFixed(2)} s`);

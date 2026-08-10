@@ -31,7 +31,14 @@ const TMP = join(OUT, '.bau');
 const B = 1080, H = 1920, FPS = 30;
 
 const HOOK_SEK = 1.8;
-const OUTRO_SEK = 3.0;
+const OUTRO_SEK = 4.2;
+
+// Ueberblendzeiten. Der Hartschnitt war der Grund, warum das Reel am Ende
+// „abgehackt" wirkte: Das halb geraeumte Brett verschwand von einem Bild aufs
+// naechste hinter dem deckenden Abspann. Die Blende zum Abspann ist bewusst
+// laenger als die zum Spiel — dort endet etwas, hier faengt nur etwas an.
+const BLENDE_SPIEL = 0.35;
+const BLENDE_ABSPANN = 0.55;
 
 const TEXTE = {
   hook: 'Can you spot\nthe pair?',
@@ -53,6 +60,18 @@ const lauf = (args) => new Promise((res, rej) => {
   let err = '';
   p.stderr.on('data', (d) => { err += d; });
   p.on('close', (c) => (c === 0 ? res() : rej(new Error(err.slice(-1500)))));
+});
+
+// Laenge messen — ffprobe liegt diesem Container nicht bei, es gibt nur
+// ffmpeg-static. `lauf()` taugt dafuer nicht: ffmpeg beendet sich hier mit
+// Code 1, weil kein Ausgabeziel angegeben ist.
+const dauerVon = (datei) => new Promise((res) => {
+  const p = spawn(FFMPEG, ['-hide_banner', '-i', datei]);
+  let e = ''; p.stderr.on('data', (d) => { e += d; });
+  p.on('close', () => {
+    const m = e.match(/Duration: (\d+):(\d+):(\d+\.?\d*)/);
+    res(m ? Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3]) : 0);
+  });
 });
 
 // --- Karten als transparente PNG ------------------------------------------
@@ -80,21 +99,28 @@ html,body{width:${B}px;height:${H}px;background:transparent;font-family:'Outfit'
     writeFileSync(datei, await page.screenshot({ type: 'png', omitBackground: true }));
   };
 
+  // Der Text braucht eine eigene dunkle Flaeche. Nur Kontur und Schlagschatten
+  // reichen auf den hellen Steinen nicht — die Unterzeile war dort faktisch
+  // unlesbar. Das Band laeuft oben und unten weich aus, damit es nicht wie ein
+  // aufgeklebter Balken wirkt.
   await schuss(
-    `<div class="mitte schatten" style="top:1120px;font-size:104px;font-weight:800;line-height:1.08">
+    `<div style="position:absolute;left:0;top:980px;width:${B}px;height:580px;
+                 background:linear-gradient(180deg,rgba(6,32,26,0),rgba(6,32,26,.82) 20%,
+                            rgba(6,32,26,.88) 50%,rgba(6,32,26,.82) 80%,rgba(6,32,26,0))"></div>
+     <div class="mitte schatten" style="top:1105px;font-size:106px;font-weight:800;line-height:1.06">
        ${TEXTE.hook.split('\n').join('<br>')}</div>
-     <div class="mitte schatten" style="top:1400px;font-size:38px;font-weight:600;opacity:.9">
+     <div class="mitte" style="top:1390px;font-size:40px;font-weight:600;color:#ffd76a">
        ${TEXTE.hookSub}</div>`,
     join(TMP, 'hook.png'));
 
   // Der Abspann ist deckend — er soll das Brett ersetzen, nicht überlagern.
   await schuss(
     `<div style="position:absolute;inset:0;background:linear-gradient(160deg,#123f2e,#0b2a1e 60%,#06201a)"></div>
-     <img src="data:image/png;base64,${logo}" style="position:absolute;left:390px;top:430px;width:300px;height:300px">
-     <div class="mitte" style="top:800px;font-size:104px;font-weight:800;line-height:1.05">
+     <img src="data:image/png;base64,${logo}" style="position:absolute;left:390px;top:545px;width:300px;height:300px">
+     <div class="mitte" style="top:930px;font-size:104px;font-weight:800;line-height:1.05">
        ${TEXTE.outroTitel.split('\n').join('<br>')}</div>
-     <div class="mitte" style="top:1070px;font-size:36px;font-weight:500;opacity:.8">${TEXTE.outroSub}</div>
-     <div style="position:absolute;left:130px;top:1200px;width:820px;padding:32px 0;border-radius:999px;
+     <div class="mitte" style="top:1200px;font-size:36px;font-weight:500;opacity:.8">${TEXTE.outroSub}</div>
+     <div style="position:absolute;left:130px;top:1330px;width:820px;padding:32px 0;border-radius:999px;
                  text-align:center;font-size:38px;font-weight:700;color:#06201a;
                  background:linear-gradient(100deg,#ffe07a,#f5b301)">${TEXTE.outroCta}</div>`,
     join(TMP, 'outro.png'));
@@ -166,36 +192,71 @@ await lauf([
 ]);
 
 // --- Zusammenschneiden ------------------------------------------------------
-const liste = join(TMP, 'liste.txt');
-writeFileSync(liste, ['hook.mp4', 'spiel.mp4', 'outro.mp4']
-  .map((f) => `file '${join(TMP, f)}'`).join('\n'));
-await lauf(['-y', '-f', 'concat', '-safe', '0', '-i', liste, '-c', 'copy', join(TMP, 'stumm.mp4')]);
+// Bewusst `xfade` statt des concat-Demuxers: concat kann nur stumpf
+// aneinanderhaengen, und genau das war zu sehen. `xfade` kostet ein
+// Neukodieren, dafuer geht das abgedunkelte Hook-Standbild weich ins helle
+// Spiel ueber (sonst springt die Helligkeit) und das Brett loest sich in den
+// Abspann auf, statt von ihm verdeckt zu werden.
+console.log('Blenden setzen …');
+const spielDauer = await dauerVon(join(TMP, 'spiel.mp4'));
+const versatz1 = HOOK_SEK - BLENDE_SPIEL;
+const zwischen = HOOK_SEK + spielDauer - BLENDE_SPIEL;   // Laenge nach der ersten Blende
+const versatz2 = zwischen - BLENDE_ABSPANN;
+const dauer = zwischen + OUTRO_SEK - BLENDE_ABSPANN;
 
-// Gesamtlänge messen — ffprobe liegt diesem Container nicht bei.
-const dauer = await new Promise((res) => {
-  const p = spawn(FFMPEG, ['-hide_banner', '-i', join(TMP, 'stumm.mp4')]);
-  let e = ''; p.stderr.on('data', (d) => { e += d; });
-  p.on('close', () => {
-    const m = e.match(/Duration: (\d+):(\d+):(\d+\.?\d*)/);
-    res(m ? Number(m[2]) * 60 + Number(m[3]) : 0);
-  });
-});
+await lauf([
+  '-y', '-i', join(TMP, 'hook.mp4'), '-i', join(TMP, 'spiel.mp4'), '-i', join(TMP, 'outro.mp4'),
+  '-filter_complex',
+  `[0:v][1:v]xfade=transition=fade:duration=${BLENDE_SPIEL}:offset=${versatz1.toFixed(3)}[a];`
+  // `fadeblack` statt `fade`: Sieg-Karte und Abspann tragen beide viel Text an
+  // aehnlicher Stelle — eine direkte Kreuzblende legt sie uebereinander und
+  // beides wird unleserlich. Der kurze Weg ueber Schwarz liest sich als
+  // gewollter Schnitt.
+  + `[a][2:v]xfade=transition=fadeblack:duration=${BLENDE_ABSPANN}:offset=${versatz2.toFixed(3)},`
+  + `format=yuv420p,fps=${FPS}[v]`,
+  '-map', '[v]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19',
+  join(TMP, 'stumm.mp4'),
+]);
 
 // --- Ton --------------------------------------------------------------------
 // Musikteppich leise, damit in der App noch ein Trending-Sound darüberpasst.
 // Whoosh auf den Hook, Sting auf den Abspann.
 console.log('Ton mischen …');
 const sfx = (n) => join(ASSETS, 'sfx', `${n}.aac`);
-const outroAb = Math.max(0, dauer - OUTRO_SEK);
+const ms = (s) => Math.round(Math.max(0, s) * 1000);
+const outroAb = Math.max(0, dauer - OUTRO_SEK);   // = Beginn der Abspann-Blende
+
+// Der Sieg ist der staerkste Moment im Bild und war bisher voellig stumm.
+// Der Zeitpunkt kommt aus dem Beipackzettel der Aufnahme, nicht aus einer
+// Schaetzung; fehlt er, bleibt es beim bisherigen Ton.
+let beiblatt = {};
+try { beiblatt = JSON.parse(readFileSync(CLIP.replace(/\.mp4$/, '.json'), 'utf8')); } catch { /* optional */ }
+const siegAbs = beiblatt.siegBei != null
+  ? HOOK_SEK - BLENDE_SPIEL + beiblatt.siegBei : null;
+
+const spuren = [
+  // Musikteppich leise, damit in der App noch ein Trending-Sound darüberpasst.
+  // Die Einblende nimmt ihm den Anfangs-Knacks.
+  `[0:a]atrim=0:${dauer.toFixed(2)},volume=0.10,afade=t=in:st=0:d=1.0[bed]`,
+  `[1:a]adelay=100|100,volume=0.55[w]`,
+  `[2:a]adelay=${ms(outroAb)}|${ms(outroAb)},volume=0.7[o]`,
+];
+const namen = ['[bed]', '[w]', '[o]'];
+const eingaben = ['-i', sfx('bett'), '-i', sfx('whoosh'), '-i', sfx('outro')];
+if (siegAbs != null) {
+  eingaben.push('-i', sfx('outro'));
+  spuren.push(`[3:a]adelay=${ms(siegAbs)}|${ms(siegAbs)},volume=0.32[sieg]`);
+  namen.push('[sieg]');
+}
+
 await lauf([
-  '-y', '-i', sfx('bett'), '-i', sfx('whoosh'), '-i', sfx('outro'),
+  '-y', ...eingaben,
   '-filter_complex',
-  `[0:a]atrim=0:${dauer.toFixed(2)},volume=0.10[bed];`
-  + `[1:a]adelay=100|100,volume=0.55[w];`
-  + `[2:a]adelay=${Math.round(outroAb * 1000)}|${Math.round(outroAb * 1000)},volume=0.7[o];`
-  + `[bed][w][o]amix=inputs=3:normalize=0:dropout_transition=0,`
+  spuren.join(';') + ';'
+  + `${namen.join('')}amix=inputs=${namen.length}:normalize=0:dropout_transition=0,`
   + `alimiter=limit=0.89:level=disabled,`
-  + `afade=t=out:st=${Math.max(0, dauer - 1).toFixed(2)}:d=1.0[a]`,
+  // Laengere Schlussblende: 1 s riss den Klang mitten aus dem Sting.
+  + `afade=t=out:st=${Math.max(0, dauer - 1.6).toFixed(2)}:d=1.6[a]`,
   '-map', '[a]', '-t', dauer.toFixed(2), '-c:a', 'aac', '-b:a', '160k', '-ar', '48000',
   join(TMP, 'ton.m4a'),
 ]);
