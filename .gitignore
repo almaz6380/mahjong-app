@@ -16,3 +16,6 @@ android/local.properties
 # Android-Signierung (niemals committen)
 android/upload-keystore.jks
 android/keystore.properties
+
+# Aufgenommene Reels und Zwischenbilder — Videos gehoeren nicht ins Repo
+out/
