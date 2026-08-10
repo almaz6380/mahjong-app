@@ -83,6 +83,15 @@ await page.waitForTimeout(2200);
 await page.click('.play-btn').catch(() => {});
 await page.waitForSelector('.board .tile', { timeout: 15000 });
 
+// Platz fuer die Statusleiste des Handys reservieren. Ohne das saesse die
+// spaeter eingeblendete Uhrzeit auf der Kopfzeile der App — auf einem echten
+// Geraet haelt die App diesen Bereich ueber die Safe Area frei, im Browser
+// gibt es die nicht.
+await page.addStyleTag({
+  content: `.app { padding-top: 52px !important; padding-bottom: 26px !important; }`,
+});
+await page.waitForTimeout(300);
+
 // Nur auf Wunsch freistellen. Standard ist der ganze Bildschirm: Kopfzeile
 // und Bedienleiste gehoeren zu einer echten Bildschirmaufnahme dazu.
 //

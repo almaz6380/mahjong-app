@@ -99,6 +99,31 @@ html,body{width:${B}px;height:${H}px;background:transparent;font-family:'Outfit'
                  background:linear-gradient(100deg,#ffe07a,#f5b301)">${TEXTE.outroCta}</div>`,
     join(TMP, 'outro.png'));
 
+  // Statusleiste des Handys: Uhrzeit links, Empfang/WLAN/Akku rechts, unten
+  // der Home-Indikator. Damit liest sich das Video als echte Aufnahme vom
+  // Geraet und nicht als abgefilmter Browser.
+  const balken = (h) => `<div style="width:6px;height:${h}px;background:#fff;border-radius:2px"></div>`;
+  await schuss(
+    `<div style="position:absolute;left:0;top:0;width:${B}px;height:156px">
+       <div style="position:absolute;left:96px;top:46px;font-size:46px;font-weight:600;letter-spacing:.01em">9:41</div>
+       <div style="position:absolute;right:96px;top:58px;display:flex;align-items:flex-end;gap:8px">
+         ${balken(14)}${balken(20)}${balken(26)}${balken(32)}
+         <svg width="36" height="30" viewBox="0 0 36 30" style="margin-left:10px">
+           <path d="M18 25.5a3.2 3.2 0 100-6.4 3.2 3.2 0 000 6.4z" fill="#fff"/>
+           <path d="M9.5 16.5a12 12 0 0117 0" stroke="#fff" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+           <path d="M3.5 10a20.5 20.5 0 0129 0" stroke="#fff" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+         </svg>
+         <svg width="54" height="28" viewBox="0 0 54 28" style="margin-left:10px">
+           <rect x="1.5" y="3" width="44" height="22" rx="6" stroke="#fff" stroke-width="2.6" fill="none" opacity=".65"/>
+           <rect x="5" y="6.5" width="33" height="15" rx="3.5" fill="#fff"/>
+           <path d="M49 10.5v7a4 4 0 000-7z" fill="#fff" opacity=".65"/>
+         </svg>
+       </div>
+     </div>
+     <div style="position:absolute;left:${(B - 420) / 2}px;top:${H - 46}px;width:420px;height:14px;
+                 border-radius:999px;background:#fff;opacity:.92"></div>`,
+    join(TMP, 'status.png'));
+
   await browser.close();
 }
 
@@ -111,11 +136,14 @@ await lauf(['-y', '-i', CLIP, '-frames:v', '1', join(TMP, 'standbild.png')]);
 await lauf([
   '-y', '-loop', '1', '-t', String(HOOK_SEK), '-i', join(TMP, 'standbild.png'),
   '-loop', '1', '-t', String(HOOK_SEK), '-i', join(TMP, 'hook.png'),
+  '-loop', '1', '-t', String(HOOK_SEK), '-i', join(TMP, 'status.png'),
   '-filter_complex',
   // Das Brett wird abgedunkelt, damit die Frage liest, wer nur kurz hinsieht.
+  // Die Statusleiste liegt UEBER der Abdunklung — sie gehoert zum Geraet,
+  // nicht zum Bild.
   `[0:v]scale=${B}:${H},eq=brightness=-0.10[bg];`
   + `[1:v]format=rgba,fade=t=in:st=0.15:d=0.3:alpha=1[k];`
-  + `[bg][k]overlay=0:0,fps=${FPS}[v]`,
+  + `[bg][k]overlay=0:0[m];[m][2:v]overlay=0:0,fps=${FPS}[v]`,
   '-map', '[v]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19',
   '-pix_fmt', 'yuv420p', join(TMP, 'hook.mp4'),
 ]);
@@ -130,7 +158,9 @@ await lauf([
 
 // --- Gameplay vereinheitlichen ---------------------------------------------
 await lauf([
-  '-y', '-i', CLIP, '-vf', `scale=${B}:${H},fps=${FPS}`,
+  '-y', '-i', CLIP, '-loop', '1', '-i', join(TMP, 'status.png'),
+  '-filter_complex', `[0:v]scale=${B}:${H}[g];[g][1:v]overlay=0:0:shortest=1,fps=${FPS}[v]`,
+  '-map', '[v]',
   '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', '-pix_fmt', 'yuv420p', '-an',
   join(TMP, 'spiel.mp4'),
 ]);
