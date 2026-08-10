@@ -166,13 +166,19 @@ async function freiesPaar() {
 let gespielt = 0;
 await page.waitForTimeout(600);   // Ruhe vor dem ersten Zug
 
+// Das Tempo zieht an: erst ruhig, dann immer schneller. Ein gleichmaessiger
+// Rhythmus wirkt im Feed wie ein Bildschirmschoner — die Beschleunigung ist
+// das, was jemanden bis zum Ende schauen laesst.
 for (let i = 0; i < PAARE; i++) {
   const paar = await freiesPaar();
   if (!paar) { console.log(`  kein Paar mehr frei nach ${gespielt} Zuegen`); break; }
+  const t = PAARE > 1 ? i / (PAARE - 1) : 1;          // 0 am Anfang, 1 am Ende
+  const vor = Math.round(300 - 190 * t);              // 300 ms → 110 ms
+  const nach = Math.round(520 - 350 * t);             // 520 ms → 170 ms
   await page.mouse.click(paar[0].x, paar[0].y);
-  await page.waitForTimeout(260);        // kurze Pause: der erste Stein leuchtet auf
+  await page.waitForTimeout(vor);                     // erster Stein leuchtet auf
   await page.mouse.click(paar[1].x, paar[1].y);
-  await page.waitForTimeout(430);        // Ausblende + Atempause
+  await page.waitForTimeout(nach);                    // Ausblende + Atempause
   gespielt++;
 }
 await page.waitForTimeout(900);          // Nachklang am Ende
