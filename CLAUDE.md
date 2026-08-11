@@ -709,6 +709,39 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   Bildschirmen. Deshalb lief die Einreichung mit `screenshots: false` und ohne die
   Metadaten-Falle.
 
+  **Nachtrag am selben Abend — Store-Texte erneuert, iOS ein zweites Mal eingereicht.**
+  Die Beschreibung stammte unverändert aus 1.0: „vier Bonus-Spiele" (es sind sieben),
+  ohne Connect, Riichi, Zen, Pagode, Album, Feste, verdeckte Steine und Spezialsteine,
+  dazu „Deutsch und Englisch" statt sieben Sprachen. Neu geschrieben in allen sieben
+  Sprachen, dazu die Vorstellungsgrafik auf das Tempel-Motiv.
+
+  - **`store/store-texte.json` ist ab jetzt die einzige Quelle für BEIDE Stores.**
+    `scripts/asc-texte.py` (Apple, PATCH) und `play-upload.py --texte` (Play) lesen
+    dieselbe Datei; die Feldnamen rechnen die Skripte um. Grund: Bei 1.0 wichen die
+    Konsolen vom Repo ab und es fiel Monate nicht auf. `store/texts.md` ist nur noch
+    historischer Beleg. Workflow **„Store-Texte"**, Trockenlauf als Standard.
+  - `add-ios-locales.py` kann Texte **nicht ändern** — es legt nur neue Sprachen an und
+    überspringt vorhandene. Dafür gibt es jetzt `asc-texte.py`.
+  - **Keywords ohne „mahjong":** Apple indexiert Name, Untertitel und Keywords als EINEN
+    Topf; das Wort steckt im App-Namen und war dort verschenkter Platz. Jetzt stehen
+    `riichi` und `connect` drin.
+
+  ⚠ **Zwei Fallen, die an diesem Abend zugeschnappt sind — beide sahen nach einem
+  Problem bei Apple aus und waren keins:**
+
+  1. **`asc-submit.yml` prüfte `submit` VOR dem Abbruch.** Ein Lauf mit
+     `zuerst_abbrechen=true` und `submit=false` meldete „TROCKENLAUF" und stieg aus,
+     **ohne abzubrechen** — die Prüfung lief weiter, die Metadaten blieben gesperrt,
+     und der nächste Schritt scheiterte. Behoben: Der Abbruch hängt am eigenen
+     Schalter. „Nur abbrechen" ist der Lauf, den man zwischen Abbruch und Einreichung
+     braucht, denn genau dazwischen gehört die Metadaten-Arbeit.
+  2. **Den App-Namen nie per API mitschicken.** Apple prüft ihn bei jedem PATCH neu
+     gegen alle Konten — auch bei unverändertem Wert — und antwortet mit
+     **409 „The app name you entered is already being used"**. Das liest sich wie ein
+     Markenproblem und ist keins. Der Lauf kippte mitten im Sprachsatz: de-DE durch,
+     en-US abgelehnt, die sieben Beschreibungen waren da schon geschrieben.
+     `asc-texte.py` sendet deshalb nur den Untertitel.
+
   **Zeitmessung für die Planung:** Android-Lauf 5:46 min bis in Produktion, iOS-Lauf
   **3:00 min** bis `UPLOAD SUCCEEDED` (Archivieren 56 s, Export 3 s, Upload 76 s auf
   `macos-26`) — deutlich schneller als die früher notierten ~25 min. Apple hatte den
