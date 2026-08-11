@@ -60,10 +60,23 @@ const PLAN = [
 
 mkdirSync(OUT, { recursive: true });
 
+// Vorpruefung. Ohne sie rennt die Charge bei totem Server zwanzig Mal in
+// denselben Fehler und braucht dafuer eine Minute — genau das ist am 11.08.
+// passiert, weil `vite preview` als abgekoppelter Prozess gestartet war und
+// den Aufruf nicht ueberlebt hat.
+try {
+  const a = await fetch(SERVER, { signal: AbortSignal.timeout(4000) });
+  if (!a.ok) throw new Error(`HTTP ${a.status}`);
+} catch (e) {
+  console.error(`✗ Kein Preview-Server unter ${SERVER} (${e.message})`);
+  console.error('  Erst starten:  npm run build && npx vite preview --port 5199 --host 127.0.0.1');
+  process.exit(1);
+}
+
 const node = (skript, args) => spawnSync(process.execPath, [join(HIER, skript), ...args],
   { stdio: 'inherit', env: process.env });
 
-let gebaut = 0, uebersprungen = 0;
+let gebaut = 0, uebersprungen = 0, fehler = 0;
 const jobs = PLAN.filter((j) => j.nr >= AB).slice(0, NUR || undefined);
 
 for (const j of jobs) {
@@ -78,7 +91,16 @@ for (const j of jobs) {
   if (!existsSync(join(WURZEL, clip))) {
     const r = node('record-solitaire.mjs',
       ['--level', String(j.level), '--lang', 'en', '--server', SERVER, '--out', 'out/reels/roh']);
-    if (r.status !== 0) { console.error(`✗ Aufnahme fehlgeschlagen bei ${name}`); continue; }
+    if (r.status !== 0) {
+      console.error(`✗ Aufnahme fehlgeschlagen bei ${name}`);
+      if (++fehler >= 3) {
+        console.error('✗ Drei Aufnahmen hintereinander gescheitert — Abbruch.');
+        console.error('  Meist ist der Preview-Server weg. Mit --ab weitermachen.');
+        break;
+      }
+      continue;
+    }
+    fehler = 0;
   }
 
   const args = ['--clip', clip, '--format', j.format, '--name', name, '--out', 'out/reels/charge'];
