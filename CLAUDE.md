@@ -243,8 +243,30 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
 - **Ladebildschirm** (Web): Markup + Inline-CSS in `index.html` (`#splash`, paint vor dem JS-Bundle),
   Bild `public/splash.webp` (Drachen-Medaillon); `src/main.tsx` lädt kritische Bilder vor
   (home-temple/emblem/symbol/splash), füllt den Balken, zeigt Titel + Tagline + wechselnden
-  „Wusstest du?"-Tipp (`facts.nextFact`), blendet nach Vorladen + ~1,4 s aus. **App-Icon** = zwei Steine
-  (中-Stein vorne + Drachen-Wappen-Rücken) auf dunklem Jade (Quellen `assets/icon-*`, via @capacitor/assets).
+  „Wusstest du?"-Tipp (`facts.nextFact`), blendet nach Vorladen + ~1,4 s aus.
+- **App-Icon** = drei Steine (中 vorne, Drache links, Münze rechts) **vor dem Tempel-Motiv**
+  (`scripts/render-app-icon.mjs` → `assets/icon-*` → `npx @capacitor/assets generate`).
+  Seit 11.08.2026 trägt es dasselbe `home-temple.webp` wie die App, damit Icon und
+  Bildschirme dieselbe Welt zeigen.
+  **Zwei Stellschrauben, an denen alles hängt:**
+  - `TILES = 0.80` — formatfüllend belegt die Steingruppe ~85 % der Fläche und verdeckt
+    das Motiv praktisch vollständig. Erst geschrumpft wird der Tempel sichtbar.
+  - Der **Ausschnitt** (`background-size: 190% auto; background-position: 34% 22%`) zeigt
+    die Pagode als große dunkle Silhouette. Das ist der Grund, warum das Foto hier
+    funktioniert: Ein *unbeschnittenes* Landschaftsfoto zerfällt bei 60 px tatsächlich zu
+    einem graugrünen Fleck — drei stilisierte Entwürfe (Nebelband, Bergrücken, Pagoden-
+    Silhouette) waren dort nicht vom alten Icon zu unterscheiden und wurden verworfen.
+    Ein großes, kontrastreiches Einzelmotiv überlebt dagegen. Die Pagode liegt bewusst
+    weit innen, damit Androids adaptive Maske sie in Kreis, Squircle und Quadrat behält.
+  - `TIEFE` (Abdunklung unten + Vignette) ist Pflicht, sonst säuft der Stein-Stapel im
+    Nebel ab und verliert seine Kante.
+  ⚠ **Beim Prüfen den Android-Zoom nicht vergessen**: Der Launcher setzt Hintergrund- und
+  Vordergrund-Ebene zusammen, skaliert so, dass die inneren 66 % das sichtbare Icon füllen,
+  und maskiert erst dann. Wer die Ebenen ohne diesen Zoom übereinanderlegt, hält den
+  Vordergrund fälschlich für zu klein. Deshalb steht dort `TILES * 0.66`.
+  ⚠ `page.setContent(..., 'networkidle0')` hängt im Render-Skript: Alle Bilder sind
+  data:-URIs, es gibt also nie Netzverkehr — beim zweiten Aufruf auf derselben Seite löst
+  es nie aus, der Lauf bricht nach dem ersten Bild ab. Deshalb `domcontentloaded` + Wartezeit.
 - `src/ui/AppBackground.tsx` — globaler Hintergrund (Jade-Glows + Riesen-Stein), in main.tsx gemountet;
   `src/game/themes.ts` — Themes + Stein-Skins (`applySkin`/`TILE_SKINS`); App-Icon/Splash via
   `@capacitor/assets generate` aus `assets/icon-*`/`splash*`
