@@ -199,5 +199,48 @@ console.log('\n5) Gegenprobe: ohne Joker-Verwandlung muss die Parität brechen')
   pruef(ungerade(ohne).length === 2, 'Die Gegenprobe schlägt nicht an — der Test misst nichts');
 }
 
+// --- 6. Memory-Bretter -------------------------------------------------------
+// Eine UNGERADE Kartenzahl hieße eine Karte ohne Partner — das Level ließe sich
+// nie abschließen. Ebenso muss jede Karte ein Motiv haben (der Vorrat ist
+// endlich) und in Stufe 2 dürfen keine Karten schweben.
+console.log('\n6) Memory: 200 Level in beiden Stufen');
+const MEM = await load('src/modes/memory/board.ts');
+let mem = 0, memMax = 0;
+for (let lvl = 1; lvl <= 200; lvl++) {
+  const { cards, shape } = MEM.baueLevel(lvl);
+  pruef(cards.length % 2 === 0, `Memory-Level ${lvl}: ${cards.length} Karten (ungerade)`);
+  pruef(cards.length >= 12, `Memory-Level ${lvl}: nur ${cards.length} Karten`);
+  pruef(!!shape, `Memory-Level ${lvl}: keine Figur`);
+  pruef(cards.every((c) => typeof c.faceId === 'string' && c.faceId), `Memory-Level ${lvl}: Karte ohne Motiv`);
+
+  // Jedes Motiv genau zweimal.
+  const zaehl = new Map();
+  for (const c of cards) zaehl.set(c.faceId, (zaehl.get(c.faceId) ?? 0) + 1);
+  pruef([...zaehl.values()].every((n) => n === 2), `Memory-Level ${lvl}: Motiv nicht genau zweimal`);
+
+  // Stufe 1 ist flach, Stufe 2 gestapelt und ohne Schweber.
+  const ebenen = new Set(cards.map((c) => c.layer));
+  if (lvl <= MEM.FLACH_BIS) {
+    pruef(ebenen.size === 1 && ebenen.has(0), `Memory-Level ${lvl}: Stufe 1 ist nicht flach`);
+  } else {
+    const da = new Set(cards.map((c) => `${c.layer}:${c.col}:${c.row}`));
+    const schwebt = cards.find((c) => c.layer > 0 && !da.has(`${c.layer - 1}:${c.col}:${c.row}`));
+    pruef(!schwebt, `Memory-Level ${lvl}: Karte ${schwebt?.key} schwebt`);
+  }
+
+  // Determinismus: zweimal derselbe Aufruf, dasselbe Brett.
+  pruef(
+    JSON.stringify(MEM.baueLevel(lvl).cards) === JSON.stringify(cards),
+    `Memory-Level ${lvl}: nicht deterministisch`,
+  );
+
+  // Mindestens eine Karte muss frei sein, sonst geht kein einziger Zug.
+  pruef(cards.some((c) => !MEM.bedeckt(c, cards)), `Memory-Level ${lvl}: keine freie Karte`);
+
+  mem++;
+  memMax = Math.max(memMax, cards.length);
+}
+console.log(`   ${mem} Level · höchstens ${memMax} Karten`);
+
 console.log(fehler ? `\n❌ ${fehler} Fehler` : '\n✅ alle Prüfungen bestanden');
 process.exit(fehler ? 1 : 0);

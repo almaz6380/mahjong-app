@@ -1792,14 +1792,31 @@ body {
   border-radius: 8px;
 }
 
-/* --- Memory --- */
-.memory-grid {
-  display: grid;
-  gap: 6px;
+/* --- Memory ---
+   Seit 11.08.2026 auf echten Mahjong-Figuren statt auf einem Rechteck-Raster.
+   Die Karten sitzen absolut auf einer Bühne (.mem-figure), die wie das
+   Solitaire-Brett per transform:scale eingepasst wird. Anders als dort liegt
+   ZWISCHEN den Karten eine Lücke (Raster 58×76 bei Karte 52×70) — sonst wäre
+   „verdeckt von der Ebene darüber" optisch nicht von „steht daneben" zu
+   unterscheiden.
+
+   Der Umdreh-Flip ist hier ERLAUBT: Die iOS-Regel „keine transform-Animation"
+   gilt für `.tile` auf dem Solitaire-Brett, weil dort das Ruckeln des ganzen
+   Bretts gemessen wurde. Hier ruckelt nichts Vergleichbares, und ohne Flip
+   fehlte einem Memory die entscheidende Rückmeldung. */
+.mem-wrap {
+  position: relative;
+  overflow: hidden;
+}
+.mem-figure {
+  position: relative;
+  flex: none;          /* sonst staucht Flexbox die Bühne, statt sie zu skalieren */
+  transform-origin: center center;
 }
 .mem-cell {
-  position: relative;
-  aspect-ratio: 3 / 4;
+  position: absolute;
+  width: 52px;
+  height: 70px;
   perspective: 600px;
   background: none;
   border: none;
@@ -1819,6 +1836,12 @@ body {
 }
 .mem-face { transform: rotateY(180deg); }
 .mem-cell.done { opacity: 0.45; }
+/* Verdeckt von einer Karte darüber: sichtbar gedämpft und nicht antippbar.
+   Ohne die Dämpfung wirkt der ausbleibende Umdreher wie ein Fehler. */
+.mem-cell.blockiert {
+  filter: brightness(0.55) saturate(0.7);
+  pointer-events: none;
+}
 
 /* --- Match-3 --- */
 .m3-grid {
@@ -1910,7 +1933,11 @@ body {
    Verlaufs-ID (`rect[fill="url(#tbody)"]`); die Rückseite nutzt `#tback` und
    wäre sonst als einziges Element grün geblieben, während das übrige Brett
    weiß bzw. blau wird. */
-:root[data-skin="minimal"] .tileface rect[fill="url(#tback)"] { fill: #dbe3ec; }
+/* Beim „Minimal"-Design ist die Vorderseite fast weiß. Ein zu heller Rücken
+   verschwindet dann zwischen den offenen Steinen — im Screenshot war der
+   verdeckte Stein kaum zu finden. Deshalb hier deutlich dunkler als die
+   Flächenfarbe des Skins. */
+:root[data-skin="minimal"] .tileface rect[fill="url(#tback)"] { fill: #8ea3ba; }
 :root[data-skin="neon"] .tileface rect[fill="url(#tback)"] { fill: #16233c; }
 :root[data-skin="contrast"] .tileface rect[fill="url(#tback)"] { fill: #2b2b2b; }
 

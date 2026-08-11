@@ -108,6 +108,70 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   gemeinsame `ModeApi` in types.ts. Tages-Challenge (`daily`, 7×8/78 Steine) und Zeit-Blitz
   (`blitz`, 6×7/52) haben eigene kompakte Layouts in `layouts.ts` — die alten Riesenbretter
   (turtle/classic) hätten winzige Steine. Zen filtert zusätzlich auf `cols<=7 && rows<=8`.
+- **Verdeckte Steine + Spezialsteine (`src/game/modifiers.ts`, seit 11.08.2026).**
+  Deterministisch aus der Levelnummer, wie Figuren und Tages-Challenge: verdeckt ab
+  Level **30** (2 Steine, je 25 Level einer mehr, gedeckelt auf 22 % des Bretts),
+  Spezialsteine ab Level **50** (ab 120 zwei Paare). Reichweite: Level-Kampagne,
+  Tages-Challenge, Zeit-Blitz — **nicht** Zen, Pagode, Feste.
+
+  ⚠ **Die eine Regel, an der alles hängt: jede matchKey-Gruppe auf dem Brett muss
+  GERADE bleiben.** `makePairs` bildet je Gruppe nur `floor(Größe/2)` Paare; bei
+  ungerader Gruppe ist `pairs` kürzer als die Zahl der Positionen und
+  `assignSolvable` lief darüber hinaus — reproduzierter `TypeError` bis in die
+  Oberfläche (Blitz und Zen mischen bei Sackgassen selbsttätig ⇒ weißer Bildschirm).
+  Ein Riegel in `assignSolvable` fängt das ab, aber ein Brett mit ungerader Gruppe
+  ist trotzdem unlösbar und **kein Mischen repariert es**. Daraus folgt die Bauform:
+
+  > **Spezialsteine treten als PAAR auf und ersetzen ein LÖSUNGSPAAR** aus der
+  > Rückwärtskonstruktion (`generateBoardWithPairs` gibt die Zuordnung mit heraus).
+
+  Zwei beliebige Steine derselben Gruppe zu nehmen wäre falsch: Die Parität bliebe
+  heil, aber die früheren Partner der beiden fänden einander nie wieder.
+
+  | Stein | Wirkung | Paritätsfalle |
+  |---|---|---|
+  | Mischen 🔀 | ruft `shuffle()`, kein Booster-Verbrauch | – |
+  | Joker 🃏 | passt auf jeden Stein — **Joker 2 nimmt die Gestalt des geschlagenen Steins an** | ohne die Verwandlung blieben zwei Waisen aus verschiedenen Gruppen |
+  | Bombe 💣 | räumt Nachbarn um beide Bombensteine | `blastSet` beschneidet auf **vollständige Paare** und lässt nur Steine ohne etwas darüber fallen |
+  | Zeitbonus ⌛ | Blitz +10 s, Level/Tages-Challenge `startedAt += 8000` (bessere Sterne) | – |
+
+  ⚠ **Die Bombe darf nicht `nb.up` als Trägertest nehmen** — die Ebenen liegen im
+  Halbschritt versetzt, `up` kennt nur die exakte Koordinate darüber. Ein echter
+  Überlappungstest muss es sein, sonst schweben Steine. Genau so passiert und im
+  Fuzz gefangen.
+  ⚠ **Faces nie mutieren:** `deckForCount` erweitert große Decks mit
+  `out.push(base[i])`, dieselbe Objekt-Referenz steckt dann in mehreren Steinen.
+  Immer `{ ...face }`.
+  ⚠ **`hasMoves`/`freeSet` kennen `hidden` NICHT** — verdeckt ist reine Darstellung.
+  Sonst entstünden Falsch-Sackgassen, die den Spieler grundlos ins Mischen treiben.
+  ⚠ **Modifikatoren nur im ERZEUGUNGS-Pfad**, nie beim Fortsetzen aus
+  `opts.initial`; sonst bekäme eine laufende Partie beim Laden neue Verdeckungen.
+  Regressionstest dafür: `node scripts/check-altstand.mjs`.
+  ⚠ **Kein Flip beim Aufdecken.** `rotateY` auf `.tile` ist verboten (iOS-Ruckeln,
+  s. o.) — Aufdecken tauscht nur den SVG-Inhalt, ein reiner Malvorgang.
+  Verdeckte Steine kosten außerdem Zeit: `parTimeMs(tileCount, hiddenCount)` legt
+  je verdecktem Stein 2,5 s drauf, sonst fiele in genau diesen Leveln die
+  Drei-Sterne-Quote.
+  Prüfskript: **`node scripts/check-specials.mjs`** (Determinismus der Rampe,
+  Parität über 58 Bretter, 4000 Bomben-Zündungen inkl. Schweber- und
+  `reshuffleBoard`-Probe, 4000 Joker-Züge, 200 Memory-Level, **plus eine
+  Gegenprobe, die absichtlich fehlschlagen muss** — ein Test, der nie anschlägt,
+  prüft nichts).
+- **Memory (`src/modes/memory/board.ts` + `MemoryScreen.tsx`)** läuft seit
+  11.08.2026 auf **echten Figuren** statt auf einem `repeat(cols, 1fr)`-Raster:
+  Level 1–12 flache Silhouette (`fig.cells.filter(c => c.layer === 0)` — dafür
+  braucht der Figuren-Generator keine Änderung, obwohl er flache Profile sperrt),
+  ab 13 gestapelt mit Blockade **nur von oben**. Anders als das Solitaire-Brett
+  wird MIT Lücke gerastert (Karte 52×70 im Raster 58×76, Ebenenversatz 15/17) —
+  bei dichtem Raster wäre „verdeckt" nicht von „daneben" zu unterscheiden, bei zu
+  kleinem Versatz liest sich die untere Karte als Schlagschatten.
+  Gepaart wird über `faceId`, **nicht** `matchKey` („alle Blumen passen zueinander"
+  wäre in einem Gedächtnisspiel unfair). Der Größen-Umschalter ist weg, der
+  Bestwert zählt jetzt **geschaffte Level** (`recordModeBest('memory', level, true)`)
+  — das repariert nebenbei einen alten Fehler: `ModesScreen` las `best('memory')`,
+  geschrieben wurde `memory-<size>`, der Bestwert war deshalb nie zu sehen.
+  Ein **Rettungs-Mischen** ist Pflicht, weil es in diesem Modus keinen
+  Mischen-Booster gibt. Der Flip **darf** hier bleiben: `.mem-cell` ist kein `.tile`.
 - **Startseite:** minimales Layout in `src/App.tsx` (Play-Button, Seiten-Symbole `DailyIcon`/`EventIcon`,
   „Alle Spiele"-Sheet `src/ui/GamesSheet.tsx`); drehender 3D-Stein `src/ui/HeroTile3D.tsx` (CSS-3D-
   Schicht-Extrusion + runde Seitenwand; **Rotation per JS-rAF**: sanfte Ruhe-Drehung + Finger/Maus-

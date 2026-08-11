@@ -334,16 +334,18 @@ export function StatsScreen({ progress, onBack }: { progress: Progress; onBack: 
   ];
   // Lokale Bestenliste: Bestwerte je Modus.
   const mb = st.modeBest;
-  const memBest = ['memory-easy', 'memory-normal', 'memory-hard']
-    .map((k) => mb[k]).filter((v) => v !== undefined) as number[];
   const dash = (v: number | undefined) => (v === undefined ? '–' : v);
   const rowsBest: [string, string | number][] = [
-    [t('menu.connect'), progress.connectLevel > 1 ? t('crush.level', { n: progress.connectLevel }) : '–'],
-    [t('mode.tilematch'), mb['tilematch'] ? t('crush.level', { n: mb['tilematch'] }) : '–'],
+    [t('menu.connect'), progress.connectLevel > 1 ? t('home.level', { n: progress.connectLevel }) : '–'],
+    [t('mode.tilematch'), mb['tilematch'] ? t('home.level', { n: mb['tilematch'] }) : '–'],
     [t('mode.blitz'), mb['blitz'] ? t('blitz.score', { n: mb['blitz'] }) : '–'],
     [t('mode.match3'), dash(mb['match3'])],
     [t('mode.merge'), dash(mb['merge'])],
-    [t('mode.memory'), memBest.length ? Math.min(...memBest) : '–'],
+    // Memory zählt seit 11.08.2026 GESCHAFFTE LEVEL, nicht mehr Züge — die alten
+    // Schlüssel `memory-easy/normal/hard` gab es hier zwar, nur schrieb sie
+    // niemand mehr, und ein Zug-Bestwert wäre neben einem Level auch nicht
+    // vergleichbar. Alte Werte bleiben im Speicher liegen und stören nicht.
+    [t('mode.memory'), mb['memory'] ? t('home.level', { n: mb['memory'] }) : '–'],
     [t('mode.sudoku'), dash(mb['sudoku'])],
   ];
   return (
