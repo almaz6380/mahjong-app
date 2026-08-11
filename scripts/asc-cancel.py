@@ -27,12 +27,19 @@ BASE = 'https://api.appstoreconnect.apple.com'
 
 def token() -> str:
     import jwt  # pyjwt
-    with open(KEY_PATH) as fh:
-        private = fh.read()
+    # Wie in asc-submit.py und asc-status.py: In der GitHub-Action kommt der
+    # Schlüssel als Secret in der Umgebung und landet nie auf der Platte; auf
+    # dem Mac liegt er als Datei.
+    private = os.environ.get('ASC_KEY_P8')
+    if not private:
+        with open(KEY_PATH) as fh:
+            private = fh.read()
     now = int(time.time())
     return jwt.encode(
-        {'iss': ISSUER, 'iat': now, 'exp': now + 900, 'aud': 'appstoreconnect-v1'},
-        private, algorithm='ES256', headers={'kid': KEY_ID, 'typ': 'JWT'},
+        {'iss': os.environ.get('ASC_ISSUER_ID') or ISSUER,
+         'iat': now, 'exp': now + 900, 'aud': 'appstoreconnect-v1'},
+        private, algorithm='ES256',
+        headers={'kid': os.environ.get('ASC_KEY_ID') or KEY_ID, 'typ': 'JWT'},
     )
 
 

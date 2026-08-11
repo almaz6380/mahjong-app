@@ -1,0 +1,87 @@
+name: Play-Rollout
+
+# Zieht einen bereits hochgeladenen versionCode weiter aus — ohne neuen Build.
+#
+# Bewusst getrennt von „Play-Eintrag aktualisieren": Das ist Eintragspflege und
+# jederzeit umkehrbar, ein Rollout nicht.
+#
+# ⚠ Ein Release mit status=completed (100 %) laesst sich NICHT mehr anhalten.
+# `halt` geht nur bei laufendem Stufen-Rollout. Der einzige Weg zurueck ist ein
+# neues Release mit hoeherem versionCode, das das alte fuer alle ueberschreibt.
+# Deshalb steht der Trockenlauf auf true.
+#
+# Die Versionshinweise werden mitgeschickt, obwohl sich der Build nicht aendert:
+# Die Play-API setzt das Release-Objekt komplett neu: Ohne releaseNotes stuenden
+# die Hinweise danach leer.
+on:
+  workflow_dispatch:
+    inputs:
+      versioncode:
+        description: 'Welcher versionCode weiter ausgerollt wird'
+        type: string
+        default: '23'
+        required: true
+      anteil:
+        description: 'An wie viele Nutzer?'
+        type: choice
+        options: ['complete', '0.5', '0.2']
+        default: 'complete'
+      notes_file:
+        description: 'Versionshinweise (de-DE wird daraus gelesen)'
+        type: string
+        default: 'store/whatsnew-1.1.0.json'
+      dry_run:
+        description: 'Trockenlauf (nur anzeigen, nichts aendern)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  rollout:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Abhaengigkeiten
+        run: pip3 install --quiet pyjwt cryptography
+
+      - name: Ausrollen
+        env:
+          PLAY_KEY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          VC: ${{ inputs.versioncode }}
+          ANTEIL: ${{ inputs.anteil }}
+          NOTES: ${{ inputs.notes_file }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          if [ -z "${PLAY_KEY_JSON:-}" ]; then
+            echo "Secret PLAY_SERVICE_ACCOUNT_JSON fehlt im Repository." >&2
+            exit 1
+          fi
+          mkdir -p ~/.config/play-publisher
+          printf '%s' "$PLAY_KEY_JSON" > ~/.config/play-publisher/key.json
+
+          test -f "$NOTES" || { echo "::error::$NOTES gibt es nicht."; exit 1; }
+          TEXT=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['de-DE'])" "$NOTES")
+
+          ARGS=(--promote "$VC" --notes "$TEXT")
+          if [ "$ANTEIL" = "complete" ]; then
+            ARGS+=(--complete)
+          else
+            ARGS+=(--fraction "$ANTEIL")
+          fi
+          if [ "$DRY_RUN" = "true" ]; then
+            ARGS+=(--dry-run)
+            echo "::notice::Trockenlauf — der Rollout wird nur angezeigt."
+          else
+            echo "::warning::Echter Lauf — versionCode $VC geht jetzt an $ANTEIL."
+          fi
+
+          echo "--- Stand vorher ---"
+          python3 scripts/play-upload.py --status
+          echo "--- Rollout ---"
+          python3 scripts/play-upload.py "${ARGS[@]}"
+          echo "--- Stand nachher ---"
+          python3 scripts/play-upload.py --status

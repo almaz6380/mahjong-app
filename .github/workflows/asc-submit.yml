@@ -41,6 +41,14 @@ on:
         description: 'Nur nachsehen: Versionen, Builds, offene Pruefungen (schreibt nie)'
         type: boolean
         default: false
+      zuerst_abbrechen:
+        description: 'Laufende Pruefung abbrechen (KOSTET die Warteposition!) — noetig, wenn eine aeltere Version haengt'
+        type: boolean
+        default: false
+      screenshots:
+        description: 'Store-Screenshots vorher ersetzen (loescht die alten bei Apple)'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -65,6 +73,8 @@ jobs:
           RENAME: ${{ inputs.rename_from }}
           SUBMIT: ${{ inputs.submit }}
           NUR_STATUS: ${{ inputs.nur_status }}
+          ABBRECHEN: ${{ inputs.zuerst_abbrechen }}
+          SHOTS: ${{ inputs.screenshots }}
         run: |
           set -euo pipefail
           ASC_KEY_P8=$(printf '%s' "$ASC_KEY_P8_BASE64" | tr -cd 'A-Za-z0-9+/=' | base64 -d)
@@ -86,6 +96,46 @@ jobs:
 
           ARGS="--version $V --build $B --notes-file $NOTES"
           [ -n "$RENAME" ] && ARGS="$ARGS --rename-from $RENAME"
-          [ "$SUBMIT" = "true" ] && ARGS="$ARGS --submit" || echo "TROCKENLAUF — es wird nichts gesendet."
-          echo "scripts/asc-submit.py $ARGS"
-          python3 scripts/asc-submit.py $ARGS
+
+          # Trockenlauf: weder abbrechen noch Bilder anfassen — nur zeigen.
+          if [ "$SUBMIT" != "true" ]; then
+            echo "TROCKENLAUF — es wird nichts gesendet."
+            python3 scripts/asc-submit.py $ARGS
+            exit 0
+          fi
+
+          # --- 1. Laufende Pruefung abbrechen -------------------------------
+          # Danach faellt die Version auf DEVELOPER_REJECTED und ist wieder
+          # editierbar — erst dann greift --rename-from. Der Uebergang
+          # CANCELING -> COMPLETE dauert ein bis zwei Minuten, deshalb pollen
+          # statt blind weiterzumachen.
+          if [ "$ABBRECHEN" = "true" ]; then
+            echo "::warning::Die laufende Pruefung wird abgebrochen — die Warteposition ist damit weg."
+            python3 scripts/asc-cancel.py --yes
+            for i in $(seq 1 20); do
+              if python3 scripts/asc-status.py | grep -qE 'PREPARE_FOR_SUBMISSION|DEVELOPER_REJECTED'; then
+                echo "Version ist wieder editierbar (nach $((i * 15)) s)."
+                break
+              fi
+              if [ "$i" = "20" ]; then
+                echo "::error::Version wurde binnen 5 min nicht editierbar."
+                exit 1
+              fi
+              sleep 15
+            done
+          fi
+
+          # --- 2. Schreiben, aber noch NICHT einreichen ---------------------
+          # Die Screenshots muessen dazwischen: Sobald die Version in der
+          # Pruefung ist, sperrt Apple die Metadaten.
+          python3 scripts/asc-submit.py $ARGS --vorbereiten
+
+          # --- 3. Screenshots ------------------------------------------------
+          if [ "$SHOTS" = "true" ]; then
+            python3 scripts/upload-ios-screenshots.py --ersetzen
+          fi
+
+          # --- 4. Einreichen -------------------------------------------------
+          # Dieselbe Version, die Schritt 2 vorbereitet hat — sie existiert
+          # jetzt und ist editierbar, --rename-from laeuft dabei ins Leere.
+          python3 scripts/asc-submit.py $ARGS --submit

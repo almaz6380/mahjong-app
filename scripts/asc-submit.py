@@ -75,11 +75,21 @@ def main():
     ap.add_argument('--notes-file', required=True, help='JSON: {"de-DE": "…", "en-US": "…"}')
     ap.add_argument('--rename-from', help='vorhandene (editierbare) Version umbenennen, z. B. 1.0.2 -> --version')
     ap.add_argument('--submit', action='store_true', help='wirklich schreiben und einreichen')
+    # Screenshots müssen VOR dem Einreichen hoch — danach sperrt Apple die
+    # Metadaten und antwortet auf jeden POST mit 409. Mit --vorbereiten
+    # schreibt dieses Skript alles (Umbenennung, whatsNew, Build), hält aber
+    # vor der Einreichung an; ein zweiter Lauf mit --submit findet die Version
+    # dann vorhanden und editierbar vor und schickt sie los.
+    ap.add_argument('--vorbereiten', action='store_true',
+                    help='schreiben, aber NICHT einreichen (für Screenshots dazwischen)')
     args = ap.parse_args()
+
+    if args.vorbereiten and args.submit:
+        sys.exit('--vorbereiten und --submit schließen einander aus.')
 
     with open(args.notes_file, encoding='utf-8') as fh:
         notes = json.load(fh)
-    write = args.submit
+    write = args.submit or args.vorbereiten
     tag = '' if write else '  [Probelauf, nichts geschrieben]'
     tok = token()
 
@@ -157,6 +167,9 @@ def main():
              {'data': {'type': 'builds', 'id': build['id']}})
 
     # --- Einreichen ---
+    if args.vorbereiten:
+        return print('Vorbereitet — NICHT eingereicht. Jetzt die Screenshots hochladen,\n'
+                     'danach denselben Aufruf mit --submit wiederholen.')
     print('Prüfung einreichen …' + tag)
     if write:
         sub = call(tok, 'POST', '/v1/reviewSubmissions', {

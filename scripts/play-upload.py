@@ -343,6 +343,20 @@ def main():
     if a.feature:
         return lade_einzelbild(tok, a.feature, a.lang, 'featureGraphic', a.dry_run)
 
+    # ⚠ --dry-run galt bisher NUR fuer die Bild- und Text-Pfade; ein
+    # „Trockenlauf" mit --promote hat trotzdem ausgerollt. Beim Rollout ist das
+    # besonders heikel, weil ein Release mit status=completed nicht mehr
+    # anzuhalten ist — nur durch einen hoeheren versionCode zu ueberschreiben.
+    if a.dry_run and not a.aab:
+        ziel = 'alle Nutzer' if a.complete else f'{(a.fraction or 0) * 100:.0f} % der Nutzer'
+        print(f'[Trockenlauf] versionCode {a.promote} wuerde auf Track '
+              f'{a.track} an {ziel} gehen — es wird nichts gesendet.')
+        if a.notes:
+            print(f'[Trockenlauf] Versionshinweise (de-DE): {a.notes[:100]}…')
+        return
+    if a.dry_run and a.aab:
+        sys.exit('--dry-run gibt es fuer --aab nicht: Hochladen laesst sich nicht andeuten.')
+
     eid = call(tok, 'POST', f'{API}/applications/{PKG}/edits')['id']
     print(f'Edit {eid} geöffnet')
 

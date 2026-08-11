@@ -2,18 +2,24 @@
 """Screenshots für iOS-Sprachfassungen hochladen (3-Schritt-Upload der ASC-API).
 
 Apple verlangt Screenshots je Lokalisierung — fehlen sie, lässt sich die Version
-nicht einreichen. Dieses Skript spiegelt die englischen Sätze aus
-store/ios-screenshots/{iphone65-en,ipad13-en} in beliebige Sprachfassungen.
-Die Bilder sind sprachneutral (Spielbretter), das ist bewusst so.
+nicht einreichen. Dieses Skript füllt sie aus store/ios-screenshots/: für de-DE
+aus den deutschen Ordnern, für alle anderen Sprachen aus den englischen.
+
+⚠ Die Bilder MÜSSEN vor dem Einreichen hoch. Sobald die Version in der Prüfung
+ist, sperrt Apple die Metadaten und antwortet auf jeden POST mit 409.
 
 Ablauf je Bild (ASC-API):
   POST /v1/appScreenshots {fileName, fileSize, appScreenshotSet}
   → PUT der Bytes an die uploadOperations-URL
   → PATCH {uploaded: true, sourceFileChecksum: <md5>}
 
-Aufruf:  python3 scripts/upload-ios-screenshots.py [locale ...]
-         (ohne Angabe: alle Sprachen ohne Screenshots)
-Idempotent: Sprachfassungen, die schon Screenshots haben, werden übersprungen.
+Aufruf:  python3 scripts/upload-ios-screenshots.py [--ersetzen] [locale ...]
+         (ohne Locale: alle Sprachen der Version)
+
+Ohne --ersetzen werden Sprachfassungen, die schon Bilder haben, ÜBERSPRUNGEN —
+das Skript füllt dann nur Lücken. Mit --ersetzen löscht es die vorhandenen
+Bilder je Satz und lädt neu; das ist der Weg, wenn sich das Aussehen der App
+geändert hat.
 """
 import hashlib
 import importlib.util
@@ -27,11 +33,20 @@ SCRIPTS = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(SCRIPTS)
 SHOTS = os.path.join(REPO, 'store', 'ios-screenshots')
 
-# Anzeigetyp → Quellordner (englische Sätze, sprachneutrale Bilder)
+# Anzeigetyp → Ordner-Grundname. Die Bilder tragen UI-Text, sind also NICHT
+# sprachneutral: für de-DE die deutschen Sätze, für alle anderen die englischen.
+# (Für es/pt/fr/it/ja gibt es keine eigenen — Englisch ist dort das Beste, was
+# wir haben.) Ein früherer Kommentar nannte die Bilder sprachneutral; das galt,
+# solange nur Spielbretter zu sehen waren.
 SETS = {
-    'APP_IPHONE_65': 'iphone65-en',
-    'APP_IPAD_PRO_3GEN_129': 'ipad13-en',
+    'APP_IPHONE_65': ('iphone65', 'iphone65-en'),
+    'APP_IPAD_PRO_3GEN_129': ('ipad13', 'ipad13-en'),
 }
+
+
+def ordner(typ: str, locale: str) -> str:
+    deutsch, englisch = SETS[typ]
+    return deutsch if locale == 'de-DE' else englisch
 
 spec = importlib.util.spec_from_file_location('asc', os.path.join(SCRIPTS, 'asc-status.py'))
 asc = importlib.util.module_from_spec(spec)
@@ -71,24 +86,33 @@ if not editierbar:
 VID = editierbar[0]['id']
 print(f"Version {editierbar[0]['attributes']['versionString']} ({VID})")
 
-nur = set(sys.argv[1:])
+argv = sys.argv[1:]
+# --ersetzen: vorhandene Bilder löschen statt die Sprache zu überspringen.
+# Ohne das Flag bleibt das ursprüngliche Verhalten („neue Sprache auffüllen"),
+# damit ein versehentlicher Lauf nie eine fertige Store-Seite leerräumt.
+ERSETZEN = '--ersetzen' in argv
+nur = set(a for a in argv if not a.startswith('--'))
 locs = call('GET', f'/v1/appStoreVersions/{VID}/appStoreVersionLocalizations?limit=20')['data']
+print('Modus:', 'ERSETZEN (alte Bilder werden gelöscht)' if ERSETZEN else 'nur fehlende auffüllen')
 
 for l in locs:
     loc = l['attributes']['locale']
     if nur and loc not in nur:
         continue
     vorhandene = call('GET', f"/v1/appStoreVersionLocalizations/{l['id']}/appScreenshotSets?limit=20")
+    bestand = {}
     schon = 0
     for s in vorhandene['data']:
-        schon += len(call('GET', f"/v1/appScreenshotSets/{s['id']}/appScreenshots?limit=20")['data'])
-    if schon:
+        drin = call('GET', f"/v1/appScreenshotSets/{s['id']}/appScreenshots?limit=20")['data']
+        bestand[s['id']] = drin
+        schon += len(drin)
+    if schon and not ERSETZEN:
         print(f'  [{loc}] hat schon {schon} Screenshots — übersprungen')
         continue
 
     print(f'  [{loc}]')
     vorhandene_typen = {s['attributes']['screenshotDisplayType']: s['id'] for s in vorhandene['data']}
-    for typ, ordner in SETS.items():
+    for typ in SETS:
         sid = vorhandene_typen.get(typ)
         if not sid:
             sid = call('POST', '/v1/appScreenshotSets', {
@@ -96,7 +120,15 @@ for l in locs:
                          'attributes': {'screenshotDisplayType': typ},
                          'relationships': {'appStoreVersionLocalization': {
                              'data': {'type': 'appStoreVersionLocalizations', 'id': l['id']}}}}})['data']['id']
-        pfad = os.path.join(SHOTS, ordner)
+        elif ERSETZEN:
+            # Bewusst je Set direkt vor dem Hochladen löschen, nicht global
+            # vorab: Bricht der Upload ab, fehlen dann nur die Bilder EINES
+            # Satzes und nicht die der ganzen Sprache.
+            for alt in bestand.get(sid, []):
+                call('DELETE', f"/v1/appScreenshots/{alt['id']}")
+            if bestand.get(sid):
+                print(f'    {typ}: {len(bestand[sid])} alte gelöscht')
+        pfad = os.path.join(SHOTS, ordner(typ, loc))
         dateien = sorted(f for f in os.listdir(pfad) if f.endswith('.png'))
         for name in dateien:
             voll = os.path.join(pfad, name)

@@ -597,6 +597,46 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   - Versionshinweise in `store/whatsnew-1.1.0.json`, alle sieben Sprachen. Die
     Schlüssel heißen an der Version `de-DE`, `en-US`, `es-ES`, `pt-BR`, `fr-FR`
     sowie **`it` und `ja` OHNE Länderteil** (die Falle von 1.0.4).
+  - **1.0.6 (Build 21) wurde abgebrochen und nie an iOS-Nutzer ausgeliefert.**
+    Es hing seit dem 10.8. abends in `WAITING_FOR_REVIEW` und blockierte damit
+    1.1.0 — Apple erlaubt nur EINE Version in Arbeit. Inhaltlich geht nichts
+    verloren: Die Werbe-Entzerrung aus 1.0.6 steckt vollständig in 1.1.0. Wer
+    im Versionsverlauf sucht: Auf Android gab es 1.0.6 (vc22), auf iOS nicht.
+
+  ⚠ **„Nur eine Version in Arbeit" ist die Falle, die hier zugeschnappt ist.**
+  Ein hochgeladener, verarbeiteter Build nützt gar nichts, solange die
+  Vorgängerversion noch in der Prüfung steht. Apple antwortet beim
+  `POST /v1/appStoreVersions` mit **409 `ENTITY_ERROR.RELATIONSHIP.INVALID`**
+  und dem Text *„You cannot create a new version of the App in the current
+  state"* — das liest sich wie ein Problem mit dem Build und ist keins.
+  Erkennen: `asc-status.py` zeigt die hängende Version und die offene
+  Einreichung. Beheben: `asc-cancel.py --yes`, dann `asc-submit.py
+  --rename-from <alt>` — **umbenennen, nicht eine zweite Version anlegen**,
+  denn die Nummer muss zur `CFBundleShortVersionString` des Builds passen.
+
+  ⚠ **Screenshots müssen VOR dem Einreichen hoch.** Sobald die Version in der
+  Prüfung ist, sperrt Apple die Metadaten (409 auf jeden POST). Deshalb hat
+  `asc-submit.py` jetzt `--vorbereiten`: schreibt Umbenennung, whatsNew und
+  Build-Zuweisung, hält aber vor der Einreichung an.
+  `upload-ios-screenshots.py` lässt vorhandene Bilder ohne `--ersetzen`
+  **in Ruhe** (es war dafür gebaut, neue Sprachen aufzufüllen) — wer das
+  Aussehen der App ändert, braucht das Flag, sonst bleibt die Store-Seite
+  stumm auf dem alten Stand. Und: Die Bilder sind **nicht** sprachneutral,
+  de-DE kommt aus `iphone65`/`ipad13`, alle anderen aus den `-en`-Ordnern.
+
+  ⚠ **`play-upload.py --dry-run` hat beim Rollout nie gegriffen** — der Schalter
+  galt nur für die Bild- und Textpfade, ein „Trockenlauf" mit `--promote` hat
+  tatsächlich ausgerollt. Seit 11.8. behoben. Gerade dort ist er wichtig: Ein
+  Release mit `status: completed` lässt sich nicht mehr anhalten.
+
+  **Zwei neue Workflows** dafür: **„iOS einreichen"** (`asc-submit.yml`) fährt
+  die ganze Kette in einem Lauf — abbrechen → warten, bis die Version wieder
+  editierbar ist → vorbereiten → Screenshots ersetzen → einreichen; Schalter
+  `nur_status` liest bloß. Und **„Play-Rollout"** (`play-rollout.yml`) zieht
+  einen vorhandenen versionCode weiter aus, getrennt von der Eintragspflege,
+  Trockenlauf als Standard. Der alte Workflow „App Store Connect" (`asc.yml`)
+  stammt aus MyPeak, redet von FullRep und Abos und weist fest `--build 4` zu —
+  **für dieses Repo unbrauchbar**, nicht damit arbeiten.
 
 ---
 
