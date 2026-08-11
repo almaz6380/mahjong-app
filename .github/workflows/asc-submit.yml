@@ -97,18 +97,22 @@ jobs:
           ARGS="--version $V --build $B --notes-file $NOTES"
           [ -n "$RENAME" ] && ARGS="$ARGS --rename-from $RENAME"
 
-          # Trockenlauf: weder abbrechen noch Bilder anfassen — nur zeigen.
-          if [ "$SUBMIT" != "true" ]; then
-            echo "TROCKENLAUF — es wird nichts gesendet."
-            python3 scripts/asc-submit.py $ARGS
-            exit 0
-          fi
-
           # --- 1. Laufende Pruefung abbrechen -------------------------------
           # Danach faellt die Version auf DEVELOPER_REJECTED und ist wieder
           # editierbar — erst dann greift --rename-from. Der Uebergang
           # CANCELING -> COMPLETE dauert ein bis zwei Minuten, deshalb pollen
           # statt blind weiterzumachen.
+          #
+          # ⚠ Dieser Schritt haengt am EIGENEN Schalter, nicht an `submit`.
+          # Bis 11.8.2026 stand die Trockenlauf-Abkuerzung darueber: Ein Lauf mit
+          # zuerst_abbrechen=true und submit=false meldete „TROCKENLAUF" und
+          # brach ab, OHNE abzubrechen — die Pruefung lief einfach weiter, und
+          # der naechste Schritt scheiterte an gesperrten Metadaten. Das sah wie
+          # ein Problem bei Apple aus und war eine Zeile Ablaufsteuerung.
+          #
+          # „Nur abbrechen" ist ausdruecklich ein sinnvoller Lauf: Zwischen
+          # Abbruch und Einreichung gehoert die Metadaten-Arbeit (Beschreibung,
+          # Screenshots) — solange die Pruefung laeuft, sperrt Apple sie.
           if [ "$ABBRECHEN" = "true" ]; then
             echo "::warning::Die laufende Pruefung wird abgebrochen — die Warteposition ist damit weg."
             python3 scripts/asc-cancel.py --yes
@@ -123,6 +127,15 @@ jobs:
               fi
               sleep 15
             done
+          fi
+
+          # Ohne `submit` endet der Lauf hier: Ein etwaiger Abbruch ist erledigt,
+          # geschrieben oder eingereicht wird nichts. Der Aufruf ohne Argumente
+          # zeigt nur, wie die Version jetzt dasteht.
+          if [ "$SUBMIT" != "true" ]; then
+            echo "Kein --submit: es wird nichts geschrieben und nichts eingereicht."
+            python3 scripts/asc-submit.py $ARGS
+            exit 0
           fi
 
           # --- 2. Schreiben, aber noch NICHT einreichen ---------------------
