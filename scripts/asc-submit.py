@@ -37,12 +37,20 @@ def token() -> str:
         import jwt  # pyjwt
     except ImportError:
         sys.exit('Fehlt: pip3 install pyjwt cryptography')
-    with open(KEY_PATH) as fh:
-        private = fh.read()
+    # Auf dem Mac liegt der Schlüssel als Datei; in der GitHub-Action kommt er
+    # als Secret. Deshalb zuerst die Umgebung fragen — dort landet er nie auf
+    # der Platte. `ASC_KEY_ID`/`ASC_ISSUER_ID` dürfen mitkommen, damit ein
+    # anderer Schlüssel nicht bedeutet, dieses Skript anfassen zu müssen.
+    private = os.environ.get('ASC_KEY_P8')
+    if not private:
+        with open(KEY_PATH) as fh:
+            private = fh.read()
     now = int(time.time())
     return jwt.encode(
-        {'iss': ISSUER, 'iat': now, 'exp': now + 900, 'aud': 'appstoreconnect-v1'},
-        private, algorithm='ES256', headers={'kid': KEY_ID, 'typ': 'JWT'},
+        {'iss': os.environ.get('ASC_ISSUER_ID') or ISSUER,
+         'iat': now, 'exp': now + 900, 'aud': 'appstoreconnect-v1'},
+        private, algorithm='ES256',
+        headers={'kid': os.environ.get('ASC_KEY_ID') or KEY_ID, 'typ': 'JWT'},
     )
 
 

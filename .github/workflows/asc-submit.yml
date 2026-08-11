@@ -1,0 +1,77 @@
+name: iOS einreichen
+
+# Schickt eine hochgeladene Version zur App-Pruefung. Laeuft auf Linux — die
+# ASC-API braucht keinen Mac, anders als der Build.
+#
+# Vorher muss der Build per „iOS Release" hochgeladen UND von Apple verarbeitet
+# sein (dauert nach dem Upload meist ein paar Minuten). Ist er das noch nicht,
+# findet ihn das Skript nicht und bricht ab — dann einfach spaeter nochmal.
+#
+# ⚠ `submit: false` (Standard) ist ein reiner Trockenlauf: Das Skript zeigt, was
+# es taete, und sendet NICHTS. Das Einreichen ist der einzige Schritt, der sich
+# nicht ohne Weiteres zurueckholen laesst (nur ueber scripts/asc-cancel.py, und
+# das kostet die Warteposition in der Pruefschlange).
+#
+# Der .p8-Schluessel wird aus dem base64-Secret dekodiert und nur als
+# Umgebungsvariable weitergereicht, nie in eine Datei geschrieben.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version, z. B. 1.1.0 (muss zur CFBundleShortVersionString des Builds passen)'
+        type: string
+        required: true
+      build:
+        description: 'Build-Nummer, z. B. 22'
+        type: string
+        required: true
+      notes_file:
+        description: '„Was ist neu"-Texte je Sprache'
+        type: string
+        default: 'store/whatsnew-1.1.0.json'
+      rename_from:
+        description: 'Vorhandene editierbare Version umbenennen (leer lassen, wenn nicht noetig)'
+        type: string
+        default: ''
+      submit:
+        description: 'Wirklich einreichen? (aus = Trockenlauf, sendet nichts)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  einreichen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Abhaengigkeiten
+        run: pip3 install --quiet pyjwt cryptography
+
+      - name: Zur Pruefung schicken
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          V: ${{ inputs.version }}
+          B: ${{ inputs.build }}
+          NOTES: ${{ inputs.notes_file }}
+          RENAME: ${{ inputs.rename_from }}
+          SUBMIT: ${{ inputs.submit }}
+        run: |
+          set -euo pipefail
+          ASC_KEY_P8=$(printf '%s' "$ASC_KEY_P8_BASE64" | tr -cd 'A-Za-z0-9+/=' | base64 -d)
+          if [ -z "$ASC_KEY_P8" ]; then
+            echo "::error::ASC_KEY_P8_BASE64 laesst sich nicht dekodieren."
+            exit 1
+          fi
+          export ASC_KEY_P8
+          test -f "$NOTES" || { echo "::error::$NOTES gibt es nicht."; exit 1; }
+
+          ARGS="--version $V --build $B --notes-file $NOTES"
+          [ -n "$RENAME" ] && ARGS="$ARGS --rename-from $RENAME"
+          [ "$SUBMIT" = "true" ] && ARGS="$ARGS --submit" || echo "TROCKENLAUF — es wird nichts gesendet."
+          echo "scripts/asc-submit.py $ARGS"
+          python3 scripts/asc-submit.py $ARGS
