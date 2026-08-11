@@ -73,11 +73,9 @@ export default function App() {
     if (progress) applyTheme(progress.theme);
   }, [progress?.theme]);
 
-  // Startseiten-Klasse an <html> setzen: steuert den Tempel-Hintergrund und die
-  // dazu passende Safe-Area-Farbe zuverlässig (ohne :has()).
-  useEffect(() => {
-    document.documentElement.classList.toggle('on-home', screen === 'menu');
-  }, [screen]);
+  // (Die frühere `on-home`-Klasse ist entfallen: Der Tempel-Hintergrund liegt
+  // seit 11.08.2026 auf allen Bildschirmen, also fest auf `html` in styles.css.
+  // Kein Umschalten je Screen mehr nötig.)
 
   // Sumi-e-Hintergrundmotiv an den Level-Fortschritt koppeln.
   useEffect(() => {

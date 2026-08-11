@@ -10,11 +10,16 @@
   /* Natürliche Dunkel-Jade-Tokens (Mahjong-Tisch-Look) */
   --bg: #103227;
   --bg-2: #164132;
-  --surface: rgba(244, 236, 216, 0.06);
-  --surface-2: rgba(244, 236, 216, 0.11);
-  --line: rgba(244, 236, 216, 0.12);
+  /* Angehoben am 11.08.2026, als der Tempel auf alle Bildschirme kam. Auf
+     gleichmäßigem Jade trugen 6 % Milchglas; auf einem Foto mit Bergen und
+     Kiefernzweigen zerfasern die Zeilengrenzen der Unterseiten (Einstellungen,
+     Shop, Erfolge, Statistik, Album). Daran hängt JEDER Knopf und jede Zeile —
+     wer hier dreht, verändert die ganze App. */
+  --surface: rgba(244, 236, 216, 0.13);
+  --surface-2: rgba(244, 236, 216, 0.18);
+  --line: rgba(244, 236, 216, 0.18);
   --text: #f4ecd8;
-  --muted: rgba(244, 236, 216, 0.6);
+  --muted: rgba(244, 236, 216, 0.72);
   --accent: #35a06d; /* Jade; wird von Themes überschrieben */
   --accent-ink: #ffffff;
   --danger: #ef5b52;
@@ -59,14 +64,21 @@ body,
    Safe-Area-Bereich (Home-Indikator) ein einziger, gleichmäßiger Ton – kein
    dunkleres Band, kein Weiß. Ein sehr dezenter Glow oben (rein additiv, verläuft
    in genau diese Grundfarbe) gibt etwas Tiefe, ohne einen Übergang zu erzeugen. */
+/* Tempel-Hintergrund direkt auf dem WURZEL-Element (html): dessen Hintergrund
+   wird bei iOS auf die GANZE Fläche inkl. Safe-Area (Home-Indikator) propagiert
+   -> das Bild läuft garantiert bis ganz unten, kein Farbstreifen. Nur oben eine
+   leichte Abdunklung (Titel-Lesbarkeit).
+
+   Seit 11.08.2026 auf ALLEN Bildschirmen, nicht nur der Startseite: Das Motiv
+   trug die Startseite, und die restliche App wirkte daneben leer. Die frühere
+   Klasse `on-home` steuerte genau diese Regel und ist damit entfallen — mit ihr
+   die Zeile in App.tsx, die sie an <html> hängte.
+
+   ⚠ Die Hintergrundfarbe #121e1d ist NICHT frei wählbar: Der Bildunterrand ist
+   in genau diesen Ton ausgelaufen (in der webp eingebacken), damit auf iOS die
+   Bildkante nahtlos in die Safe-Area-Farbe übergeht. Ändert man das eine, muss
+   das andere mit. */
 html {
-  background-color: #123f2e;
-}
-/* Tempel-Hintergrund der Startseite direkt auf dem WURZEL-Element (html): dessen
-   Hintergrund wird bei iOS auf die GANZE Fläche inkl. Safe-Area (Home-Indikator)
-   propagiert -> das Bild läuft garantiert bis ganz unten, kein Farbstreifen.
-   Nur oben eine leichte Abdunklung (Titel-Lesbarkeit). */
-html.on-home {
   background-color: #121e1d;
   background-image:
     linear-gradient(180deg, rgba(8, 16, 15, 0.26) 0%, rgba(8, 16, 15, 0) 20%,
@@ -630,7 +642,10 @@ body {
      stehen (dort greift zusätzlich die Scroll-Rücksetzung in Board.tsx). */
   overflow: hidden;
   overflow: clip;
-  background: radial-gradient(120% 100% at 50% 28%, var(--felt-2), var(--felt) 78%);
+  /* Kein Filz mehr — der Tempel scheint durch (11.08.2026). Der Innenschatten
+     BLEIBT: Er umrandet die Spielfläche als weiche Vignette und trennt sie vom
+     Rest, sonst schwebt das Brett ohne erkennbare Bühne im Bild. */
+  background: none;
   box-shadow: inset 0 2px 40px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05), var(--sh-1);
 }
 .board-scale {
@@ -951,9 +966,11 @@ body {
 /* Asiatischer Tempel-Hintergrund der Startseite: fixe Vollbild-Ebene, deckt auch
    die Safe-Area (Home-Indikator) ab. Dezentes Dunkel-Overlay oben/unten für die
    Lesbarkeit von Titel und Buttons. Animierte Sakura-Blüten liegen darüber. */
-/* Auf der Startseite deckt der Tempel alles ab -> globalen Jade-Hintergrund
-   (AppBackground) dort ausblenden, damit er die Tempel-Ebene nicht überdeckt. */
-html.on-home .app-bg {
+/* Der Tempel deckt jetzt überall alles ab -> die globale Jade-Ebene
+   (AppBackground: Glows + Sumi-e + Wasserzeichenstein) ausblenden, damit sie
+   das Motiv nicht übermalt. Sie bleibt in main.tsx gemountet und ist damit mit
+   einer einzigen Zeile wieder da, falls das Sumi-e zurücksoll. */
+.app-bg {
   display: none;
 }
 .home-top { display: flex; align-items: center; justify-content: space-between; }
@@ -1294,7 +1311,9 @@ html.on-home .app-bg {
   flex-direction: column;
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
-  background: radial-gradient(120% 80% at 50% 42%, var(--felt-2), var(--felt) 82%);
+  /* Auch hier kein Filz — sonst wären 4-Spieler und Riichi die einzigen
+     Bildschirme ohne Tempel, und genau das sollte weg. */
+  background: none;
 }
 .seat {
   padding: 4px 6px;

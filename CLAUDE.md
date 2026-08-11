@@ -122,18 +122,42 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   `emblem-shield.webp` (DailyIcon + HeroTile3D-Rückseite), sowie die 8 Icons der „Alle Spiele"-Liste
   `game-*.webp` (in App.tsx `gameItems`, CSS `.game-ico .game-img`). Die **Board-Steine** sind seit
   17.7.2026 ebenfalls auf Gemini-Motive umgestellt — siehe Abschnitt „Stein-Design" oben.
-  **Startseiten-Hintergrund** = asiatisches
-  Tempel-Motiv (`src/assets/home-temple.webp`), animierte Sakura-Blüten darüber.
+  **Hintergrund = asiatisches Tempel-Motiv** (`src/assets/home-temple.webp`), auf der Startseite
+  mit animierten Sakura-Blüten darüber.
+  **Seit 11.08.2026 auf ALLEN Bildschirmen** (Josefs Wunsch, Variante „C" aus einer Sichtprüfung
+  mit drei Fassungen). Vorher trug das Motiv nur die Startseite und der Rest wirkte daneben leer.
+  Was dafür weichen musste:
+  - Die Regel sitzt jetzt fest auf `html` statt auf `html.on-home`. Die **Klasse `on-home` ist
+    ersatzlos entfallen**, mitsamt dem `useEffect` in `App.tsx`, der sie je Screen umschaltete.
+  - `.board-wrap` und `.m4` hatten einen **deckenden Filz-Verlauf** aus den Theme-Variablen
+    (`var(--felt)`/`--felt-2`) — der hat das Foto auf genau den Bildschirmen verdeckt, um die es
+    ging. Beide stehen jetzt auf `background: none`; der `inset`-Schatten von `.board-wrap` bleibt
+    und rahmt die Spielfläche als Vignette.
+  - ⚠ **Damit haben gekaufte Themes ihre Filzfläche verloren.** Sie wirken weiter über `--accent`
+    (25 Stellen in `styles.css`: Knöpfe, Schalter, Akzente), aber `--felt`/`--felt-2` werden
+    **nirgends mehr gemalt**. Wer die Themes wieder sichtbarer machen will, ist bei einem
+    halbdurchlässigen `.board-wrap` richtig (`color-mix(in srgb, var(--felt-2) 60%, transparent)`) —
+    das war Variante „B" der Sichtprüfung.
+  - `.app-bg` ist **global** ausgeblendet (vorher nur auf der Startseite). Damit sind auch die
+    Jade-Glows, das **Sumi-e-Tuschmotiv** und der Wasserzeichen-Stein aus `AppBackground.tsx` weg.
+    Die Komponente bleibt in `main.tsx` gemountet — eine Zeile CSS holt sie zurück.
+  - `--surface` 0,06 → **0,13**, `--surface-2` 0,11 → 0,18, `--line` 0,12 → 0,18, `--muted` 0,6 →
+    0,72. Auf gleichmäßigem Jade trugen 6 % Milchglas; auf einem Foto zerfaserten die Zeilengrenzen
+    der Unterseiten (Einstellungen, Shop, Erfolge, Statistik, Album). **An diesen Tokens hängt jeder
+    Knopf und jede Zeile der App** — wer hier dreht, verändert alles.
+
   **WICHTIG — Safe-Area-Falle (viel Debugging gekostet):** iOS füllt den unteren Streifen
   (Home-Indikator/Safari-Leiste, ~100+ CSS-px) NUR mit einer Hintergrund-*Farbe*, NIE mit einem
-  fixen oder Root-Hintergrund*bild*. Finale Lösung: (1) Bild liegt auf `html.on-home` (Root-Element),
-  (2) die Klasse `on-home` wird per `useEffect(screen)` an `<html>` gesetzt (NICHT `:has()` — griff
-  auf dem Gerät nicht!), (3) `html.on-home` background-color = `#121e1d`, und (4) der **Bildunterrand
-  ist bewusst in genau dieses #121e1d ausgelaufen** (in der webp eingebacken), damit Bildkante =
-  Streifenfarbe = nahtlos. `body { background: transparent }` (Grundfarbe `#123f2e` nur auf html),
-  sonst überdeckt body den Root-Hintergrund; `html.on-home .app-bg { display:none }`. Andere Screens:
-  html-Jade `#123f2e` + `src/ui/AppBackground.tsx`. Bild-Verarbeitung (Sternchen entfernen, Rand
-  auslaufen) via Python-venv/Pillow im Session-Scratchpad.
+  fixen oder Root-Hintergrund*bild*. Deshalb: (1) Bild liegt auf **`html`** (Root-Element),
+  (2) `html` background-color = `#121e1d`, und (3) der **Bildunterrand ist bewusst in genau dieses
+  #121e1d ausgelaufen** (in der webp eingebacken), damit Bildkante = Streifenfarbe = nahtlos.
+  `body { background: transparent }`, sonst überdeckt body den Root-Hintergrund.
+  ⚠ Der frühere Jade-Grundton `#123f2e` für Nicht-Home-Screens ist damit **weg** — es gibt nur noch
+  eine Grundfarbe. Bild-Verarbeitung (Sternchen entfernen, Rand auslaufen) via Python-venv/Pillow
+  im Session-Scratchpad.
+  ⚠ **Am Gerät noch ungeprüft:** Die Ausweitung ist per Playwright-Screenshot verifiziert (Spiel,
+  Einstellungen, Connect, 4-Spieler, Riichi, Startseite). Ob unten am Home-Indikator eine Naht
+  entsteht, zeigt nur echtes iOS — im Browser gibt es diesen Streifen nicht.
 - `src/ui/FactHost.tsx` + `src/game/facts.ts` — „Wusstest du?"-Infokarten zwischen Runden (`presentFact()`,
   Schalter `progress.showFacts`). **Reihenfolge beachten:** Die nächste Runde muss HINTER der Karte
   aufgebaut werden (GameScreen: `presentFact()` ohne await, dann `advanceLevel()`; `dismiss()` löst erst
