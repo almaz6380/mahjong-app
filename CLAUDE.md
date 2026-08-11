@@ -585,8 +585,16 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
 - **11.8.2026 — v1.1.0 (Android vc23 / iOS Build 22): das erste Feature-Release seit
   1.0.** Vier Dinge in einem Build, auf Josefs Wunsch bewusst gebündelt: Tempel-Motiv
   auf allen Bildschirmen, verdeckte Steine ab Level 30, Spezialsteine ab Level 50,
-  Paare-Modus auf echten Figuren. Einzelheiten stehen oben bei den jeweiligen
-  Abschnitten — hier nur, was fürs Release zählt:
+  Paare-Modus auf echten Figuren.
+
+  | | Stand am 11.8. abends |
+  |---|---|
+  | Android | **vc23 in Produktion, Rollout 100 %** (erst 20 %, dann hochgezogen) |
+  | iOS | **Build 22 eingereicht**, `WAITING_FOR_REVIEW`, reviewSubmission `2cdfbce2-…` |
+  | Web | `main` deployt |
+
+  Einzelheiten stehen oben bei den jeweiligen Abschnitten — hier nur, was fürs
+  Release zählt:
   - **Store-Screenshots sind neu und kommen jetzt aus einem Skript**
     (`node scripts/store-screenshots.mjs`, braucht `npx vite preview --port 5199`
     und `CHROME=…`). Vorher entstanden sie von Hand; mit dem Tempel im Rücken
@@ -602,6 +610,10 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
     1.1.0 — Apple erlaubt nur EINE Version in Arbeit. Inhaltlich geht nichts
     verloren: Die Werbe-Entzerrung aus 1.0.6 steckt vollständig in 1.1.0. Wer
     im Versionsverlauf sucht: Auf Android gab es 1.0.6 (vc22), auf iOS nicht.
+    Der Versions-Datensatz ist übrigens **derselbe geblieben**
+    (`id=dc0a8a73-…`) — `--rename-from` benennt um, es entsteht kein zweiter.
+    Preis des Ganzen: rund 21 Stunden Warteposition. Am 31.7. lief derselbe
+    Austausch (1.0.2 → 1.0.3) ohne spürbare Verzögerung der Freigabe.
 
   ⚠ **„Nur eine Version in Arbeit" ist die Falle, die hier zugeschnappt ist.**
   Ein hochgeladener, verarbeiteter Build nützt gar nichts, solange die
