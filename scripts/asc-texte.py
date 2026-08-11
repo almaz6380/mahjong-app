@@ -108,7 +108,16 @@ for loc, t in TEXTE.items():
     print(f"  [{loc}] {'gesetzt' if SCHREIBEN else 'würde gesetzt'} — "
           f"{len(t['description'])} Zeichen, Keywords {len(t['keywords'])}")
 
-print('\n== Name + Untertitel ==')
+print('\n== Untertitel ==')
+# ⚠ Der NAME wird bewusst nicht mitgeschickt, obwohl er in store-texte.json
+# steht. Apple prüft ihn bei jedem PATCH neu gegen alle Konten — auch wenn der
+# Wert derselbe bleibt — und antwortet dann mit
+#   409 „The app name you entered is already being used."
+# Das liest sich wie ein Markenproblem und ist keins: Die App heißt seit dem
+# ersten Release so und ist unter dem Namen im Store. Am 11.8. lief de-DE durch
+# und en-US kippte, mitten in einem sonst sauberen Lauf.
+# Der Name steht in der Datei, damit Play ihn als `title` bekommt; ändern lässt
+# er sich bei Apple nur über die Oberfläche.
 infos = call('GET', f'/v1/apps/{asc.APP_ID}/appInfos?limit=5')
 ziel = next((i['id'] for i in infos['data']
              if i['attributes'].get('appStoreState') != 'READY_FOR_SALE'), None)
@@ -124,7 +133,11 @@ else:
         if SCHREIBEN:
             call('PATCH', f'/v1/appInfoLocalizations/{ivorh[loc]}', {
                 'data': {'type': 'appInfoLocalizations', 'id': ivorh[loc],
-                         'attributes': {'name': t['name'], 'subtitle': t['subtitle']}}})
-        print(f"  [{loc}] {'gesetzt' if SCHREIBEN else 'würde gesetzt'} — „{t['subtitle']}\"")
+                         'attributes': {'subtitle': t['subtitle']}}})
+        gespeichert = next((l['attributes'].get('name') for l in il
+                            if l['attributes']['locale'] == loc), None)
+        hinweis = '' if gespeichert == t['name'] else f"  ⚠ Name im Store: „{gespeichert}\""
+        print(f"  [{loc}] {'gesetzt' if SCHREIBEN else 'würde gesetzt'} — "
+              f"„{t['subtitle']}\"{hinweis}")
 
 print('\nFertig.' if SCHREIBEN else '\nTrockenlauf beendet — nichts geändert.')
