@@ -1,11 +1,14 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import type { FadeTile, PlacedTile } from '../game/engine';
-import { Tile } from './Tile';
+import { Tile, TileBackSolid } from './Tile';
+import { t as tr } from '../i18n';
 
 interface Props {
   tiles: PlacedTile[];
   fading: FadeTile[];
   freeSet: Set<number>;
+  /** Kurzzeitig aufgedeckte verdeckte Steine (Schluessel). */
+  revealed?: Set<number>;
   selected: number | null;
   hintPair: [number, number] | null;
   onTile: (key: number) => void;
@@ -22,7 +25,7 @@ const DY = 5; // = 6 × 58/72 – vertikaler Hub je Ebene
 const OVER_L = 3.3;
 const OVER_B = 9.7;
 
-export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Props) {
+export function Board({ tiles, fading, freeSet, revealed, selected, hintPair, onTile }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 
@@ -99,10 +102,16 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
             const y = py(t) - minY;
             const free = freeSet.has(t.key);
             const isHint = hintPair && (hintPair[0] === t.key || hintPair[1] === t.key);
+            // Verdeckt, solange nicht gerade aufgedeckt. Der Wechsel ist ein
+            // reiner Austausch des SVG-Inhalts — KEINE Umdreh-Animation:
+            // `rotateY` auf `.tile` liesse unter dem gebrochenen Board-`scale`
+            // das ganze Brett um ein Geraetepixel springen (siehe styles.css).
+            const covered = !!t.hidden && !revealed?.has(t.key);
             const cls =
               'tile solid' +
               (free ? ' free' : ' blocked') +
               (selected === t.key ? ' selected' : '') +
+              (covered ? ' covered' : '') +
               (isHint ? ' hint' : '');
             return (
               <button
@@ -119,9 +128,12 @@ export function Board({ tiles, fading, freeSet, selected, hintPair, onTile }: Pr
                   zIndex: t.layer * 100000 + Math.round(t.row * 2) * 500 + (499 - Math.round(t.col * 2)),
                 }}
                 onClick={() => onTile(t.key)}
-                aria-label={t.face.id}
+                // ⚠ Bei verdeckten Steinen darf hier NICHT die Motiv-ID stehen —
+                // sie verriete Screenreader-Nutzern (und jedem, der den DOM
+                // ansieht) genau das, was verdeckt sein soll.
+                aria-label={covered ? tr('a11y.hidden') : t.face.id}
               >
-                <Tile face={t.face.id} solid />
+                {covered ? <TileBackSolid /> : <Tile face={t.face.id} solid />}
               </button>
             );
           })}

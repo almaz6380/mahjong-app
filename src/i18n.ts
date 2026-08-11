@@ -363,6 +363,9 @@ const D: Record<string, Entry> = {
   'mode.score': { de: 'Punkte', en: 'Score' },
   'mode.newBest': { de: 'Neuer Bestwert!', en: 'New best!' },
   'mode.gameOver': { de: 'Vorbei', en: 'Game over' },
+  // Screenreader-Text für verdeckte Steine. Muss neutral bleiben — hier stand
+  // vorher die Motiv-ID und hätte das Versteckte verraten.
+  'a11y.hidden': { de: 'Verdeckter Stein', en: 'Face-down tile' },
   'mode.won': { de: 'Geschafft!', en: 'Solved!' },
   'mode.again': { de: 'Nochmal', en: 'Play again' },
   'mode.moves': { de: 'Züge', en: 'Moves' },

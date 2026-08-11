@@ -131,11 +131,15 @@ function assignSolvable(
   pairs: [TileFace, TileFace][],
   size: number,
   rand: Rng = Math.random,
-): Record<number, TileFace> | null {
+): { faceOf: Record<number, TileFace>; pairs: [number, number][] } | null {
   const present = new Uint8Array(size);
   for (const i of indices) present[i] = 1;
 
   const faceOf: Record<number, TileFace> = {};
+  // Welche POSITIONEN einander zugewiesen wurden. Spezialsteine ersetzen später
+  // genau ein solches Lösungspaar — nur dann bleibt die rückwärts konstruierte
+  // Entfernungs-Reihenfolge Zug für Zug gültig.
+  const pairIdx: [number, number][] = [];
   let remaining = indices.length;
   let pi = 0;
 
@@ -166,35 +170,62 @@ function assignSolvable(
     const [f1, f2] = pairs[pi++];
     faceOf[a] = f1;
     faceOf[b] = f2;
+    pairIdx.push([a, b]);
     present[a] = 0;
     present[b] = 0;
     remaining -= 2;
   }
-  return faceOf;
+  return { faceOf, pairs: pairIdx };
 }
 
+/**
+ * Wie `generateBoard`, gibt aber zusätzlich die Lösungspaarung heraus:
+ * `pairs[i] = [posA, posB]` sind die beiden Positionen, die die
+ * Rückwärtskonstruktion einander zugewiesen hat.
+ *
+ * Spezialsteine überschreiben genau ein solches Paar (siehe modifiers.ts).
+ * Zwei beliebige Steine derselben Gruppe zu nehmen wäre falsch: Die Parität
+ * bliebe zwar heil, aber der Lösungsweg wäre zerstört, weil die früheren
+ * Partner der beiden einander nicht mehr finden.
+ */
+export function generateBoardWithPairs(
+  cells: Cell[],
+  nb: Neighbors,
+  deck: TileFace[],
+  rand: Rng = Math.random,
+): { tiles: PlacedTile[]; pairs: [number, number][] } {
+  const indices = cells.map((_, i) => i);
+  for (let attempt = 0; attempt < 800; attempt++) {
+    const res = assignSolvable(indices, nb, makePairs(deck, rand), cells.length, rand);
+    if (res) {
+      return {
+        tiles: cells.map((c, i) => ({
+          key: i,
+          col: c.col,
+          row: c.row,
+          layer: c.layer,
+          face: res.faceOf[i],
+          removed: false,
+        })),
+        pairs: res.pairs,
+      };
+    }
+  }
+  // Sollte praktisch nie passieren – Fallback ohne Lösbarkeitsgarantie.
+  // Ohne Paarung: Spezialsteine werden dann nicht gesetzt, das Brett bleibt
+  // trotzdem spielbar.
+  return { tiles: cells.map((c, i) => ({ key: i, ...c, face: deck[i], removed: false })), pairs: [] };
+}
+
+// Signatur unveraendert — daily.ts, useGame.ts und scripts/check-figures.mjs
+// haengen daran.
 export function generateBoard(
   cells: Cell[],
   nb: Neighbors,
   deck: TileFace[],
   rand: Rng = Math.random,
 ): PlacedTile[] {
-  const indices = cells.map((_, i) => i);
-  for (let attempt = 0; attempt < 800; attempt++) {
-    const faceOf = assignSolvable(indices, nb, makePairs(deck, rand), cells.length, rand);
-    if (faceOf) {
-      return cells.map((c, i) => ({
-        key: i,
-        col: c.col,
-        row: c.row,
-        layer: c.layer,
-        face: faceOf[i],
-        removed: false,
-      }));
-    }
-  }
-  // Sollte praktisch nie passieren – Fallback ohne Lösbarkeitsgarantie.
-  return cells.map((c, i) => ({ key: i, ...c, face: deck[i], removed: false }));
+  return generateBoardWithPairs(cells, nb, deck, rand).tiles;
 }
 
 // Mischt die noch vorhandenen Steine neu – wieder garantiert lösbar.
@@ -204,10 +235,18 @@ export function reshuffleBoard(tiles: PlacedTile[], nb: Neighbors): PlacedTile[]
   const faces = active.map((t) => t.face);
 
   for (let attempt = 0; attempt < 800; attempt++) {
-    const faceOf = assignSolvable(indices, nb, makePairs(faces), tiles.length);
-    if (faceOf) {
-      return tiles.map((t) => (t.removed ? t : { ...t, face: faceOf[t.key] }));
+    const res = assignSolvable(indices, nb, makePairs(faces), tiles.length);
+    if (res) {
+      // `hidden` bleibt über den Spread an der Position kleben — genau richtig:
+      // Die verdeckte Stelle ist ein Fleck auf dem Brett, nach dem Mischen liegt
+      // dort ein anderes Motiv. Das entwertet erspieltes Gedächtniswissen, und
+      // das soll ein Rettungs-Mischen auch tun.
+      return tiles.map((t) => (t.removed ? t : { ...t, face: res.faceOf[t.key] }));
     }
   }
+  // ⚠ REFERENZ-VERTRAG: Bei Misserfolg dasselbe Array-Objekt zurückgeben.
+  // `useGame.shuffle()` erkennt die Sackgasse an `next === tiles`. Ein
+  // `tiles.map(...)` hier schaltet die Erkennung stumm ab — die Oberfläche
+  // mischte dann endlos und verbrauchte Booster für nichts.
   return tiles;
 }

@@ -7,11 +7,15 @@ import { maybeShowInterstitialModes } from '../../ads/admob';
 import { presentFact } from '../../ui/FactHost';
 import { useGame } from '../../game/useGame';
 import type { ModeProps } from '../types';
+import type { SpecialKind } from '../../game/tiles';
 
 const START_SEC = 90;
 const MATCH_BONUS = 2; // Sekunden pro Paar
 const BOARD_BONUS = 12; // Sekunden für ein geleertes Brett
 const LAYOUT = 'blitz';
+// Im Blitz laeuft eine Uhr, deshalb sparsam: zwei verdeckte Steine kosten
+// ueberschlaegig drei bis vier der 90 Sekunden. Mehr waere Strafe statt Wuerze.
+const BLITZ_MODS = { hidden: 2, specials: [] as SpecialKind[] };
 
 export function BlitzScreen({ api, onExit }: ModeProps) {
   const [secLeft, setSecLeft] = useState(START_SEC);
@@ -23,6 +27,7 @@ export function BlitzScreen({ api, onExit }: ModeProps) {
   const best = api.bestOf('blitz') ?? 0;
 
   const game = useGame(LAYOUT, {
+    mods: BLITZ_MODS,
     onSelect: playTap,
     onInvalid: playInvalid,
     onMatch: () => {
@@ -107,6 +112,7 @@ export function BlitzScreen({ api, onExit }: ModeProps) {
         tiles={game.tiles}
         fading={game.fading}
         freeSet={game.freeSet}
+        revealed={game.revealed}
         selected={game.selected}
         hintPair={game.hintPair}
         onTile={game.clickTile}

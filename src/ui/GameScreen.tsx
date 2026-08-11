@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Board } from './Board';
 import { CountUp } from './CountUp';
 import { Icon } from './Icon';
 import { useGame } from '../game/useGame';
 import { starsFor, coinsFor } from '../game/scoring';
+import { modsForLevel, KEINE_MODS } from '../game/modifiers';
+import { getLayout } from '../game/layouts';
 import { BOOSTER_COST, type BoosterType, type Progress } from '../game/progress';
 import { DAILY_REWARD } from '../game/daily';
 import { saveSession, clearSession } from '../game/session';
@@ -47,7 +49,21 @@ const BOOSTER_LABEL: Record<BoosterType, string> = {
 };
 
 export function GameScreen({ mode, level, layoutName, layoutLabel, initial, progress, api, onExit, onNewRound }: Props) {
+  // Modifikatoren nur für die Level-Kampagne. Die Tages-Challenge bekommt ihr
+  // Brett fertig übergeben (`initial`, deterministisch aus dem Datum) — dort
+  // greift `mods` ohnehin nicht, siehe useGame.
+  //
+  // ⚠ `useMemo` mit leerer Abhängigkeit ist Absicht: Die Modifikatoren dürfen
+  // sich während einer laufenden Partie nicht ändern, sonst würde ein Rerender
+  // (z. B. Münzstand) das Brett neu würfeln.
+  const mods = useMemo(
+    () => (mode === 'level' ? modsForLevel(level, getLayout(layoutName).cells.length, { rated: true }) : KEINE_MODS),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
   const game = useGame(layoutName, {
+    mods,
     onSelect: playTap,
     onMatch: (a, b) => {
       playMatch();
@@ -147,7 +163,15 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
     if (game.won && !winHandled.current) {
       winHandled.current = true;
       const snap = game.snapshot();
-      const stars = starsFor({ tileCount: game.tileCount, elapsedMs: snap.elapsedMs, helpUsed: snap.helpUsed });
+      const stars = starsFor({
+        tileCount: game.tileCount,
+        elapsedMs: snap.elapsedMs,
+        helpUsed: snap.helpUsed,
+        // Verdeckte Steine verlaengern die Par-Zeit — sonst faellt in genau
+        // diesen Leveln die Drei-Sterne-Quote, ohne dass jemand schlechter
+        // gespielt haette.
+        hiddenCount: game.tiles.filter((x) => x.hidden).length,
+      });
       if (mode === 'daily') {
         const coins = DAILY_REWARD + stars * 20;
         api.completeDailyChallenge(coins);
@@ -223,6 +247,7 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
         tiles={game.tiles}
         fading={game.fading}
         freeSet={game.freeSet}
+        revealed={game.revealed}
         selected={game.selected}
         hintPair={game.hintPair}
         onTile={game.clickTile}

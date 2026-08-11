@@ -3,13 +3,17 @@ import { deckForCount, isPair } from './tiles';
 import { getLayout } from './layouts';
 import {
   buildNeighbors,
-  generateBoard,
+  generateBoardWithPairs,
   isFreeIdx,
   reshuffleBoard,
   type FadeTile,
   type Neighbors,
   type PlacedTile,
 } from './engine';
+import { applyHidden, KEINE_MODS, type LevelMods } from './modifiers';
+
+/** Wie lange ein angetippter verdeckter Stein offen liegt. */
+export const PEEK_MS = 900;
 
 interface GameOptions {
   // Bekommt die beiden entfernten Steine (z. B. fürs Mythen-Album).
@@ -18,6 +22,16 @@ interface GameOptions {
   onSelect?: () => void;
   onWin?: () => void;
   initial?: { tiles: PlacedTile[]; elapsedMs: number; helpUsed: number };
+  /**
+   * Modifikatoren für ein NEU erzeugtes Brett.
+   *
+   * ⚠ Greifen ausschliesslich im Erzeugungspfad. Beim Fortsetzen aus `initial`
+   * stecken sie bereits im gespeicherten Brett — würde man sie dort erneut
+   * anwenden, bekäme eine laufende Partie beim Laden neue Verdeckungen.
+   * Ohne diese Option verhält sich `useGame` exakt wie vorher; sechs Modi
+   * hängen daran.
+   */
+  mods?: LevelMods;
 }
 
 export function useGame(initialLayout = 'classic', opts: GameOptions = {}) {
@@ -37,15 +51,65 @@ export function useGame(initialLayout = 'classic', opts: GameOptions = {}) {
   const optsRef = useRef(opts);
   optsRef.current = opts;
 
+  // Ein frisches Brett samt Modifikatoren. `pairs` (die Lösungspaarung) wird ab
+  // Etappe 3 für die Spezialsteine gebraucht.
+  const frischesBrett = useCallback((layoutName: string, mods: LevelMods) => {
+    const lay = getLayout(layoutName);
+    // Nachbarschaft gehört zum Layout — beide Pfade (Erstaufbau und `newGame`)
+    // müssen sie zusammen mit dem Brett setzen, sonst rechnet `isFreeIdx` gegen
+    // das Layout der Vorrunde.
+    nbRef.current = buildNeighbors(lay.cells);
+    const { tiles: roh } = generateBoardWithPairs(lay.cells, nbRef.current, deckForCount(lay.cells.length));
+    return applyHidden(roh, mods.hidden);
+  }, []);
+
   const [tiles, setTiles] = useState<PlacedTile[]>(
-    () =>
-      opts.initial?.tiles ??
-      generateBoard(getLayout(initialLayout).cells, nbRef.current, deckForCount(getLayout(initialLayout).cells.length)),
+    () => opts.initial?.tiles ?? frischesBrett(initialLayout, opts.mods ?? KEINE_MODS),
   );
   const [selected, setSelected] = useState<number | null>(null);
   const [history, setHistory] = useState<[number, number][]>([]);
   const [hintPair, setHintPair] = useState<[number, number] | null>(null);
   const [fading, setFading] = useState<FadeTile[]>([]);
+
+  // Kurzzeitig aufgedeckte verdeckte Steine. Bewusst NUR zur Laufzeit und NICHT
+  // in der Session: Nach einem App-Neustart soll wieder alles zu sein, sonst
+  // waere das Gedaechtnisspiel mit einem Neustart ausgehebelt.
+  const [revealed, setRevealed] = useState<Set<number>>(() => new Set());
+  const peekTimers = useRef(new Map<number, ReturnType<typeof setTimeout>>());
+
+  // Timer beim Verlassen abraeumen — sonst feuert ein setTimeout in eine
+  // abgebaute Komponente und React meldet ein Update auf einem toten Baum.
+  useEffect(() => {
+    const timers = peekTimers.current;
+    return () => {
+      for (const id of timers.values()) clearTimeout(id);
+      timers.clear();
+    };
+  }, []);
+
+  /** Deckt einen verdeckten Stein fuer `PEEK_MS` auf. */
+  const peek = useCallback((key: number, dauer = PEEK_MS) => {
+    const alt = peekTimers.current.get(key);
+    if (alt) clearTimeout(alt);
+    setRevealed((prev) => {
+      if (prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.add(key);
+      return next;
+    });
+    peekTimers.current.set(
+      key,
+      setTimeout(() => {
+        peekTimers.current.delete(key);
+        setRevealed((prev) => {
+          if (!prev.has(key)) return prev;
+          const next = new Set(prev);
+          next.delete(key);
+          return next;
+        });
+      }, dauer),
+    );
+  }, []);
 
   // Für die Sterne-Wertung: Startzeit und genutzte Hilfen (Tipp + Mischen).
   const startedAt = useRef<number>(opts.initial ? Date.now() - opts.initial.elapsedMs : Date.now());
@@ -106,6 +170,13 @@ export function useGame(initialLayout = 'classic', opts: GameOptions = {}) {
       const t = byKey(key);
       if (!t || t.removed || !freeSet.has(key)) return;
 
+      // Ein Tipp auf einen verdeckten Stein deckt ihn auf UND waehlt ihn aus.
+      // Kein getrennter „Guck-Modus": Man bekommt nie zwei verdeckte Steine
+      // gleichzeitig zu sehen, ausser im Moment des Zugversuchs — genau das ist
+      // die Gedaechtnisarbeit. Sie kostet Zeit, und Zeit zaehlt (Sterne im
+      // Level, Countdown im Blitz).
+      if (t.hidden) peek(key);
+
       if (selected === null) {
         setSelected(key);
         optsRef.current.onSelect?.();
@@ -135,23 +206,24 @@ export function useGame(initialLayout = 'classic', opts: GameOptions = {}) {
         setSelected(null);
         optsRef.current.onMatch?.(s, t);
       } else {
+        // Fehlversuch: beide kurz zeigen, dann wieder zu — der Memory-Takt.
+        if (s?.hidden) peek(s.key, 700);
         setSelected(key); // Auswahl umschalten
         optsRef.current.onInvalid?.();
       }
     },
-    [won, byKey, freeSet, selected],
+    [won, byKey, freeSet, selected, peek],
   );
 
   const newGame = useCallback((layoutName = initialLayout) => {
-    const lay = getLayout(layoutName);
-    nbRef.current = buildNeighbors(lay.cells);
-    setTiles(generateBoard(lay.cells, nbRef.current, deckForCount(lay.cells.length)));
+    setTiles(frischesBrett(layoutName, optsRef.current.mods ?? KEINE_MODS));
     setSelected(null);
     setHistory([]);
     setHintPair(null);
+    setRevealed(new Set());
     startedAt.current = Date.now();
     helpUsed.current = 0;
-  }, [initialLayout]);
+  }, [initialLayout, frischesBrett]);
 
   const undo = useCallback(() => {
     setHistory((h) => {
@@ -166,19 +238,41 @@ export function useGame(initialLayout = 'classic', opts: GameOptions = {}) {
     });
   }, []);
 
+  // Nicht mehr „das erste Paar gewinnt", sondern „das offenste Paar gewinnt".
+  //
+  // Der Tipp darf nicht spoilern: Zeigte er auf zwei verdeckte Steine, hätte er
+  // die Gedächtnisaufgabe nebenbei gelöst. Er bevorzugt deshalb Paare, bei denen
+  // nichts verdeckt ist. Bleibt am Ende nur noch ein verdecktes Paar übrig,
+  // deckt er beide auf — ein bezahlter Booster muss liefern, sonst kauft ihn
+  // niemand ein zweites Mal.
   const hint = useCallback(() => {
     const free = [...freeSet];
+    let bestes: [number, number] | null = null;
+    let bestVerdeckt = 99;
     for (let i = 0; i < free.length; i++) {
       for (let j = i + 1; j < free.length; j++) {
-        if (isPair(byKey(free[i])!, byKey(free[j])!)) {
-          setHintPair([free[i], free[j]]);
-          helpUsed.current += 1;
-          return;
+        const a = byKey(free[i])!;
+        const b = byKey(free[j])!;
+        if (!isPair(a, b)) continue;
+        const verdeckt = (a.hidden ? 1 : 0) + (b.hidden ? 1 : 0);
+        if (verdeckt < bestVerdeckt) {
+          bestVerdeckt = verdeckt;
+          bestes = [free[i], free[j]];
+          if (verdeckt === 0) break;
         }
       }
+      if (bestVerdeckt === 0) break;
     }
-    setHintPair(null);
-  }, [freeSet, byKey]);
+    if (!bestes) {
+      setHintPair(null);
+      return;
+    }
+    setHintPair(bestes);
+    // Verdeckte Steine im Tipp laufen NICHT nach PEEK_MS zu: Der Spieler soll
+    // den gezeigten Zug auch ausführen können.
+    for (const k of bestes) if (byKey(k)!.hidden) peek(k, 30000);
+    helpUsed.current += 1;
+  }, [freeSet, byKey, peek]);
 
   // Gibt zurück, ob das Mischen etwas bewirkt hat. Bei einem Rest, für den es
   // KEINE lösbare Verteilung mehr gibt (z. B. das letzte Paar liegt gestapelt),
@@ -204,6 +298,7 @@ export function useGame(initialLayout = 'classic', opts: GameOptions = {}) {
     tiles,
     fading,
     freeSet,
+    revealed,
     selected,
     hintPair,
     remaining,
