@@ -108,7 +108,7 @@ export function HeroTile3D() {
   const boxRef = useRef<HTMLDivElement>(null);
   // Rotationszustand außerhalb des React-Renders (kein Re-Render pro Frame).
   const st = useRef({
-    rotX: 12, // leichte Anfangs-Neigung (wie bisher)
+    rotX: 0, // aufrecht — die Ruhe-Drehung läuft nur um die Hochachse
     rotY: 18,
     velX: 0,
     velY: 0,
@@ -121,7 +121,11 @@ export function HeroTile3D() {
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     let raf = 0;
     let running = true;
-    const IDLE = reduce ? 0 : 0.6; // Grad/Frame je Achse in der Ruhe-Drehung
+    // Grad/Frame der Ruhe-Drehung. NEGATIV = nach links: Bei rotateY(+θ) wandert
+    // die dem Betrachter zugewandte Fläche nach rechts.
+    const IDLE = reduce ? 0 : -0.6;
+    // Wie schnell die Neigung nach einem Wisch in die Aufrechte zurückläuft.
+    const AUFRICHTEN = 0.06;
 
     const frame = () => {
       const s = st.current;
@@ -135,10 +139,17 @@ export function HeroTile3D() {
         if (Math.abs(s.velX) < 0.01) s.velX = 0;
         if (Math.abs(s.velY) < 0.01) s.velY = 0;
         // … dann sanft zurück in die Ruhe-Drehung (nur wenn erlaubt).
+        //
+        // ⚠ Die Ruhe-Drehung läuft AUSSCHLIESSLICH um die Hochachse. Vorher lief
+        // sie zusätzlich auf rotX (`IDLE * 0.42`); die Neigung wuchs damit Frame
+        // für Frame, bis sie an der 80°-Grenze klebte — der Stein taumelte und
+        // lag am Ende schräg statt aufrecht.
         const now = performance.now();
-        if (IDLE > 0 && s.velX === 0 && s.velY === 0 && now >= s.idleResumeAt) {
+        if (IDLE !== 0 && s.velX === 0 && s.velY === 0 && now >= s.idleResumeAt) {
           s.rotY += IDLE;
-          s.rotX += IDLE * 0.42;
+          // Eine per Wisch erzeugte Neigung läuft in die Aufrechte zurück.
+          if (Math.abs(s.rotX) < 0.05) s.rotX = 0;
+          else s.rotX += (0 - s.rotX) * AUFRICHTEN;
         }
       }
       if (s.rotX > 80) s.rotX = 80;
