@@ -21,6 +21,10 @@
   --text: #f4ecd8;
   --muted: rgba(244, 236, 216, 0.72);
   --accent: #35a06d; /* Jade; wird von Themes überschrieben */
+  /* Farbtönung über dem Tempelfoto. Standard = keine; die kaufbaren Farbwelten
+     setzen sie (src/game/themes.ts). Muss hier stehen, damit vor dem ersten
+     applyTheme() kein ungültiger Wert im html-Hintergrund landet. */
+  --wash: transparent;
   --accent-ink: #ffffff;
   --danger: #ef5b52;
 
@@ -80,13 +84,25 @@ body,
    das andere mit. */
 html {
   background-color: #121e1d;
+  /* Drei Lagen, von oben nach unten: Abdunklung für die Titel-Lesbarkeit,
+     Farbtönung des gewählten Themes, Tempelfoto.
+
+     Die mittlere Lage ersetzt den Filz als Wirkung der kaufbaren Farbwelten —
+     ohne sie verkaufte der Shop einen Abschnitt „Hintergrund", der nichts mehr
+     tut (siehe src/game/themes.ts). Beim Standard-Theme ist `--wash`
+     `transparent`, der Grundzustand sieht also unverändert aus.
+
+     ⚠ Bewusst als flacher Verlauf statt `color-mix`: Letzteres kennt Safari
+     erst ab 16.2, das Deployment-Target steht aber auf iOS 15 — ein ungültiger
+     Wert würde die GANZE background-image-Angabe verwerfen, also auch das Foto. */
   background-image:
     linear-gradient(180deg, rgba(8, 16, 15, 0.26) 0%, rgba(8, 16, 15, 0) 20%,
       rgba(8, 16, 15, 0) 100%),
+    linear-gradient(0deg, var(--wash), var(--wash)),
     url('./assets/home-temple.webp');
-  background-size: cover, cover;
-  background-position: center bottom, center bottom;
-  background-repeat: no-repeat, no-repeat;
+  background-size: cover, cover, cover;
+  background-position: center bottom, center bottom, center bottom;
+  background-repeat: no-repeat, no-repeat, no-repeat;
 }
 body {
   font-family: 'Inter var', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;

@@ -133,11 +133,17 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
     (`var(--felt)`/`--felt-2`) — der hat das Foto auf genau den Bildschirmen verdeckt, um die es
     ging. Beide stehen jetzt auf `background: none`; der `inset`-Schatten von `.board-wrap` bleibt
     und rahmt die Spielfläche als Vignette.
-  - ⚠ **Damit haben gekaufte Themes ihre Filzfläche verloren.** Sie wirken weiter über `--accent`
-    (25 Stellen in `styles.css`: Knöpfe, Schalter, Akzente), aber `--felt`/`--felt-2` werden
-    **nirgends mehr gemalt**. Wer die Themes wieder sichtbarer machen will, ist bei einem
-    halbdurchlässigen `.board-wrap` richtig (`color-mix(in srgb, var(--felt-2) 60%, transparent)`) —
-    das war Variante „B" der Sichtprüfung.
+  - ⚠ **Damit hatten die gekauften Farbwelten ihre Filzfläche verloren** — `--felt`/`--felt-2`
+    werden **nirgends mehr gemalt**. Aufgefallen ist es erst beim Durchgehen aller Bildschirme:
+    Der Design-Screen verkauft einen Abschnitt **„Hintergrund"** für 300–1000 Münzen, und der
+    hätte nichts mehr bewirkt. Ersatz ist **`--wash`** (`src/game/themes.ts`): eine Farbschicht
+    über dem Foto, mittlere Lage im `background-image` von `html`. `classic` steht bewusst auf
+    `transparent`, damit der Grundzustand unverändert aussieht; die bezahlten Welten färben das
+    ganze Bild spürbar. Wer eine Welt ändert, muss `swatch`, `--felt-2` und `--wash` zusammen
+    nachziehen.
+    ⚠ Bewusst **kein `color-mix`** dafür: Safari kann es erst ab 16.2, das Deployment-Target
+    steht auf iOS 15 — ein ungültiger Wert würde die ganze `background-image`-Angabe verwerfen
+    und damit auch das Foto.
   - `.app-bg` ist **global** ausgeblendet (vorher nur auf der Startseite). Damit sind auch die
     Jade-Glows, das **Sumi-e-Tuschmotiv** und der Wasserzeichen-Stein aus `AppBackground.tsx` weg.
     Die Komponente bleibt in `main.tsx` gemountet — eine Zeile CSS holt sie zurück.

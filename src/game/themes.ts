@@ -1,4 +1,16 @@
-// Freischaltbare Farbwelten (Münzen-Sink). Ändern Filz-Hintergrund + Akzent.
+// Freischaltbare Farbwelten (Münzen-Sink). Ändern die Tönung des Hintergrunds
+// + die Akzentfarbe.
+//
+// ⚠ `--felt`/`--felt-2` werden seit dem 11.08.2026 NIRGENDS mehr gemalt: Mit dem
+// Tempel-Hintergrund auf allen Bildschirmen sind `.board-wrap` und `.m4`
+// durchlässig geworden. Ohne Ersatz hätte der Shop einen Abschnitt „Hintergrund"
+// verkauft, der nichts mehr bewirkt. Deshalb `--wash`: eine Farbschicht ÜBER dem
+// Tempelfoto (in styles.css Teil des html-Hintergrunds).
+//
+// `classic` ist bewusst `transparent` — der Standardzustand soll aussehen wie
+// das freigegebene Original, ohne Tönung. Die bezahlten Welten färben spürbar.
+// Die Werte sind `--felt-2` als rgba; wer eine Welt ändert, muss beides
+// nachziehen, sonst passen Vorschau-Farbfleck und Wirkung nicht mehr zusammen.
 
 export interface Theme {
   id: string;
@@ -14,35 +26,35 @@ export const THEMES: Theme[] = [
     label: 'theme.classic',
     cost: 0,
     swatch: '#0f4a37',
-    vars: { '--felt': '#0b3d2e', '--felt-2': '#0f4a37', '--accent': '#35a06d' },
+    vars: { '--felt': '#0b3d2e', '--felt-2': '#0f4a37', '--wash': 'transparent', '--accent': '#35a06d' },
   },
   {
     id: 'midnight',
     label: 'theme.midnight',
     cost: 300,
     swatch: '#1c2b4a',
-    vars: { '--felt': '#0e1730', '--felt-2': '#1c2b4a', '--accent': '#5ea0ff' },
+    vars: { '--felt': '#0e1730', '--felt-2': '#1c2b4a', '--wash': 'rgba(28, 43, 74, 0.34)', '--accent': '#5ea0ff' },
   },
   {
     id: 'sakura',
     label: 'theme.sakura',
     cost: 500,
     swatch: '#7d2b4e',
-    vars: { '--felt': '#4a1230', '--felt-2': '#7d2b4e', '--accent': '#ff9ec7' },
+    vars: { '--felt': '#4a1230', '--felt-2': '#7d2b4e', '--wash': 'rgba(125, 43, 78, 0.34)', '--accent': '#ff9ec7' },
   },
   {
     id: 'sunset',
     label: 'theme.sunset',
     cost: 500,
     swatch: '#8a3b1e',
-    vars: { '--felt': '#5a1e12', '--felt-2': '#8a3b1e', '--accent': '#ffb347' },
+    vars: { '--felt': '#5a1e12', '--felt-2': '#8a3b1e', '--wash': 'rgba(138, 59, 30, 0.34)', '--accent': '#ffb347' },
   },
   {
     id: 'jade',
     label: 'theme.jade',
     cost: 800,
     swatch: '#0d5b57',
-    vars: { '--felt': '#083b39', '--felt-2': '#0d5b57', '--accent': '#4fe0c0' },
+    vars: { '--felt': '#083b39', '--felt-2': '#0d5b57', '--wash': 'rgba(13, 91, 87, 0.34)', '--accent': '#4fe0c0' },
   },
   // Asia-Serie (13.7.2026): Lack & Gold, Seidenpapier, Lampion-Nacht
   {
@@ -50,21 +62,21 @@ export const THEMES: Theme[] = [
     label: 'theme.lackrot',
     cost: 900,
     swatch: '#6e1f16',
-    vars: { '--felt': '#3f100c', '--felt-2': '#6e1f16', '--accent': '#e6b74a' },
+    vars: { '--felt': '#3f100c', '--felt-2': '#6e1f16', '--wash': 'rgba(110, 31, 22, 0.34)', '--accent': '#e6b74a' },
   },
   {
     id: 'seide',
     label: 'theme.seide',
     cost: 800,
     swatch: '#6e6248',
-    vars: { '--felt': '#453d2e', '--felt-2': '#6e6248', '--accent': '#d9c9a3' },
+    vars: { '--felt': '#453d2e', '--felt-2': '#6e6248', '--wash': 'rgba(110, 98, 72, 0.34)', '--accent': '#d9c9a3' },
   },
   {
     id: 'lampion',
     label: 'theme.lampion',
     cost: 1000,
     swatch: '#232752',
-    vars: { '--felt': '#14162e', '--felt-2': '#232752', '--accent': '#ff9d4d' },
+    vars: { '--felt': '#14162e', '--felt-2': '#232752', '--wash': 'rgba(35, 39, 82, 0.34)', '--accent': '#ff9d4d' },
   },
 ];
 
