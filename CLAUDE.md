@@ -184,8 +184,21 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   Magenta-Key `min(R,B)-G`, auf Silhouette croppen, Sternchen mit weg): Münze `coin.webp` (Icon 'coin',
   überall), Truhe `reward-chest.webp` (RewardIcon), Geschenk `event-gift.webp` (EventIcon), Drachen-Wappen
   `emblem-shield.webp` (DailyIcon + HeroTile3D-Rückseite), sowie die 8 Icons der „Alle Spiele"-Liste
-  `game-*.webp` (in App.tsx `gameItems`, CSS `.game-ico .game-img`). Die **Board-Steine** sind seit
+  `game-*.webp` (in App.tsx `gameItems`, CSS `.game-ico .game-img`) und **seit 11.8.2026 die sieben
+  Modus-Karten** `mode-*.webp` (`src/modes/ModesScreen.tsx`, CSS `.mode-ico`) — benannt nach der
+  `ModeId`, damit die Zuordnung ohne Tabelle stimmt. Die **Board-Steine** sind seit
   17.7.2026 ebenfalls auf Gemini-Motive umgestellt — siehe Abschnitt „Stein-Design" oben.
+  ⚠ **Der Magenta-Key treibt seit 11.8. auch den Farbstich aus** (`extract-tiles.py`, „spill
+  suppression"): Alpha allein reicht nicht, halbdurchsichtige Stellen — Glas, weiche Kanten,
+  Leuchtsäume — behalten sonst den Ton des Hintergrunds. Bei der Sanduhr (`mode-blitz`) waren
+  das **43 % aller Kantenpixel**, sie schimmerte durchgehend rosa; danach 0 %. Grün auf
+  `min(R,B)` anzuheben trifft genau diese Pixel, weil Elfenbein, Jade und Gold alle darüber
+  liegen. **Ein violettes Motiv wäre die Ausnahme** — dann den Schritt abschalten, nicht die
+  Schwelle verbiegen.
+  ⚠ **Das Bildfeld der Modus-Karten ist 58×44 und bewusst nicht quadratisch.** Die Motive haben
+  sehr verschiedene Seitenverhältnisse (drei Steine liegen breit, das Sudoku-Raster steht fast
+  quadratisch); in einem 44er-Quadrat schrumpfen die breiten auf halbe Höhe und wirken neben den
+  hohen verloren.
   **Hintergrund = asiatisches Tempel-Motiv** (`src/assets/home-temple.webp`), auf der Startseite
   mit animierten Sakura-Blüten darüber.
   **Seit 11.08.2026 auf ALLEN Bildschirmen** (Josefs Wunsch, Variante „C" aus einer Sichtprüfung
@@ -671,6 +684,37 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   Trockenlauf als Standard. Der alte Workflow „App Store Connect" (`asc.yml`)
   stammt aus MyPeak, redet von FullRep und Abos und weist fest `--build 4` zu —
   **für dieses Repo unbrauchbar**, nicht damit arbeiten.
+- **11.8.2026 abends — v1.1.1 (Android vc24 / iOS Build 23): das Aussehen zieht nach.**
+  Drei Sachen, alle rein sichtbar: **App-Icon mit Tempel**, **Bildsymbole für die
+  sieben Bonus-Spiele** statt Emoji, **aufrechter Hero-Stein** mit Drehung nach links.
+
+  | | Stand |
+  |---|---|
+  | Android | **vc24 in Produktion, an alle Nutzer** (19:32 UTC committet) |
+  | iOS | **Build 23 als 1.1.1 eingereicht**, reviewSubmission `aa92022a-…` |
+
+  **Die Versionshinweise sind je Plattform verschieden — mit Absicht, nicht aus
+  Versehen.** Auf Android war 1.1.0 als vc23 ausgeliefert, auf iOS **nie**: Build 22
+  hing in der Prüfung und wurde durch Build 23 ersetzt. Der Play-Text nennt deshalb
+  nur die drei neuen Punkte, `store/whatsnew-1.1.1.json` (iOS) nennt zusätzlich den
+  kompletten Inhalt von 1.1.0. Sonst bekämen iPhone-Nutzer ein Feature-Release ohne
+  Ankündigung. **Wer künftig zwei Releases kurz hintereinander schickt, muss diese
+  Frage erneut stellen** — die Plattformen laufen auseinander, sobald eine iOS-Prüfung
+  übersprungen wird. Der Play-Text geht als Workflow-Eingabe rein, nicht aus der Datei.
+  ⚠ `asc-submit.yml` hat `store/whatsnew-1.1.0.json` fest als Standard; die
+  `notes_file`-Eingabe muss bei jedem Release mitgesetzt werden, sonst stehen im
+  Store die Hinweise des Vorgängers.
+
+  Screenshots blieben unverändert — 1.1.1 ändert nichts an den fotografierten
+  Bildschirmen. Deshalb lief die Einreichung mit `screenshots: false` und ohne die
+  Metadaten-Falle.
+
+  **Zeitmessung für die Planung:** Android-Lauf 5:46 min bis in Produktion, iOS-Lauf
+  **3:00 min** bis `UPLOAD SUCCEEDED` (Archivieren 56 s, Export 3 s, Upload 76 s auf
+  `macos-26`) — deutlich schneller als die früher notierten ~25 min. Apple hatte den
+  Build nach 20 Minuten schon auf `VALID`. Vor dem Abbrechen der laufenden Prüfung
+  IMMER `nur_status` laufen lassen: Er zeigt Build-Zustand, Versionen und die offene
+  Einreichung in einem Aufruf und kostet 15 Sekunden.
 
 ---
 
