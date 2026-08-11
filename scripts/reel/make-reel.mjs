@@ -15,6 +15,8 @@ import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spurRendern } from './synth.mjs';
+import { FORMATE, fakten, captionText } from './formate.mjs';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
@@ -26,11 +28,18 @@ const ASSETS = join(HIER, 'assets');
 
 const arg = (n, s) => { const i = process.argv.indexOf(`--${n}`); return i === -1 ? s : process.argv[i + 1]; };
 const CLIP = join(WURZEL, arg('clip', 'out/reels/mahjong-solitaire-lvl12-en.mp4'));
-const OUT = join(WURZEL, 'out/reels');
+const FORMAT = arg('format', 'paar');
+const NAME = arg('name', null);            // Dateiname ohne Endung
+const FAKT_NR = Number(arg('fakt', 0));    // welcher Fakt beim Format `fakt`
+const OUT = join(WURZEL, arg('out', 'out/reels'));
 const TMP = join(OUT, '.bau');
 const B = 1080, H = 1920, FPS = 30;
 
-const HOOK_SEK = 1.8;
+if (!FORMATE[FORMAT]) {
+  console.error(`✗ unbekanntes Format: ${FORMAT}\n  Bekannt: ${Object.keys(FORMATE).join(', ')}`);
+  process.exit(1);
+}
+const HOOK_SEK = FORMATE[FORMAT].hookSek;
 const OUTRO_SEK = 4.2;
 
 // Ueberblendzeiten. Der Hartschnitt war der Grund, warum das Reel am Ende
@@ -40,9 +49,13 @@ const OUTRO_SEK = 4.2;
 const BLENDE_SPIEL = 0.35;
 const BLENDE_ABSPANN = 0.55;
 
+// Beim Format `fakt` traegt die Unterzeile den Fakt selbst — deshalb wird er
+// hier schon geladen, er bestimmt den Text der Eingangskarte.
+const FAKT = FORMAT === 'fakt' ? fakten()[FAKT_NR % fakten().length] : null;
+
 const TEXTE = {
-  hook: 'Can you spot\nthe pair?',
-  hookSub: 'Only 1 in 10 finds it in time',
+  hook: FORMATE[FORMAT].hook,
+  hookSub: FORMATE[FORMAT].hookSub ?? (FAKT ? FAKT.en : ''),
   outroTitel: 'Mahjong\nRoyale',
   outroSub: 'Solitaire · Connect · Riichi · 4 Players',
   outroCta: 'Free on the App Store & Google Play',
@@ -103,14 +116,23 @@ html,body{width:${B}px;height:${H}px;background:transparent;font-family:'Outfit'
   // reichen auf den hellen Steinen nicht — die Unterzeile war dort faktisch
   // unlesbar. Das Band laeuft oben und unten weich aus, damit es nicht wie ein
   // aufgeklebter Balken wirkt.
+  // Der Block wird per Flexbox zentriert statt auf feste Pixel gesetzt: Beim
+  // Format `fakt` traegt die Unterzeile einen ganzen Satz ueber mehrere
+  // Zeilen, bei `paar` nur vier Woerter. Feste Positionen wuerden bei einem
+  // der beiden Faelle immer danebenliegen.
+  const titelGroesse = TEXTE.hook.length > 22 ? 88 : 106;
   await schuss(
-    `<div style="position:absolute;left:0;top:980px;width:${B}px;height:580px;
-                 background:linear-gradient(180deg,rgba(6,32,26,0),rgba(6,32,26,.82) 20%,
-                            rgba(6,32,26,.88) 50%,rgba(6,32,26,.82) 80%,rgba(6,32,26,0))"></div>
-     <div class="mitte schatten" style="top:1105px;font-size:106px;font-weight:800;line-height:1.06">
-       ${TEXTE.hook.split('\n').join('<br>')}</div>
-     <div class="mitte" style="top:1390px;font-size:40px;font-weight:600;color:#ffd76a">
-       ${TEXTE.hookSub}</div>`,
+    `<div style="position:absolute;left:0;top:900px;width:${B}px;height:720px;
+                 background:linear-gradient(180deg,rgba(6,32,26,0),rgba(6,32,26,.82) 18%,
+                            rgba(6,32,26,.88) 50%,rgba(6,32,26,.82) 82%,rgba(6,32,26,0))"></div>
+     <div style="position:absolute;left:70px;top:900px;width:940px;height:720px;display:flex;
+                 flex-direction:column;align-items:center;justify-content:center;
+                 text-align:center;gap:38px">
+       <div class="schatten" style="font-size:${titelGroesse}px;font-weight:800;line-height:1.06">
+         ${TEXTE.hook.split('\n').join('<br>')}</div>
+       ${TEXTE.hookSub ? `<div style="font-size:40px;font-weight:600;color:#ffd76a;line-height:1.34">
+         ${TEXTE.hookSub}</div>` : ''}
+     </div>`,
     join(TMP, 'hook.png'));
 
   // Der Abspann ist deckend — er soll das Brett ersetzen, nicht überlagern.
@@ -226,13 +248,19 @@ const sfx = (n) => join(ASSETS, 'sfx', `${n}.aac`);
 const ms = (s) => Math.round(Math.max(0, s) * 1000);
 const outroAb = Math.max(0, dauer - OUTRO_SEK);   // = Beginn der Abspann-Blende
 
-// Der Sieg ist der staerkste Moment im Bild und war bisher voellig stumm.
-// Der Zeitpunkt kommt aus dem Beipackzettel der Aufnahme, nicht aus einer
-// Schaetzung; fehlt er, bleibt es beim bisherigen Ton.
+// Die Klaenge des Spiels. Sie sind der eigentliche Reiz des Formats: 19 Steine
+// in einem Rhythmus, der mit dem Tempo anzieht. Die Aufnahme liefert nur Bild
+// (CDP-Screencast), also wird die Spur aus den mitgeschriebenen Klickzeiten neu
+// erzeugt — mit demselben Synth wie in der App (synth.mjs).
 let beiblatt = {};
 try { beiblatt = JSON.parse(readFileSync(CLIP.replace(/\.mp4$/, '.json'), 'utf8')); } catch { /* optional */ }
-const siegAbs = beiblatt.siegBei != null
-  ? HOOK_SEK - BLENDE_SPIEL + beiblatt.siegBei : null;
+const versatzSpiel = HOOK_SEK - BLENDE_SPIEL;   // dort beginnt das Gameplay im fertigen Reel
+
+const ereignisse = (beiblatt.klicks ?? [])
+  .map((k) => ({ t: versatzSpiel + k.t, klang: k.art }));
+if (beiblatt.siegBei != null) {
+  ereignisse.push({ t: versatzSpiel + beiblatt.siegBei, klang: 'win', vol: 1.25 });
+}
 
 const spuren = [
   // Musikteppich leise, damit in der App noch ein Trending-Sound darüberpasst.
@@ -243,10 +271,16 @@ const spuren = [
 ];
 const namen = ['[bed]', '[w]', '[o]'];
 const eingaben = ['-i', sfx('bett'), '-i', sfx('whoosh'), '-i', sfx('outro')];
-if (siegAbs != null) {
-  eingaben.push('-i', sfx('outro'));
-  spuren.push(`[3:a]adelay=${ms(siegAbs)}|${ms(siegAbs)},volume=0.32[sieg]`);
-  namen.push('[sieg]');
+
+if (ereignisse.length) {
+  const spielSpur = join(TMP, 'spielklang.wav');
+  spurRendern(ereignisse, dauer + 1.5, spielSpur);
+  eingaben.push('-i', spielSpur);
+  spuren.push(`[3:a]volume=1.0[spiel]`);
+  namen.push('[spiel]');
+  console.log(`  ${beiblatt.klicks.length} Steinklaenge${beiblatt.siegBei != null ? ' + Sieg' : ''}`);
+} else {
+  console.log('  ⚠ keine Klickzeiten im Beipackzettel — Reel bleibt ohne Spielklang');
 }
 
 await lauf([
@@ -261,12 +295,25 @@ await lauf([
   join(TMP, 'ton.m4a'),
 ]);
 
-const ziel = join(OUT, 'mahjong-reel-01-spot-the-pair-EN.mp4');
+const basis = NAME ?? `mahjong-${FORMAT}-lvl${beiblatt.level ?? '?'}-EN`;
+const ziel = join(OUT, `${basis}.mp4`);
 await lauf([
   '-y', '-i', join(TMP, 'stumm.mp4'), '-i', join(TMP, 'ton.m4a'),
   '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k', '-shortest',
   '-movflags', '+faststart', ziel,
 ]);
 
+// Caption + Hashtags daneben. Auf dem Handy gibt es keinen Dateimanager und
+// keine Lust, sich Text auszudenken — die Datei ist zum Kopieren gedacht.
+writeFileSync(join(OUT, `${basis}.txt`), captionText(FORMAT, {
+  datei: `${basis}.mp4`,
+  level: beiblatt.level ?? '?',
+  paare: beiblatt.paare ?? '?',
+  spielSek: (beiblatt.dauer ?? 0).toFixed(0),
+  gesamtSek: dauer.toFixed(0),
+  fakt: FAKT ? FAKT.en : null,
+}));
+
 rmSync(TMP, { recursive: true, force: true });
 console.log(`\n✓ ${ziel}  (${(statSync(ziel).size / 1024 / 1024).toFixed(1)} MB, ${dauer.toFixed(1)} s)`);
+console.log(`✓ ${join(OUT, `${basis}.txt`)}`);

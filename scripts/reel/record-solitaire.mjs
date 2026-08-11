@@ -141,8 +141,14 @@ await page.waitForTimeout(900);
 const cdp = await ctx.newCDPSession(page);
 const bilder = [];
 let n = 0;
+// Nullpunkt fuer alle Ereigniszeiten: der Moment, in dem das ERSTE Bild
+// eintrifft. Der Zeitstempel des jeweils letzten Bildes taugt dafuer nicht —
+// der Screencast liefert nur bei Bildaenderung, in einer Wartepause bleibt er
+// stehen und ein Klick bekaeme die Zeit des letzten Bildwechsels.
+let wand0 = null;
 
 cdp.on('Page.screencastFrame', async (f) => {
+  if (wand0 === null) wand0 = Date.now() / 1000;
   const datei = join(TMP, `${String(n++).padStart(5, '0')}.jpg`);
   writeFileSync(datei, Buffer.from(f.data, 'base64'));
   bilder.push({ datei, t: f.metadata.timestamp });
@@ -186,6 +192,12 @@ async function freiesPaar() {
 let gespielt = 0;
 await page.waitForTimeout(600);   // Ruhe vor dem ersten Zug
 
+// Jeder Klick wird mit seinem Zeitstempel mitgeschrieben, damit make-reel.mjs
+// die Klaenge des Spiels exakt daraufsetzen kann. Der Screencast liefert nur
+// Bild — der Ton entsteht spaeter neu, und ohne diese Liste muesste er raten.
+const klicks = [];      // { t, art: 'tap' | 'match' }
+const jetzt = () => (wand0 === null ? null : Date.now() / 1000 - wand0);
+
 // Die Rampe muss sich an der ECHTEN Paarzahl des Bretts ausrichten, nicht an
 // der Obergrenze `--paare`: Sonst laeuft sie bei einem Deckel von 40 nur bis
 // zur Haelfte durch und das Video bleibt gleichfoermig langsam.
@@ -202,8 +214,10 @@ for (let i = 0; i < PAARE; i++) {
   const vor = Math.round(300 - 190 * t);              // 300 ms → 110 ms
   const nach = Math.round(520 - 350 * t);             // 520 ms → 170 ms
   await page.mouse.click(paar[0].x, paar[0].y);
+  klicks.push({ t: jetzt(), art: 'tap' });            // erster Stein: nur Tick
   await page.waitForTimeout(vor);                     // erster Stein leuchtet auf
   await page.mouse.click(paar[1].x, paar[1].y);
+  klicks.push({ t: jetzt(), art: 'match' });          // zweiter Stein: Paar loest sich
   await page.waitForTimeout(nach);                    // Ausblende + Atempause
   gespielt++;
 }
@@ -218,7 +232,7 @@ const gewonnen = await page.waitForSelector('.overlay .card', { timeout: 2500 })
 // Zeitpunkt des Siegs festhalten, damit make-reel.mjs den Klang GENAU dorthin
 // legen kann. Geschaetzt („etwa vier Sekunden vor Schluss") sitzt er daneben,
 // und ein Klang neben dem Bild ist schlimmer als gar keiner.
-const siegBei = gewonnen && bilder.length ? bilder[bilder.length - 1].t : null;
+const siegBei = gewonnen ? jetzt() : null;
 await page.waitForTimeout(gewonnen ? 3800 : 900);
 if (gewonnen) console.log('  Brett leer — Sieg-Zeremonie mit aufgenommen');
 else console.log('  ⚠ kein Sieg — das Reel endet ohne Aufloesung');
@@ -262,9 +276,11 @@ const dauer = (bilder[bilder.length - 1].t - t0).toFixed(1);
 writeFileSync(ziel.replace(/\.mp4$/, '.json'), JSON.stringify({
   level: LEVEL, lang: LANG, paare: gespielt,
   dauer: Number(dauer),
-  siegBei: siegBei == null ? null : Number((siegBei - t0).toFixed(2)),
+  siegBei: siegBei == null ? null : Number(siegBei.toFixed(2)),
+  klicks: klicks.filter((k) => k.t != null)
+    .map((k) => ({ t: Number(k.t.toFixed(3)), art: k.art })),
 }, null, 2));
 
 console.log(`✓ ${ziel}`);
 console.log(`  ${gespielt} Paare · ${bilder.length} Bilder · ${dauer} s Rohmaterial`);
-if (siegBei != null) console.log(`  Sieg bei ${(siegBei - t0).toFixed(2)} s`);
+if (siegBei != null) console.log(`  Sieg bei ${siegBei.toFixed(2)} s`);
