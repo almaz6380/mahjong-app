@@ -229,6 +229,79 @@ export function generateBoard(
 }
 
 // Mischt die noch vorhandenen Steine neu – wieder garantiert lösbar.
+/**
+ * Welche Steine reisst eine Bombe zusaetzlich mit?
+ *
+ * Drei Filter, jeder aus einem konkreten Grund:
+ *
+ * 1. **Nachbarschaft** — Chebyshev-Radius 1 um die beiden Bombensteine, gleiche
+ *    Ebene oder direkt darunter/darueber.
+ * 2. **Nichts darueber** — sonst haengt der Stein darueber anschliessend in der
+ *    Luft. Schwebende Steine sind im ganzen Projekt ausgeschlossen
+ *    (`check-figures.mjs` prueft es fuer die Bretter).
+ * 3. ⚠ **Nur VOLLSTAENDIGE matchKey-Paare** — der eigentliche Grund, warum
+ *    diese Funktion existiert. Entfernt die Bombe drei Steine einer Sorte,
+ *    bleibt ein Einzelstueck uebrig, das nie wieder einen Partner findet: Das
+ *    Brett ist unloesbar, und kein Mischen repariert es (`makePairs` laesst den
+ *    ungeraden Rest liegen). Aus jeder Gruppe mit ungerader Trefferzahl faellt
+ *    deshalb ein Stein wieder heraus und bleibt stehen.
+ *
+ * Der Preis: Manchmal bleibt ein Nachbar liegen. Das ist verstaendlich und
+ * deutlich billiger als ein totes Brett.
+ */
+export function blastSet(
+  tiles: PlacedTile[],
+  nb: Neighbors,
+  present: Uint8Array,
+  centers: number[],
+): Set<number> {
+  const byKey = new Map<number, PlacedTile>();
+  for (const t of tiles) byKey.set(t.key, t);
+  const mitte = centers.map((k) => byKey.get(k)).filter(Boolean) as PlacedTile[];
+
+  const treffer: PlacedTile[] = [];
+  for (const t of tiles) {
+    if (t.removed || centers.includes(t.key)) continue;
+    const nah = mitte.some(
+      (m) => Math.abs(t.col - m.col) <= 1 && Math.abs(t.row - m.row) <= 1 && Math.abs(t.layer - m.layer) <= 1,
+    );
+    if (!nah) continue;
+    // ⚠ NICHT `nb.up` benutzen. Das ist nur der Stein an exakt derselben
+    // Koordinate eine Ebene hoeher — Ebenen liegen aber teils um einen halben
+    // Schritt versetzt, ein Stein ruht dann auf bis zu vier Nachbarn, von denen
+    // keiner `nb.up` ist. Mit `nb.up` liess die Bombe Steine schweben (vom
+    // Fuzz-Test in check-specials.mjs sofort gefunden). Gefragt ist die echte
+    // Auflagepruefung: ueberlappt irgendein Stein eine Ebene hoeher?
+    const traegt = tiles.some(
+      (u) => !u.removed && u.layer === t.layer + 1
+        && Math.abs(u.col - t.col) < 1 && Math.abs(u.row - t.row) < 1,
+    );
+    if (traegt) continue;
+    treffer.push(t);
+  }
+
+  // Auf gerade Gruppen beschneiden: aus jeder ungeraden Gruppe faellt der
+  // entfernteste Stein wieder heraus.
+  const gruppen = new Map<string, PlacedTile[]>();
+  for (const t of treffer) {
+    const g = gruppen.get(t.face.matchKey) ?? [];
+    g.push(t);
+    gruppen.set(t.face.matchKey, g);
+  }
+  const raus = new Set<number>();
+  const abstand = (t: PlacedTile) =>
+    Math.min(...mitte.map((m) => Math.abs(t.col - m.col) + Math.abs(t.row - m.row)));
+  for (const g of gruppen.values()) {
+    if (g.length % 2 === 0) {
+      for (const t of g) raus.add(t.key);
+    } else if (g.length > 1) {
+      g.sort((a, b) => abstand(a) - abstand(b));
+      for (const t of g.slice(0, g.length - 1)) raus.add(t.key);
+    }
+  }
+  return raus;
+}
+
 export function reshuffleBoard(tiles: PlacedTile[], nb: Neighbors): PlacedTile[] {
   const active = tiles.filter((t) => !t.removed);
   const indices = active.map((t) => t.key);

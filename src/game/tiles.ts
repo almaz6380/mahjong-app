@@ -15,7 +15,8 @@ export type TileGroup =
   | 'flower'
   | 'season'
   | 'myth'
-  | 'treasure';
+  | 'treasure'
+  | 'special';
 
 /**
  * Sonderwirkung eines Steins. Sitzt am MOTIV, nicht an der Position: Ein Joker
@@ -46,6 +47,21 @@ export interface TileFace {
 export function isPair(a: { face: TileFace }, b: { face: TileFace }): boolean {
   if (a.face.special === 'joker' || b.face.special === 'joker') return true;
   return a.face.matchKey === b.face.matchKey;
+}
+
+/**
+ * Erzeugt ein FRISCHES Spezial-Motiv.
+ *
+ * ⚠ Immer neu erzeugen, nie ein vorhandenes Face mutieren: `deckForCount`
+ * erweitert grosse Decks mit `out.push(base[i])`, dieselbe Objekt-Referenz
+ * steckt dann in mehreren Steinen. Eine Aenderung „an einem Stein" traefe still
+ * fremde Steine mit.
+ *
+ * Eigener `matchKey` je Sorte: Die beiden Steine eines Spezialpaares passen
+ * damit zueinander und zu sonst nichts.
+ */
+export function specialFace(kind: SpecialKind): TileFace {
+  return { id: `sp-${kind}`, glyph: '', matchKey: `sp-${kind}`, group: 'special', special: kind };
 }
 
 const cp = (code: number) => String.fromCodePoint(code);

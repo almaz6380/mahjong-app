@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { deckForCount, isPair } from './tiles';
+import { deckForCount, isPair, type SpecialKind } from './tiles';
 import { getLayout } from './layouts';
 import {
+  blastSet,
   buildNeighbors,
   generateBoardWithPairs,
   isFreeIdx,
@@ -10,7 +11,7 @@ import {
   type Neighbors,
   type PlacedTile,
 } from './engine';
-import { applyHidden, KEINE_MODS, type LevelMods } from './modifiers';
+import { applyHidden, applySpecials, KEINE_MODS, type LevelMods } from './modifiers';
 
 /** Wie lange ein angetippter verdeckter Stein offen liegt. */
 export const PEEK_MS = 900;
@@ -32,6 +33,11 @@ interface GameOptions {
    * hängen daran.
    */
   mods?: LevelMods;
+  /**
+   * Ein Spezialstein hat ausgelöst. Der Modus entscheidet, was das heißt —
+   * `time` etwa wirkt im Blitz auf den Countdown, im Level auf die Sterne.
+   */
+  onSpecial?: (kind: SpecialKind) => void;
 }
 
 export function useGame(initialLayout = 'classic', opts: GameOptions = {}) {
@@ -59,8 +65,10 @@ export function useGame(initialLayout = 'classic', opts: GameOptions = {}) {
     // müssen sie zusammen mit dem Brett setzen, sonst rechnet `isFreeIdx` gegen
     // das Layout der Vorrunde.
     nbRef.current = buildNeighbors(lay.cells);
-    const { tiles: roh } = generateBoardWithPairs(lay.cells, nbRef.current, deckForCount(lay.cells.length));
-    return applyHidden(roh, mods.hidden);
+    const { tiles: roh, pairs } = generateBoardWithPairs(lay.cells, nbRef.current, deckForCount(lay.cells.length));
+    // Reihenfolge zaehlt: erst Spezialsteine (sie brauchen die Loesungspaarung),
+    // dann verdeckte Stellen — `applyHidden` laesst Spezialsteine bewusst offen.
+    return applyHidden(applySpecials(roh, pairs, mods.specials), mods.hidden);
   }, []);
 
   const [tiles, setTiles] = useState<PlacedTile[]>(
@@ -199,12 +207,50 @@ export function useGame(initialLayout = 'classic', opts: GameOptions = {}) {
         setFading((f) => [...f, ...fade]);
         setTimeout(() => setFading((f) => f.filter((x) => x.key !== key && x.key !== selected)), 260);
 
-        setTiles((prev) =>
-          prev.map((x) => (x.key === key || x.key === selected ? { ...x, removed: true } : x)),
-        );
+        // Welche Sonderwirkung loest aus? Bei Joker+Normal traegt nur einer der
+        // beiden den Marker.
+        const wirkung = s.face.special ?? t.face.special;
+        // Der Partner des Jokers — sein Motiv braucht der andere Joker gleich.
+        const jokerOpfer = s.face.special === 'joker' ? t.face : t.face.special === 'joker' ? s.face : null;
+
+        setTiles((prev) => {
+          let next = prev.map((x) => (x.key === key || x.key === selected ? { ...x, removed: true } : x));
+
+          if (wirkung === 'joker' && jokerOpfer && !jokerOpfer.special) {
+            // ⚠ Der zweite Joker nimmt die Gestalt des geschlagenen Steins an.
+            // Ohne das bleiben zwei Waisen zurueck: Die Gruppe des geschlagenen
+            // Steins wird ungerade, und der uebrige Joker findet nie einen
+            // Partner — das Brett waere unloesbar. So ist beides wieder gerade.
+            let getauscht = false;
+            next = next.map((x) => {
+              if (getauscht || x.removed || x.face.special !== 'joker') return x;
+              getauscht = true;
+              return { ...x, face: { ...jokerOpfer } };
+            });
+          }
+
+          if (wirkung === 'bomb') {
+            const p = new Uint8Array(next.length);
+            for (const x of next) if (!x.removed) p[x.key] = 1;
+            const raus = blastSet(next, nbRef.current, p, [selected, key]);
+            if (raus.size) next = next.map((x) => (raus.has(x.key) ? { ...x, removed: true } : x));
+          }
+
+          return next;
+        });
+
         setHistory((h) => [...h, [selected, key]]);
         setSelected(null);
         optsRef.current.onMatch?.(s, t);
+        if (wirkung) {
+          // Mischen erst NACH dem Entfernen — sonst mischt es das Paar mit,
+          // das gerade fällt. Der Referenz-Vertrag gilt auch hier: liefert
+          // `reshuffleBoard` dasselbe Array, passiert einfach nichts.
+          if (wirkung === 'shuffle') {
+            setTiles((prev) => reshuffleBoard(prev, nbRef.current));
+          }
+          optsRef.current.onSpecial?.(wirkung);
+        }
       } else {
         // Fehlversuch: beide kurz zeigen, dann wieder zu — der Memory-Takt.
         if (s?.hidden) peek(s.key, 700);
@@ -299,6 +345,14 @@ export function useGame(initialLayout = 'classic', opts: GameOptions = {}) {
     fading,
     freeSet,
     revealed,
+    /**
+     * Schenkt Zeit. `startedAt` liegt intern, deshalb geht das nur von hier aus.
+     * Wirkt ueber `elapsedMs` auf die Sternwertung — in Modi mit Countdown
+     * uebernimmt stattdessen der Modus selbst (siehe `onSpecial`).
+     */
+    grantTimeBonus: (ms: number) => {
+      startedAt.current += ms;
+    },
     selected,
     hintPair,
     remaining,

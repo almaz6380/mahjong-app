@@ -366,6 +366,11 @@ const D: Record<string, Entry> = {
   // Screenreader-Text für verdeckte Steine. Muss neutral bleiben — hier stand
   // vorher die Motiv-ID und hätte das Versteckte verraten.
   'a11y.hidden': { de: 'Verdeckter Stein', en: 'Face-down tile' },
+  // Spezialsteine — kurze Rueckmeldung, sobald einer ausloest.
+  'special.shuffle': { de: 'Neu gemischt!', en: 'Reshuffled!' },
+  'special.joker': { de: 'Joker! Der zweite nimmt seine Gestalt an.', en: 'Joker! The other one takes its shape.' },
+  'special.bomb': { de: 'Bumm! Nachbarn mitgerissen.', en: 'Boom! Neighbours cleared.' },
+  'special.time': { de: 'Zeitbonus!', en: 'Time bonus!' },
   'mode.won': { de: 'Geschafft!', en: 'Solved!' },
   'mode.again': { de: 'Nochmal', en: 'Play again' },
   'mode.moves': { de: 'Züge', en: 'Moves' },

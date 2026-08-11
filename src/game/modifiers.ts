@@ -28,7 +28,7 @@
 // Reihenfolge Zug für Zug gültig.
 
 import { mulberry32, seedFromString, type PlacedTile, type Rng } from './engine';
-import type { SpecialKind } from './tiles';
+import { specialFace, type SpecialKind } from './tiles';
 
 /** Ab hier tauchen verdeckte Steine auf. Davor lernt man erst das Spiel. */
 export const HIDDEN_FROM_LEVEL = 30;
@@ -80,10 +80,56 @@ export function modsForLevel(level: number, tileCount: number, ctx: ModKontext =
     // ein Blindgänger, den der Spieler zu Recht für kaputt hielte.
     const topf: SpecialKind[] = ['shuffle', 'joker', 'bomb'];
     if (ctx.timed || ctx.rated) topf.push('time');
-    for (let i = 0; i < anzahl; i++) specials.push(topf[Math.floor(rand() * topf.length)]);
+    // Ohne Zurücklegen ziehen: Zwei gleiche Spezialsteine auf einem Brett sind
+    // langweilig und sehen wie ein Fehler aus.
+    for (let i = 0; i < anzahl && topf.length; i++) {
+      specials.push(topf.splice(Math.floor(rand() * topf.length), 1)[0]);
+    }
   }
 
   return { hidden, specials };
+}
+
+/**
+ * Ersetzt je Sonderwirkung ein LÖSUNGSPAAR durch zwei Spezialsteine.
+ *
+ * `pairs` kommt aus `generateBoardWithPairs` und enthält die Positionen, die die
+ * Rückwärtskonstruktion einander zugewiesen hat. Genau ein solches Paar zu
+ * ersetzen ist der Kern der Sache: Die Parität jeder Motivgruppe bleibt heil
+ * (die Gruppe verliert zwei Steine), und der Lösungsweg bleibt gültig, weil an
+ * der Stelle, an der die Lösung dieses Paar entfernt hätte, jetzt beide
+ * Spezialsteine frei liegen und zueinander passen.
+ *
+ * Zwei beliebige Steine derselben Gruppe zu nehmen wäre falsch: Die Parität
+ * bliebe zwar heil, aber die früheren Partner der beiden fänden einander nicht
+ * mehr.
+ */
+export function applySpecials(
+  tiles: PlacedTile[],
+  pairs: [number, number][],
+  specials: SpecialKind[],
+  rand: Rng = Math.random,
+): PlacedTile[] {
+  if (!specials.length || !pairs.length) return tiles;
+
+  const frei = pairs.slice();
+  for (let i = frei.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [frei[i], frei[j]] = [frei[j], frei[i]];
+  }
+
+  const belegt = new Map<number, SpecialKind>();
+  specials.slice(0, frei.length).forEach((art, i) => {
+    const [a, b] = frei[i];
+    belegt.set(a, art);
+    belegt.set(b, art);
+  });
+  if (!belegt.size) return tiles;
+
+  return tiles.map((t) => {
+    const art = belegt.get(t.key);
+    return art ? { ...t, face: specialFace(art) } : t;
+  });
 }
 
 /**

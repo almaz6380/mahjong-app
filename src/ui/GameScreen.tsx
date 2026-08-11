@@ -75,8 +75,20 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
     },
     onInvalid: playInvalid,
     onWin: playWin,
+    // Der Zeitbonus wirkt hier ueber die Sternwertung, nicht ueber eine Uhr:
+    // Level und Tages-Challenge haben keinen Countdown, werden aber gegen
+    // `parTimeMs` bewertet. Das Mischen erledigt useGame selbst.
+    onSpecial: (kind) => {
+      if (kind === 'time') gameRef.current?.grantTimeBonus(8000);
+      showToast(t(`special.${kind}`));
+    },
     initial,
   });
+
+  // `game` ist beim Bauen der Optionen noch nicht definiert — der Umweg ueber
+  // eine Ref haelt den Zugriff gueltig, ohne die Optionen neu zu erzeugen.
+  const gameRef = useRef<typeof game | null>(null);
+  gameRef.current = game;
 
   const [purchase, setPurchase] = useState<BoosterType | null>(null);
   const [adBusy, setAdBusy] = useState(false); // Video läuft/lädt gerade

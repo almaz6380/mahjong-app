@@ -5,6 +5,7 @@ import { t } from '../../i18n';
 import { playMatch, playInvalid, playTap, playWin } from '../../audio/sound';
 import { maybeShowInterstitialModes } from '../../ads/admob';
 import { presentFact } from '../../ui/FactHost';
+import { showToast } from '../../ui/ToastHost';
 import { useGame } from '../../game/useGame';
 import type { ModeProps } from '../types';
 import type { SpecialKind } from '../../game/tiles';
@@ -28,6 +29,12 @@ export function BlitzScreen({ api, onExit }: ModeProps) {
 
   const game = useGame(LAYOUT, {
     mods: BLITZ_MODS,
+    // Der einzige Modus mit echtem Countdown — hier schenkt der Zeitbonus
+    // Sekunden statt Sternen.
+    onSpecial: (kind) => {
+      if (kind === 'time') setSecLeft((s) => s + 10);
+      showToast(t(`special.${kind}`));
+    },
     onSelect: playTap,
     onInvalid: playInvalid,
     onMatch: () => {

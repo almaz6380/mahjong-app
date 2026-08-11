@@ -2,8 +2,11 @@
 // Nimmt entweder eine Solitaire-id ('char3','bam5','cir7','windE','dragonR','flower1','season2')
 // oder einen 4-Spieler-Code ('m3','s5','p7','z1','z5','f1','g1') und zeichnet Korpus + Motiv.
 
-type Suit = 'man' | 'sou' | 'pin' | 'wind' | 'dragon' | 'flower' | 'season' | 'myth' | 'treasure';
+type Suit = 'man' | 'sou' | 'pin' | 'wind' | 'dragon' | 'flower' | 'season' | 'myth' | 'treasure' | 'special';
 interface Face { suit: Suit; rank: number }
+
+// Reihenfolge der Sonderwirkungen fuer die Motiv-Auswahl.
+const SPECIAL_RANK: Record<string, number> = { shuffle: 1, joker: 2, bomb: 3, time: 4 };
 
 export function normalizeFace(key: string): Face {
   // 4-Spieler-Codes
@@ -28,6 +31,10 @@ export function normalizeFace(key: string): Face {
   if (key.startsWith('season')) return { suit: 'season', rank: +key.slice(6) };
   if (key.startsWith('myth')) return { suit: 'myth', rank: +key.slice(4) };
   if (key.startsWith('treasure')) return { suit: 'treasure', rank: +key.slice(8) };
+  // ⚠ Spezialsteine MUESSEN hier stehen. Der Rueckfall unten ist stumm: Ohne
+  // diese Zeile saehe ein Joker aus wie eine 1 Wan — und niemand kaeme darauf,
+  // dass das ein Rendering-Fehler ist.
+  if (key.startsWith('sp-')) return { suit: 'special', rank: SPECIAL_RANK[key.slice(3)] ?? 1 };
   return { suit: 'man', rank: 1 };
 }
 
@@ -253,8 +260,58 @@ function Glyph({ ch, fill, size = 34, y = 52 }: { ch: string; fill: string; size
   );
 }
 
+// Spezialsteine: gezeichnet, kein Bild-Asset. Bewusst reine Malvorgänge
+// (fill/stroke) — animierte Filter würden den Stein auf eine eigene
+// Compositing-Ebene heben und auf iOS das ganze Brett ruckeln lassen.
+function specialMotif(rank: number): React.ReactNode {
+  const g = 'url(#gold)';
+  if (rank === 1) {
+    // Mischen: zwei gekreuzte Pfeile
+    return (
+      <g stroke={g} strokeWidth="3.4" fill="none" strokeLinecap="round">
+        <path d="M14 26 H34 a6 6 0 0 1 6 6 v8" />
+        <path d="M34 40 l6 6 6 -6" fill={g} stroke="none" />
+        <path d="M46 52 H26 a6 6 0 0 1 -6 -6 v-8" />
+        <path d="M26 38 l-6 -6 -6 6" fill={g} stroke="none" />
+      </g>
+    );
+  }
+  if (rank === 2) {
+    // Joker: Stern
+    return (
+      <path
+        d="M30 12 l5.6 11.8 12.9 1.7 -9.5 8.9 2.4 12.8 -11.4 -6.2 -11.4 6.2 2.4 -12.8 -9.5 -8.9 12.9 -1.7 Z"
+        fill={g}
+        stroke="rgba(120,90,20,.6)"
+        strokeWidth="1.1"
+      />
+    );
+  }
+  if (rank === 3) {
+    // Bombe: Kugel mit Zündschnur
+    return (
+      <g>
+        <circle cx="29" cy="44" r="15" fill="url(#onyx)" stroke={g} strokeWidth="1.6" />
+        <circle cx="24" cy="39" r="3.6" fill="#fff" opacity="0.32" />
+        <path d="M36 31 q6 -8 12 -5" stroke={g} strokeWidth="3" fill="none" strokeLinecap="round" />
+        <circle cx="49" cy="25" r="4" fill="url(#redlac)" />
+      </g>
+    );
+  }
+  // Zeitbonus: Sanduhr
+  return (
+    <g stroke={g} strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 15 H43 M17 63 H43" />
+      <path d="M20 15 q10 16 10 24 q0 8 -10 24" />
+      <path d="M40 15 q-10 16 -10 24 q0 8 10 24" />
+      <path d="M24 55 q6 -8 12 0 Z" fill={g} stroke="none" />
+    </g>
+  );
+}
+
 function motif(f: Face): React.ReactNode {
   const { suit, rank } = f;
+  if (suit === 'special') return specialMotif(rank);
   // Voll-Motiv als freigestelltes Bild (wind1, dragon2, flower3, myth1 …), wenn vorhanden.
   const full = timg(suit + rank);
   if (full) {
