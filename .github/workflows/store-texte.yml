@@ -1,0 +1,108 @@
+name: Store-Texte
+
+# Beschreibung, Untertitel, Keywords und Vorstellungsgrafik in BEIDE Stores
+# schreiben — ohne Build und ohne neue App-Version.
+#
+# Quelle ist store/store-texte.json (alle sieben Sprachen, eine Datei fuer beide
+# Plattformen). Die Vorstellungsgrafiken liegen fertig gerendert in
+# store/feature-graphics/ und gibt es nur bei Play; der App Store kennt kein
+# solches Bannerbild.
+#
+# ⚠ Apple sperrt die Metadaten, solange eine Version in der Pruefung steht.
+# Erst „iOS einreichen" mit zuerst_abbrechen laufen lassen, dann diesen hier,
+# dann wieder einreichen. Play ist davon unberuehrt — Eintraege sind dort vom
+# Build entkoppelt und loesen keine Pruefung aus.
+#
+# Trockenlauf ist Standard: Ein Live-Eintrag aendert sich absichtlich, nicht
+# als Nebenwirkung.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ziel:
+        description: 'Was geschrieben wird'
+        type: choice
+        options: ['beide', 'nur-apple', 'nur-play']
+        default: 'beide'
+      grafik:
+        description: 'Vorstellungsgrafiken mitschicken (nur Play)'
+        type: boolean
+        default: true
+      schreiben:
+        description: 'Wirklich schreiben? (aus = Trockenlauf, sendet nichts)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  texte:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Abhaengigkeiten
+        run: pip3 install --quiet pyjwt cryptography
+
+      - name: Laengen pruefen
+        run: |
+          python3 - <<'PY'
+          import json, sys
+          d = json.load(open('store/store-texte.json', encoding='utf-8'))
+          G = {'name': 30, 'subtitle': 30, 'keywords': 100, 'short': 80, 'description': 4000}
+          fehler = [f'{loc} {f}: {len(v[f])} > {mx}'
+                    for loc, v in d.items() if not loc.startswith('_')
+                    for f, mx in G.items() if len(v[f]) > mx]
+          if fehler:
+              sys.exit('Zu lang:\n  ' + '\n  '.join(fehler))
+          print(f'{len([k for k in d if not k.startswith("_")])} Sprachen, alle Laengen in Ordnung')
+          PY
+
+      - name: Apple
+        if: inputs.ziel != 'nur-play'
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          SCHREIBEN: ${{ inputs.schreiben }}
+        run: |
+          set -euo pipefail
+          ASC_KEY_P8=$(printf '%s' "$ASC_KEY_P8_BASE64" | tr -cd 'A-Za-z0-9+/=' | base64 -d)
+          if [ -z "$ASC_KEY_P8" ]; then
+            echo "::error::ASC_KEY_P8_BASE64 laesst sich nicht dekodieren."
+            exit 1
+          fi
+          export ASC_KEY_P8
+          if [ "$SCHREIBEN" = "true" ]; then
+            python3 scripts/asc-texte.py --schreiben
+          else
+            python3 scripts/asc-texte.py
+          fi
+
+      - name: Play — Texte
+        if: inputs.ziel != 'nur-apple'
+        env:
+          PLAY_KEY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          SCHREIBEN: ${{ inputs.schreiben }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$PLAY_KEY_JSON" > /tmp/play-key.json
+          if [ "$SCHREIBEN" = "true" ]; then TROCKEN=""; else TROCKEN="--dry-run"; fi
+          PLAY_KEY=/tmp/play-key.json python3 scripts/play-upload.py \
+            --texte store/store-texte.json $TROCKEN
+          rm -f /tmp/play-key.json
+
+      - name: Play — Vorstellungsgrafiken
+        if: inputs.ziel != 'nur-apple' && inputs.grafik && inputs.schreiben
+        env:
+          PLAY_KEY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$PLAY_KEY_JSON" > /tmp/play-key.json
+          PLAY_KEY=/tmp/play-key.json python3 scripts/upload-feature-graphics.py
+          rm -f /tmp/play-key.json
+
+      - name: Schluessel aufraeumen
+        if: always()
+        run: rm -f /tmp/play-key.json

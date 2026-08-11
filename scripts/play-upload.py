@@ -237,7 +237,7 @@ def lade_screenshots(tok, verzeichnis, lang, dry_run=False, image_type='phoneScr
 LISTING_LIMITS = {'title': 30, 'shortDescription': 80, 'fullDescription': 4000}
 
 
-def setze_listing(tok, datei, lang, dry_run=False):
+def setze_listing(tok, datei, lang, dry_run=False, daten=None):
     """Titel, Kurz- und Volltext des Store-Eintrags setzen.
 
     Der Titel ist der Name, unter dem die App im Play Store steht — die
@@ -246,9 +246,15 @@ def setze_listing(tok, datei, lang, dry_run=False):
 
     Gesendet wird per PATCH, also nur die Felder aus der Datei. Was der
     Eintrag sonst noch hat (z. B. ein Promo-Video), bleibt stehen.
+
+    `daten` uebergibt den Satz direkt (fuer --texte, das alle Sprachen aus
+    einer gemeinsamen Quelle speist); dann wird keine Datei gelesen.
     """
-    with open(datei, encoding='utf-8') as fh:
-        neu = json.load(fh)
+    if daten is not None:
+        neu = daten
+    else:
+        with open(datei, encoding='utf-8') as fh:
+            neu = json.load(fh)
 
     unbekannt = set(neu) - set(LISTING_LIMITS)
     if unbekannt:
@@ -292,6 +298,31 @@ def setze_listing(tok, datei, lang, dry_run=False):
     commit_edit(tok, eid)
 
 
+def setze_texte(tok, datei, dry_run=False):
+    """Alle Sprachen des Store-Eintrags aus store/store-texte.json setzen.
+
+    Dieselbe Datei speist auch Apple (scripts/asc-texte.py) — die Beschreibung
+    steht damit nur an EINER Stelle. Bei 1.0 wichen die Konsolen vom Repo ab,
+    und es fiel erst Monate spaeter auf.
+
+    Die Feldnamen unterscheiden sich zwischen den Stores: Apple kennt
+    name/subtitle/keywords/description, Play title/shortDescription/
+    fullDescription. Die Zuordnung passiert hier.
+    """
+    with open(datei, encoding='utf-8') as fh:
+        quelle = json.load(fh)
+    sprachen = [k for k in quelle if not k.startswith('_')]
+    print(f'{len(sprachen)} Sprachen aus {datei}\n')
+    for lang in sprachen:
+        t = quelle[lang]
+        setze_listing(tok, None, lang, dry_run, daten={
+            'title': t['name'],
+            'shortDescription': t['short'],
+            'fullDescription': t['description'],
+        })
+        print()
+
+
 def zeige_status(tok, track='production'):
     eid = call(tok, 'POST', f'{API}/applications/{PKG}/edits')['id']
     tr = call(tok, 'GET', f'{API}/applications/{PKG}/edits/{eid}/tracks/{track}')
@@ -310,6 +341,8 @@ def main():
     p.add_argument('--status', action='store_true', help='nur den Track anzeigen')
     p.add_argument('--screenshots', metavar='VERZEICHNIS',
                    help='Store-Eintrag-Screenshots ersetzen (z. B. store-assets/android)')
+    p.add_argument('--texte', metavar='JSON',
+                   help='alle Sprachen aus store/store-texte.json setzen')
     p.add_argument('--listing', metavar='JSON',
                    help='Titel/Beschreibung setzen (z. B. store-assets/play-listing.de-DE.json)')
     p.add_argument('--icon', metavar='PNG',
@@ -325,9 +358,9 @@ def main():
     a = p.parse_args()
 
     if not (a.aab or a.promote or a.status or a.screenshots or a.listing
-            or a.icon or a.feature):
+            or a.texte or a.icon or a.feature):
         p.error('--aab, --promote, --status, --screenshots, --listing, '
-                '--icon oder --feature angeben')
+                '--texte, --icon oder --feature angeben')
     if a.aab and not a.complete and a.fraction is None:
         p.error('--fraction 0.2 oder --complete angeben')
 
@@ -336,6 +369,8 @@ def main():
         return zeige_status(tok, a.track)
     if a.screenshots:
         return lade_screenshots(tok, a.screenshots, a.lang, a.dry_run)
+    if a.texte:
+        return setze_texte(tok, a.texte, a.dry_run)
     if a.listing:
         return setze_listing(tok, a.listing, a.lang, a.dry_run)
     if a.icon:

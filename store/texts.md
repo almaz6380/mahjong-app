@@ -1,4 +1,16 @@
-# Store-Texte — Mahjong Royale 1.0
+# Store-Texte — Mahjong Royale
+
+> ⚠ **Die maßgebliche Quelle ist seit 1.1.1 `store/store-texte.json`** — dort stehen
+> Name, Untertitel, Keywords, Kurz- und Volltext in **allen sieben Sprachen**, und von
+> dort schreiben `scripts/asc-texte.py` (Apple) und `play-upload.py --texte` (Play).
+> Was hier unten steht, ist der **Stand von 1.0** und dient nur noch als Beleg, wie die
+> Texte einmal aussahen: „vier Bonus-Spiele", kein Connect, kein Riichi, keine Pagode,
+> „Deutsch und Englisch". Nicht mehr pflegen, nicht mehr zitieren.
+>
+> Warum überhaupt eine gemeinsame Quelle: Bei 1.0 wichen die Texte in den Konsolen von
+> denen im Repo ab, und es fiel erst Monate später auf. Jetzt gibt es genau eine Stelle.
+
+## Stand 1.0 (historisch)
 
 ## Name (beide Stores)
 Mahjong Royale
