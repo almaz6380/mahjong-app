@@ -42,6 +42,14 @@ def extract_magenta(src: str, dst: str) -> None:
     # Magenta: R und B hoch, G niedrig -> min(R,B) - G ist dort stark positiv.
     key = np.minimum(r, b) - g
     alpha = np.clip((80 - key) * 4, 0, 255).astype(np.uint8)
+    # Farbstich austreiben („spill suppression"). Alpha allein reicht nicht:
+    # Halbdurchsichtige Stellen — Glas, weiche Kanten, Leuchtsäume — behalten
+    # den Magenta-Ton des Hintergrunds und schimmern später überall rosa.
+    # Grün auf min(R,B) anzuheben macht genau diese Pixel neutral und lässt die
+    # Motivfarben in Ruhe: Elfenbein, Jade und Gold haben alle G >= min(R,B),
+    # nur Magenta liegt darunter. (Ein violettes Motiv wäre die Ausnahme — dann
+    # diesen Schritt abschalten, nicht die Schwelle verbiegen.)
+    im[:, :, 1] = np.maximum(g, np.minimum(r, b))
     rgba = np.dstack([im.astype(np.uint8), alpha])
     finish(rgba, dst)
 
