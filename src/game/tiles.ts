@@ -17,11 +17,35 @@ export type TileGroup =
   | 'myth'
   | 'treasure';
 
+/**
+ * Sonderwirkung eines Steins. Sitzt am MOTIV, nicht an der Position: Ein Joker
+ * ist ein Stein, kein Ort — und nur so ueberlebt er `reshuffleBoard` als das,
+ * was er ist. Laege die Markierung an der Position, bekaeme sie beim Mischen
+ * ein beliebiges Motiv, und die Paritaetsrechnung fiele auseinander.
+ */
+export type SpecialKind = 'shuffle' | 'joker' | 'bomb' | 'time';
+
 export interface TileFace {
   id: string;
   glyph: string;
   matchKey: string;
   group: TileGroup;
+  /** Sonderwirkung; loest aus, wenn dieser Stein Teil eines Paares wird. */
+  special?: SpecialKind;
+}
+
+// Passen zwei Steine zusammen?
+//
+// Bis August 2026 stand dieser Vergleich DREIMAL woertlich in useGame.ts (Klick,
+// hasMoves, hint). Der Joker-Spezialstein muss an allen drei Stellen wirken —
+// deshalb hier einmal zentral. Bewusst mit `unknown`-tolerantem Eingang: Der
+// Aufrufer haelt `PlacedTile`, das die Sonderfelder optional traegt.
+//
+// `matchKey` statt `id`: Alle Blumen passen zueinander, alle Jahreszeiten
+// ebenso (siehe buildDeck weiter unten).
+export function isPair(a: { face: TileFace }, b: { face: TileFace }): boolean {
+  if (a.face.special === 'joker' || b.face.special === 'joker') return true;
+  return a.face.matchKey === b.face.matchKey;
 }
 
 const cp = (code: number) => String.fromCodePoint(code);

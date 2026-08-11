@@ -1906,6 +1906,13 @@ body {
 :root[data-skin="contrast"] .tileface rect[fill="url(#tbody)"] { fill: #ffffff; }
 :root[data-skin="contrast"] .tileface rect[fill="url(#tside)"] { fill: #bdbdbd; }
 :root[data-skin="contrast"] .tileface rect[stroke] { stroke: #000 !important; stroke-width: 1.5px; }
+/* Verdeckte Rückseite mitfärben. Die Umfärbung oben greift über die
+   Verlaufs-ID (`rect[fill="url(#tbody)"]`); die Rückseite nutzt `#tback` und
+   wäre sonst als einziges Element grün geblieben, während das übrige Brett
+   weiß bzw. blau wird. */
+:root[data-skin="minimal"] .tileface rect[fill="url(#tback)"] { fill: #dbe3ec; }
+:root[data-skin="neon"] .tileface rect[fill="url(#tback)"] { fill: #16233c; }
+:root[data-skin="contrast"] .tileface rect[fill="url(#tback)"] { fill: #2b2b2b; }
 
 .skin-row { display: inline-flex; align-items: center; gap: 8px; }
 .skin-preview {

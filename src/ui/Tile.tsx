@@ -458,6 +458,31 @@ export function PinDigit({ rank, className }: { rank: number; className?: string
   );
 }
 
+// Verdeckte Rückseite MIT 3D-Korpus — für das Solitaire-Brett.
+//
+// Die flache `TileBack` weiter unten passt dort nicht: `.tile.solid` in
+// styles.css mappt die Deckfläche eines 64×96-Steins aufs Button-Raster, eine
+// 60×80-Box säße daneben. Korpus, Schatten und der `translate(4 0)`-Versatz
+// sind deshalb 1:1 aus `Tile` mit `solid` übernommen — wer dort etwas ändert,
+// muss es hier nachziehen, sonst stehen verdeckte und offene Steine versetzt.
+export function TileBackSolid({ className }: { className?: string }) {
+  return (
+    <svg className={'tileface' + (className ? ' ' + className : '')} viewBox="0 0 64 96" preserveAspectRatio="none">
+      <rect x="3.5" y="9" width="57" height="78" rx="11" fill="#000" opacity="0.10" />
+      <rect x="3" y="6.5" width="58" height="79" rx="11" fill="#000" opacity="0.14" />
+      <rect x="3" y="3" width="58" height="78" rx="11" fill="url(#tside)" />
+      <rect x="3.4" y="3.4" width="57.2" height="77.2" rx="10.6" fill="none" stroke="rgba(90,70,40,.35)" strokeWidth="0.8" />
+      <g transform="translate(4 0)">
+        <rect x="3" y="3" width="54" height="72" rx="11" fill="url(#tback)" />
+        <rect x="3" y="3" width="54" height="72" rx="11" fill="none" stroke="rgba(255,255,255,.14)" />
+        <rect x="9" y="11" width="42" height="56" rx="7" fill="none" stroke="rgba(255,255,255,.22)" strokeWidth="1.5" />
+        <circle cx="30" cy="39" r="10" fill="none" stroke="rgba(255,255,255,.28)" strokeWidth="2" />
+        <circle cx="30" cy="39" r="3.4" fill="rgba(255,255,255,.30)" />
+      </g>
+    </svg>
+  );
+}
+
 // Verdeckte Rückseite (Memory & Co.): grüner Filz-Stein mit Ornament.
 export function TileBack({ className }: { className?: string }) {
   return (

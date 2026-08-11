@@ -5,9 +5,16 @@ import puppeteer from 'puppeteer-core';
 
 const OUT = process.argv[2] ?? '/tmp';
 const URL = 'http://localhost:5199/';
-const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+// Wie in e2e-level-flow.mjs überschreibbar: In einer Cloud-Sitzung gibt es kein
+// macOS-Chrome, dort liegt der Browser unter /opt/pw-browsers/.
+const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
-const browser = await puppeteer.launch({ executablePath: CHROME, headless: 'new', args: ['--lang=de-DE'] });
+const browser = await puppeteer.launch({
+  executablePath: CHROME,
+  headless: 'new',
+  // --no-sandbox nur nötig, wenn der Test als root läuft (Container/CI).
+  args: ['--lang=de-DE', ...(process.getuid?.() === 0 ? ['--no-sandbox'] : [])],
+});
 
 async function open(level) {
   const page = await browser.newPage();

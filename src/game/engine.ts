@@ -10,6 +10,21 @@ export interface PlacedTile {
   layer: number;
   face: TileFace;
   removed: boolean;
+  /**
+   * Liegt verdeckt (Rueckseite statt Motiv).
+   *
+   * Bewusst am STEIN-PLATZ und nicht am Motiv: `reshuffleBoard` permutiert
+   * Faces auf feste Positionen, `hidden` bleibt damit an der Stelle kleben.
+   * Das ist auch die richtige Bedeutung — die verdeckte Stelle ist ein dunkler
+   * Fleck auf dem Brett, nach dem Mischen liegt dort ein anderes Motiv. Am
+   * Motiv haengend wuerde der Fleck beim Mischen ueber das Brett springen und
+   * dem Spieler verraten, welches Motiv das verdeckte ist.
+   *
+   * Die Sonderwirkungen (`special`) sitzen dagegen am `TileFace` — sie
+   * gehoeren zum Stein, nicht zum Ort. Merksatz: Ort-Eigenschaften an
+   * `PlacedTile`, Stein-Eigenschaften an `TileFace`.
+   */
+  hidden?: boolean;
 }
 
 export interface Neighbors {
@@ -132,6 +147,21 @@ function assignSolvable(
     const a = free[(rand() * free.length) | 0];
     let b = a;
     while (b === a) b = free[(rand() * free.length) | 0];
+
+    // ⚠ Schutz gegen einen sonst TÖDLICHEN Fall: `makePairs` laesst bei
+    // ungerader Gruppengroesse den Rest liegen (`i + 1 < g.length`), das
+    // `pairs`-Array ist dann KUERZER als die Zahl der Positionen. Ohne diese
+    // Zeile destrukturiert die naechste Zeile `undefined` und wirft einen
+    // TypeError — mitten aus der 800-Versuche-Schleife, ungefangen durch
+    // `reshuffleBoard` und `useGame.shuffle()` hindurch bis in die Oberflaeche.
+    // Blitz und Zen mischen bei Sackgassen von selbst, dort waere es ein
+    // weisser Bildschirm.
+    // Heute kann das nicht passieren (Steine verschwinden nur paarweise), aber
+    // jede Mechanik, die einzelne Steine entfernt, wuerde es ausloesen.
+    // Reproduziert am 11.08.2026: zwei Einzelentnahmen -> 2 ungerade Gruppen ->
+    // TypeError. Mit dieser Zeile wird daraus ein sauberes „Mischen wirkt
+    // nicht", und die vorhandene Sackgassen-UI uebernimmt.
+    if (pi >= pairs.length) return null;
 
     const [f1, f2] = pairs[pi++];
     faceOf[a] = f1;

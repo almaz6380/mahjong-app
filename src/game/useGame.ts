@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { deckForCount } from './tiles';
+import { deckForCount, isPair } from './tiles';
 import { getLayout } from './layouts';
 import {
   buildNeighbors,
@@ -80,12 +80,21 @@ export function useGame(initialLayout = 'classic', opts: GameOptions = {}) {
   const byKey = useCallback((k: number) => tiles.find((t) => t.key === k), [tiles]);
 
   // Gibt es überhaupt noch einen gültigen Zug?
+  //
+  // Paarweise statt über ein Set von matchKeys: Ein Joker passt zu JEDEM Stein,
+  // ihn könnte ein Set nicht abbilden. `freeSet` ist klein (meist < 20), der
+  // doppelte Durchlauf kostet also nichts.
+  //
+  // ⚠ Diese Prüfung bleibt bewusst allwissend und ignoriert `hidden`: Sie
+  // beantwortet „ist das Brett tot?", nicht „weiß der Spieler von einem Zug?".
+  // Würde sie verdeckte Steine ausklammern, meldete das Spiel Sackgassen, die
+  // keine sind, und böte grundlos ein neues Brett an.
   const hasMoves = useMemo(() => {
-    const seen = new Set<string>();
-    for (const k of freeSet) {
-      const mk = byKey(k)!.face.matchKey;
-      if (seen.has(mk)) return true;
-      seen.add(mk);
+    const free = [...freeSet].map((k) => byKey(k)!).filter(Boolean);
+    for (let i = 0; i < free.length; i++) {
+      for (let j = i + 1; j < free.length; j++) {
+        if (isPair(free[i], free[j])) return true;
+      }
     }
     return false;
   }, [freeSet, byKey]);
@@ -107,7 +116,7 @@ export function useGame(initialLayout = 'classic', opts: GameOptions = {}) {
         return;
       }
       const s = byKey(selected);
-      if (s && s.face.matchKey === t.face.matchKey) {
+      if (s && isPair(s, t)) {
         // Fade-Animation für das entfernte Paar
         const fade: FadeTile[] = [s, t].map((x) => ({
           key: x.key,
@@ -161,7 +170,7 @@ export function useGame(initialLayout = 'classic', opts: GameOptions = {}) {
     const free = [...freeSet];
     for (let i = 0; i < free.length; i++) {
       for (let j = i + 1; j < free.length; j++) {
-        if (byKey(free[i])!.face.matchKey === byKey(free[j])!.face.matchKey) {
+        if (isPair(byKey(free[i])!, byKey(free[j])!)) {
           setHintPair([free[i], free[j]]);
           helpUsed.current += 1;
           return;
