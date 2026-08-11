@@ -33,16 +33,22 @@ def token() -> str:
         import jwt  # pyjwt
     except ImportError:
         sys.exit('Fehlt: pip3 install pyjwt cryptography')
-    if not os.path.exists(KEY_PATH):
-        sys.exit(f'ASC-Key nicht gefunden: {KEY_PATH}')
-    with open(KEY_PATH) as fh:
-        private = fh.read()
+    # Wie in asc-submit.py: In der GitHub-Action kommt der Schluessel als
+    # Secret in der Umgebung und landet nie auf der Platte; auf dem Mac liegt
+    # er als Datei.
+    private = os.environ.get('ASC_KEY_P8')
+    if not private:
+        if not os.path.exists(KEY_PATH):
+            sys.exit(f'ASC-Key nicht gefunden: {KEY_PATH}')
+        with open(KEY_PATH) as fh:
+            private = fh.read()
     now = int(time.time())
     return jwt.encode(
-        {'iss': ISSUER, 'iat': now, 'exp': now + 900, 'aud': 'appstoreconnect-v1'},
+        {'iss': os.environ.get('ASC_ISSUER_ID') or ISSUER,
+         'iat': now, 'exp': now + 900, 'aud': 'appstoreconnect-v1'},
         private,
         algorithm='ES256',
-        headers={'kid': KEY_ID, 'typ': 'JWT'},
+        headers={'kid': os.environ.get('ASC_KEY_ID') or KEY_ID, 'typ': 'JWT'},
     )
 
 

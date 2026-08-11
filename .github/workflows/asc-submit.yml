@@ -37,6 +37,10 @@ on:
         description: 'Wirklich einreichen? (aus = Trockenlauf, sendet nichts)'
         type: boolean
         default: false
+      nur_status:
+        description: 'Nur nachsehen: Versionen, Builds, offene Pruefungen (schreibt nie)'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -60,6 +64,7 @@ jobs:
           NOTES: ${{ inputs.notes_file }}
           RENAME: ${{ inputs.rename_from }}
           SUBMIT: ${{ inputs.submit }}
+          NUR_STATUS: ${{ inputs.nur_status }}
         run: |
           set -euo pipefail
           ASC_KEY_P8=$(printf '%s' "$ASC_KEY_P8_BASE64" | tr -cd 'A-Za-z0-9+/=' | base64 -d)
@@ -68,6 +73,15 @@ jobs:
             exit 1
           fi
           export ASC_KEY_P8
+
+          # Apple erlaubt nur EINE Version in Arbeit. Steht schon eine da,
+          # scheitert das Anlegen mit 409 — dann muss man wissen, welche es ist,
+          # bevor man `rename_from` setzt. Genau dafuer dieser Weg.
+          if [ "$NUR_STATUS" = "true" ]; then
+            python3 scripts/asc-status.py
+            exit 0
+          fi
+
           test -f "$NOTES" || { echo "::error::$NOTES gibt es nicht."; exit 1; }
 
           ARGS="--version $V --build $B --notes-file $NOTES"
