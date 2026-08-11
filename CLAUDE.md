@@ -582,6 +582,21 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   Track; es überschreibt das alte für alle Nutzer. Wer also „abbrechen" möchte, bekommt in der Praxis
   „überschreiben" — und sollte den Rollout beim nächsten heiklen Release lieber gestuft starten
   (`--fraction 0.2`), dann ist ein echtes `halt` möglich.
+- **11.8.2026 — v1.1.0 (Android vc23 / iOS Build 22): das erste Feature-Release seit
+  1.0.** Vier Dinge in einem Build, auf Josefs Wunsch bewusst gebündelt: Tempel-Motiv
+  auf allen Bildschirmen, verdeckte Steine ab Level 30, Spezialsteine ab Level 50,
+  Paare-Modus auf echten Figuren. Einzelheiten stehen oben bei den jeweiligen
+  Abschnitten — hier nur, was fürs Release zählt:
+  - **Store-Screenshots sind neu und kommen jetzt aus einem Skript**
+    (`node scripts/store-screenshots.mjs`, braucht `npx vite preview --port 5199`
+    und `CHROME=…`). Vorher entstanden sie von Hand; mit dem Tempel im Rücken
+    zeigten alle alten Bilder den Vorzustand. Das Skript erzeugt fünf Motive in
+    vier Formaten (iPhone 6,5" DE/EN, iPad 12,9" DE/EN) plus den Play-Satz.
+    ⚠ Play-Handy-Bilder müssen **≤ 2:1** sein — die iPhone-1284×2778 sind zu hoch,
+    darum ein eigenes Format 1080×2148 statt einer Skalierung.
+  - Versionshinweise in `store/whatsnew-1.1.0.json`, alle sieben Sprachen. Die
+    Schlüssel heißen an der Version `de-DE`, `en-US`, `es-ES`, `pt-BR`, `fr-FR`
+    sowie **`it` und `ja` OHNE Länderteil** (die Falle von 1.0.4).
 
 ---
 

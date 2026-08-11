@@ -114,7 +114,7 @@ export function RiichiTable({ onExit, addCoins, onHandResult }: { onExit: () => 
         <div className="m4-actions">
           {discardable && (
             <div className={'hint-line' + (r.extra.riichi[0] ? ' tenpai' : '')}>
-              {r.extra.riichi[0] ? 'Riichi angesagt – Stein antippen' : 'Zum Abwerfen antippen'}
+              {r.extra.riichi[0] ? t('riichi.riichiHint') : t('riichi.discardHint')}
             </div>
           )}
         </div>
@@ -141,7 +141,7 @@ export function RiichiTable({ onExit, addCoins, onHandResult }: { onExit: () => 
             <div className="logo">{r.result.winner === 0 ? '🎉' : r.result.winner == null ? '🀫' : '🤖'}</div>
             <h2>
               {r.result.winner === 0
-                ? (r.result.tsumo ? 'Tsumo – du gewinnst!' : 'Ron – du gewinnst!')
+                ? (r.result.tsumo ? t('riichi.winTsumo') : t('riichi.winRon'))
                 : r.result.winner == null
                 ? t('m4.wallEmpty')
                 : t('m4.someoneWins', { w: windName(seatWind(g, r.result.winner)) })}
@@ -149,7 +149,7 @@ export function RiichiTable({ onExit, addCoins, onHandResult }: { onExit: () => 
             {r.result.scored && r.result.scored.points > 0 && (
               <>
                 <p className="coins-won">
-                  {r.result.scored.yakuman ? 'Yakuman' : `${r.result.scored.han} Han / ${r.result.scored.fu} Fu`} · {r.result.scored.points} Pkt.
+                  {r.result.scored.yakuman ? 'Yakuman' : `${r.result.scored.han} Han / ${r.result.scored.fu} Fu`} · {t('riichi.points', { n: r.result.scored.points })}
                 </p>
                 <div className="faan-list">
                   {r.result.scored.yaku.map((y, i) => (

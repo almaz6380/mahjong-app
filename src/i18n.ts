@@ -328,6 +328,13 @@ const D: Record<string, Entry> = {
   'm4.whichChow': { de: 'Welche Straße?', en: 'Which run?' },
   'm4.youWin': { de: 'Du gewinnst!', en: 'You win!' },
   'm4.wallEmpty': { de: 'Abbruch (Wand leer)', en: 'Draw (wall empty)' },
+  // Riichi: Diese vier standen bis 1.1.0 fest auf Deutsch im Code und tauchten
+  // deshalb auch in den englischen Store-Screenshots deutsch auf.
+  'riichi.discardHint': { de: 'Zum Abwerfen antippen', en: 'Tap a tile to discard' },
+  'riichi.riichiHint': { de: 'Riichi angesagt – Stein antippen', en: 'Riichi declared – tap a tile' },
+  'riichi.winTsumo': { de: 'Tsumo – du gewinnst!', en: 'Tsumo – you win!' },
+  'riichi.winRon': { de: 'Ron – du gewinnst!', en: 'Ron – you win!' },
+  'riichi.points': { de: '{n} Pkt.', en: '{n} pts' },
   'm4.someoneWins': { de: '{w} gewinnt', en: '{w} wins' },
   'm4.matchOver': { de: 'Runde beendet', en: 'Round finished' },
   'm4.east': { de: 'Ost', en: 'East' },
