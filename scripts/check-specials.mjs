@@ -242,5 +242,123 @@ for (let lvl = 1; lvl <= 200; lvl++) {
 }
 console.log(`   ${mem} Level · höchstens ${memMax} Karten`);
 
+// --- 7. Lawine ---------------------------------------------------------------
+// Flaches Raster, Paare schlagen, Steine fallen nach. Drei Invarianten:
+// (a) Parität — jede Sorte gerade oft, sonst ist das Brett unlösbar;
+// (b) Schwerkraft — nach jedem Zug kein Stein über leerer Zelle;
+// (c) Liveness — nach jedem Mischen existiert sofort wieder ein Zug.
+console.log('\n7) Lawine: 200 Level — Parität, Schwerkraft, Liveness');
+const LW = await load('src/modes/lawine/logic.ts');
+
+// Kein Stein über leerer Zelle derselben Spalte (= niemand schwebt).
+const lwSchweber = (b) => {
+  const da = new Set(b.tiles.map((t) => `${t.r}:${t.c}`));
+  return b.tiles.find((t) => t.r < b.rows - 1 && !da.has(`${t.r + 1}:${t.c}`));
+};
+
+let lwMisch = 0, lwMaxSteine = 0, lwVorher = null;
+for (let lvl = 1; lvl <= 200; lvl++) {
+  const cfg = LW.lawineConfig(lvl);
+  const b = LW.makeLevel(lvl);
+
+  pruef(b.tiles.length === cfg.rows * cfg.cols, `Lawine-Level ${lvl}: Brett nicht voll`);
+  pruef(b.tiles.length % 2 === 0, `Lawine-Level ${lvl}: ${b.tiles.length} Steine (ungerade)`);
+  pruef(b.faceIds.length === cfg.faces, `Lawine-Level ${lvl}: Motiv-Vorrat kleiner als die Rampe verlangt`);
+
+  const zaehl = new Map();
+  for (const t of b.tiles) zaehl.set(t.face, (zaehl.get(t.face) ?? 0) + 1);
+  pruef([...zaehl.values()].every((n) => n % 2 === 0), `Lawine-Level ${lvl}: Sorte ungerade oft`);
+
+  pruef(JSON.stringify(LW.makeLevel(lvl)) === JSON.stringify(b), `Lawine-Level ${lvl}: nicht deterministisch`);
+  pruef(!!LW.findAnyPair(b), `Lawine-Level ${lvl}: kein Zug auf dem frischen Brett`);
+
+  // Rampe wächst monoton (rows, Steinzahl, Sorten).
+  if (lwVorher) {
+    pruef(cfg.rows >= lwVorher.rows, `Lawine-Level ${lvl}: rows fällt`);
+    pruef(cfg.rows * cfg.cols >= lwVorher.rows * lwVorher.cols, `Lawine-Level ${lvl}: Steinzahl fällt`);
+    pruef(cfg.faces >= lwVorher.faces, `Lawine-Level ${lvl}: Sorten fallen`);
+  }
+  lwVorher = cfg;
+  lwMaxSteine = Math.max(lwMaxSteine, b.tiles.length);
+
+  // Durchspiel-Simulation: greedy matchen bis leer; jede Sackgasse muss das
+  // Mischen SOFORT auflösen, und nach jedem Setteln schwebt niemand.
+  const rand = E.mulberry32(E.seedFromString('lawine-sim:' + lvl));
+  const deckel = b.tiles.length; // n/2 Paare — mehr Züge kann es nicht geben
+  let zuege = 0;
+  while (b.tiles.length > 0 && zuege < deckel) {
+    let pair = LW.findAnyPair(b);
+    if (!pair) {
+      LW.shuffleRemaining(b, rand);
+      lwMisch++;
+      pair = LW.findAnyPair(b);
+      pruef(!!pair, `Lawine-Level ${lvl}: Mischen ließ keine Sackgasse hinter sich (Liveness verletzt)`);
+      if (!pair) break;
+    }
+    LW.removePair(b, pair[0], pair[1]);
+    LW.applyGravity(b);
+    const s = lwSchweber(b);
+    pruef(!s, `Lawine-Level ${lvl}: Stein ${s?.id} schwebt nach Zug ${zuege}`);
+    zuege++;
+  }
+  pruef(b.tiles.length === 0, `Lawine-Level ${lvl}: nicht leergespielt (${b.tiles.length} übrig)`);
+}
+console.log(`   200 Level · höchstens ${lwMaxSteine} Steine · ${lwMisch} Rettungs-Mischungen`);
+
+// Notfall-Zweig des Mischens erzwingen: rand ≈ 1 macht Fisher-Yates zur
+// Identität — ein totes Brett bleibt 60 Versuche lang tot, erst der Zwangs-
+// Tausch schafft das Paar. Beide Ziel-Formen (zwei Spalten / eine Spalte).
+{
+  const stur = () => 0.999999;
+  // Zwei belegte Spalten, Faces übers Kreuz -> kein Zug möglich.
+  const zwei = {
+    rows: 9, cols: 8, faceIds: ['a', 'b'],
+    tiles: [
+      { id: 0, face: 0, r: 7, c: 0 }, { id: 1, face: 1, r: 8, c: 0 },
+      { id: 2, face: 1, r: 7, c: 5 }, { id: 3, face: 0, r: 8, c: 5 },
+    ],
+  };
+  pruef(!LW.findAnyPair(zwei), 'Lawine-Notfall: das Zwei-Spalten-Brett müsste tot sein');
+  LW.shuffleRemaining(zwei, stur);
+  pruef(!!LW.findAnyPair(zwei), 'Lawine-Notfall (zwei Spalten): Zwangs-Tausch schafft keinen Zug');
+  pruef(!lwSchweber(zwei), 'Lawine-Notfall: Mischen hat Positionen verändert');
+
+  // Eine belegte Spalte, Faces im Wechsel -> senkrecht nie gleich, Linien verstellt.
+  const eine = {
+    rows: 9, cols: 8, faceIds: ['a', 'b'],
+    tiles: [
+      { id: 0, face: 0, r: 5, c: 3 }, { id: 1, face: 1, r: 6, c: 3 },
+      { id: 2, face: 0, r: 7, c: 3 }, { id: 3, face: 1, r: 8, c: 3 },
+    ],
+  };
+  pruef(!LW.findAnyPair(eine), 'Lawine-Notfall: das Ein-Spalten-Brett müsste tot sein');
+  LW.shuffleRemaining(eine, stur);
+  pruef(!!LW.findAnyPair(eine), 'Lawine-Notfall (eine Spalte): Zwangs-Tausch schafft keinen Zug');
+}
+
+// Gegenproben — ein Test, der nie anschlägt, prüft nichts.
+{
+  // (a) Schweber absichtlich erzeugen: untersten Stein einer Spalte entfernen,
+  // OHNE applyGravity — der Invarianten-Wächter MUSS ihn melden.
+  const b = LW.makeLevel(1);
+  const unten = b.tiles.find((t) => t.r === b.rows - 1);
+  b.tiles = b.tiles.filter((t) => t !== unten);
+  pruef(!!lwSchweber(b), 'Lawine-Gegenprobe: der Schweber-Wächter schlägt nicht an — er misst nichts');
+
+  // (b) Verstellte Linie darf NICHT matchen: gleiche Sorte mit Stein dazwischen,
+  // beide unter Deckel-Steinen (sonst griffe die Oben-frei-Regel zu Recht).
+  const blockiert = {
+    rows: 2, cols: 3, faceIds: ['a', 'b'],
+    tiles: [
+      { id: 0, face: 0, r: 1, c: 0 }, { id: 1, face: 1, r: 1, c: 1 }, { id: 2, face: 0, r: 1, c: 2 },
+      { id: 3, face: 1, r: 0, c: 0 }, { id: 4, face: 1, r: 0, c: 2 },
+    ],
+  };
+  pruef(!LW.canMatch(blockiert, 0, 2), 'Lawine-Gegenprobe: verstellte Linie gilt fälschlich als frei');
+  // (c) Oben-frei-Regel selbst: Deckel weg -> dasselbe Paar MUSS matchen.
+  const offen = { ...blockiert, tiles: blockiert.tiles.slice(0, 3) };
+  pruef(LW.canMatch(offen, 0, 2), 'Lawine-Gegenprobe: Oben-frei-Regel greift nicht');
+}
+
 console.log(fehler ? `\n❌ ${fehler} Fehler` : '\n✅ alle Prüfungen bestanden');
 process.exit(fehler ? 1 : 0);

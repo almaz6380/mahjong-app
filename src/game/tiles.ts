@@ -119,6 +119,27 @@ export function buildDeck(withSeries = false): TileFace[] {
   return faces; // 144 Steine, mit Serien 176
 }
 
+// Alle unterschiedlichen Motiv-IDs, nach Gruppen im Wechsel (visuell vielfältig,
+// bunte Sorten zuerst), damit kleine Bretter nicht nur aus fast gleichen „Kronen"
+// bestehen. Gemeinsame Quelle für Connect und Lawine — vorher lebte der Code als
+// IIFE in ConnectScreen.tsx.
+export function distinctFacesByGroup(): string[] {
+  const groups = new Map<string, string[]>();
+  const seen = new Set<string>();
+  for (const f of buildDeck()) {
+    if (seen.has(f.id)) continue;
+    seen.add(f.id);
+    (groups.get(f.group) ?? groups.set(f.group, []).get(f.group)!).push(f.id);
+  }
+  const order = ['cir', 'bam', 'dragon', 'wind', 'flower', 'char', 'season'];
+  const lists = order.filter((g) => groups.has(g)).map((g) => groups.get(g)!);
+  const out: string[] = [];
+  for (let i = 0; out.length < seen.size; i++) {
+    for (const l of lists) if (i < l.length) out.push(l[i]);
+  }
+  return out;
+}
+
 // Ab dieser Boardgröße mischen die neuen Serien mit. Die Bretter sind bewusst
 // kompakt (max 8×9, ~140 Steine), damit die Steine groß bleiben – die Schwelle
 // muss dazu passen, sonst erscheinen Mythen/Schätze nie und das Album bleibt leer.
