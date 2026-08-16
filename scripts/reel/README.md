@@ -45,6 +45,46 @@ make-reel.mjs          Hook + Spiel + Abspann + Ton → fertiges Reel + .txt
 charge.mjs             fährt den Plan ab
 ```
 
+## Der Hook liegt ÜBER dem Spiel, nicht davor (seit 16.08.2026)
+
+Bis dahin war der Hook ein **Vorspann**: erstes Bild der Aufnahme eingefroren,
+Karte darüber, je nach Format 1,6 / 1,9 / **3,6** Sekunden lang. Erst danach
+begann das Gameplay.
+
+Das ist genau das Muster, an dem kurze Videos sterben. Auf TikTok und in Reels
+entscheidet die erste Sekunde, ob weitergewischt wird, und ein Standbild gibt
+keinen Grund zu bleiben — beim Format `fakt` waren es 3,6 Sekunden ohne jede
+Bewegung. Die durchschnittliche Wiedergabedauer bricht ein, und an ihr hängt,
+ob die Plattform ein Video über die erste Testgruppe hinaus ausliefert.
+
+Jetzt läuft das Spiel **ab Bild 1** und die Karte liegt darüber: Lesezeit und
+Bewegung gleichzeitig statt nacheinander. Nach `hookSek` blendet sie weg und
+gibt das Brett frei. `hookSek` bedeutet damit nicht mehr „so lange steht das
+Bild still", sondern nur noch „so lange ist die Karte zu sehen" — die Werte in
+`formate.mjs` können also bleiben, was sie sind: Lesezeiten.
+
+Drei Dinge hängen daran, alle in `make-reel.mjs`:
+
+1. **Die Abdunklung ist ins `hook.png` gewandert.** Vorher lag sie als
+   `eq=brightness` auf dem Standbild. Als eingebackene Fläche verschwindet sie
+   mit derselben Blende wie die Karte, statt als zweite Ebene nachgezogen zu
+   werden.
+2. **`versatzSpiel` steht auf 0.** Vorher `HOOK_SEK - BLENDE_SPIEL`, weil das
+   Gameplay erst nach dem Vorspann begann. ⚠ Bliebe der Versatz stehen, lägen
+   **alle Steinklänge um Sekunden hinter dem Bild** — der Umbau ist deshalb
+   nicht nur eine Frage der Optik.
+3. **`BLENDE_SPIEL` ist ersatzlos weg**, es gibt keinen Schnitt vom Hook ins
+   Spiel mehr. Geblieben ist nur die Blende zum Abspann.
+
+Nebenwirkung, die uns entgegenkommt: Jedes Reel wird um `hookSek` kürzer
+(Beispiel `paar`: 20,5 s → 19,0 s). Kürzer heißt höhere Abspielrate.
+
+⚠ **Die Karte liegt bewusst in der Bildmitte**, obwohl sie dort einen Teil des
+Bretts verdeckt. Unten und oben blenden TikTok und Instagram ihre eigene
+Bedienung ein (Caption, Knöpfe, Fortschrittsbalken) — Text am Rand wird davon
+überdeckt. Beim Format `paar` heißt das: Das Brett ist knapp zwei Sekunden lang
+halb verdeckt, danach bleiben rund 15 Sekunden zum Mitraten.
+
 ## Fallen, die hier schon zugeschnappt sind
 
 1. **Der Preview-Server muss wirklich laufen.** Am 11.08. war er als

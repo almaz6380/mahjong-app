@@ -43,11 +43,11 @@ if (!FORMATE[FORMAT]) {
 const HOOK_SEK = FORMATE[FORMAT].hookSek;
 const OUTRO_SEK = 4.2;
 
-// Ueberblendzeiten. Der Hartschnitt war der Grund, warum das Reel am Ende
-// „abgehackt" wirkte: Das halb geraeumte Brett verschwand von einem Bild aufs
-// naechste hinter dem deckenden Abspann. Die Blende zum Abspann ist bewusst
-// laenger als die zum Spiel — dort endet etwas, hier faengt nur etwas an.
-const BLENDE_SPIEL = 0.35;
+// Ueberblendzeit zum Abspann. Der Hartschnitt war der Grund, warum das Reel am
+// Ende „abgehackt" wirkte: Das halb geraeumte Brett verschwand von einem Bild
+// aufs naechste hinter dem deckenden Abspann.
+// (Die frueher hier stehende `BLENDE_SPIEL` ist mit dem Hook-Vorspann
+// entfallen — es gibt keinen Schnitt vom Hook ins Spiel mehr.)
 const BLENDE_ABSPANN = 0.55;
 
 // Beim Format `fakt` traegt die Unterzeile den Fakt selbst — deshalb wird er
@@ -121,7 +121,12 @@ html,body{width:${B}px;height:${H}px;background:transparent;font-family:'Outfit'
   // der beiden Faelle immer danebenliegen.
   const titelGroesse = TEXTE.hook.length > 22 ? 88 : 106;
   await schuss(
-    `<div style="position:absolute;left:0;top:900px;width:${B}px;height:720px;
+    // Ganzflaechige Abdunklung: Sie lag frueher als `eq=brightness` auf dem
+    // eingefrorenen Standbild. Seit die Karte ueber dem LAUFENDEN Spiel liegt,
+    // gehoert sie ins Bild — so verschwindet sie zusammen mit der Karte in
+    // einer einzigen Blende, statt als zweite Ebene nachgezogen zu werden.
+    `<div style="position:absolute;inset:0;background:rgba(6,32,26,.34)"></div>
+     <div style="position:absolute;left:0;top:900px;width:${B}px;height:720px;
                  background:linear-gradient(180deg,rgba(6,32,26,0),rgba(6,32,26,.82) 18%,
                             rgba(6,32,26,.88) 50%,rgba(6,32,26,.82) 82%,rgba(6,32,26,0))"></div>
      <div style="position:absolute;left:70px;top:900px;width:940px;height:720px;display:flex;
@@ -177,24 +182,6 @@ html,body{width:${B}px;height:${H}px;background:transparent;font-family:'Outfit'
 console.log('Karten rendern …');
 await karten();
 
-// --- Hook: erstes Bild der Aufnahme einfrieren, Karte darüber ---------------
-console.log('Hook bauen …');
-await lauf(['-y', '-i', CLIP, '-frames:v', '1', join(TMP, 'standbild.png')]);
-await lauf([
-  '-y', '-loop', '1', '-t', String(HOOK_SEK), '-i', join(TMP, 'standbild.png'),
-  '-loop', '1', '-t', String(HOOK_SEK), '-i', join(TMP, 'hook.png'),
-  '-loop', '1', '-t', String(HOOK_SEK), '-i', join(TMP, 'status.png'),
-  '-filter_complex',
-  // Das Brett wird abgedunkelt, damit die Frage liest, wer nur kurz hinsieht.
-  // Die Statusleiste liegt UEBER der Abdunklung — sie gehoert zum Geraet,
-  // nicht zum Bild.
-  `[0:v]scale=${B}:${H},eq=brightness=-0.10[bg];`
-  + `[1:v]format=rgba,fade=t=in:st=0.15:d=0.3:alpha=1[k];`
-  + `[bg][k]overlay=0:0[m];[m][2:v]overlay=0:0,fps=${FPS}[v]`,
-  '-map', '[v]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19',
-  '-pix_fmt', 'yuv420p', join(TMP, 'hook.mp4'),
-]);
-
 // --- Abspann ----------------------------------------------------------------
 console.log('Abspann bauen …');
 await lauf([
@@ -203,37 +190,64 @@ await lauf([
   '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', join(TMP, 'outro.mp4'),
 ]);
 
-// --- Gameplay vereinheitlichen ---------------------------------------------
+// --- Gameplay + Hook als Overlay -------------------------------------------
+// ⚠ Hier steckt die wichtigste Lehre des Formats: Der Hook war bis zum
+// 16.08.2026 ein VORSPANN — das erste Bild der Aufnahme eingefroren, Karte
+// darueber, 1,6 bis 3,6 Sekunden lang. Auf TikTok und in Reels entscheidet
+// sich in der ersten Sekunde, ob weitergewischt wird, und ein Standbild ist
+// genau das Muster, bei dem gewischt wird. Beim Format `fakt` waren es 3,6
+// Sekunden ohne jede Bewegung. Damit faellt die durchschnittliche
+// Wiedergabedauer, und die ist der Faktor, an dem die Plattform entscheidet,
+// ob ein Video ueber die erste Testgruppe hinauskommt.
+//
+// Jetzt laeuft das Spiel ab Bild 1 und die Karte liegt DARUEBER: Lesezeit und
+// Bewegung gleichzeitig statt nacheinander. Die Karte blendet nach HOOK_SEK
+// weg und gibt das Brett frei. Nebenbei wird jedes Reel um HOOK_SEK kuerzer,
+// was der Abspielrate ebenfalls hilft.
+//
+// Reihenfolge der Ebenen: Spiel → Hook-Karte → Statusleiste. Die Leiste liegt
+// ganz oben, weil sie zum Geraet gehoert und nicht zum Bild.
+console.log('Gameplay + Hook …');
 await lauf([
-  '-y', '-i', CLIP, '-loop', '1', '-i', join(TMP, 'status.png'),
-  '-filter_complex', `[0:v]scale=${B}:${H}[g];[g][1:v]overlay=0:0:shortest=1,fps=${FPS}[v]`,
+  '-y', '-i', CLIP,
+  '-loop', '1', '-i', join(TMP, 'hook.png'),
+  '-loop', '1', '-i', join(TMP, 'status.png'),
+  '-filter_complex',
+  `[0:v]scale=${B}:${H}[g];`
+  // Der Alpha-Fade allein blendet die Karte aus; ein `enable`-Fenster braucht
+  // es nicht. Wichtig ist nur, dass der Alpha wirklich auf 0 laeuft — das
+  // Standbild liegt danach unsichtbar weiter im Filtergraphen.
+  + `[1:v]format=rgba,fade=t=in:st=0.10:d=0.35:alpha=1,`
+  + `fade=t=out:st=${HOOK_SEK.toFixed(2)}:d=0.45:alpha=1[k];`
+  + `[g][k]overlay=0:0:shortest=1[gk];`
+  + `[gk][2:v]overlay=0:0:shortest=1,fps=${FPS}[v]`,
   '-map', '[v]',
   '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', '-pix_fmt', 'yuv420p', '-an',
   join(TMP, 'spiel.mp4'),
 ]);
 
 // --- Zusammenschneiden ------------------------------------------------------
+// Nur noch EINE Blende: Spiel → Abspann. Die Blende vom Hook ins Spiel ist
+// entfallen, seit der Hook als Overlay im Spiel selbst liegt (siehe oben) —
+// es gibt keinen Schnitt mehr, an dem etwas ueberblendet werden muesste.
+//
 // Bewusst `xfade` statt des concat-Demuxers: concat kann nur stumpf
 // aneinanderhaengen, und genau das war zu sehen. `xfade` kostet ein
-// Neukodieren, dafuer geht das abgedunkelte Hook-Standbild weich ins helle
-// Spiel ueber (sonst springt die Helligkeit) und das Brett loest sich in den
-// Abspann auf, statt von ihm verdeckt zu werden.
+// Neukodieren, dafuer loest sich das Brett in den Abspann auf, statt von ihm
+// verdeckt zu werden.
 console.log('Blenden setzen …');
 const spielDauer = await dauerVon(join(TMP, 'spiel.mp4'));
-const versatz1 = HOOK_SEK - BLENDE_SPIEL;
-const zwischen = HOOK_SEK + spielDauer - BLENDE_SPIEL;   // Laenge nach der ersten Blende
-const versatz2 = zwischen - BLENDE_ABSPANN;
-const dauer = zwischen + OUTRO_SEK - BLENDE_ABSPANN;
+const versatz2 = spielDauer - BLENDE_ABSPANN;
+const dauer = spielDauer + OUTRO_SEK - BLENDE_ABSPANN;
 
 await lauf([
-  '-y', '-i', join(TMP, 'hook.mp4'), '-i', join(TMP, 'spiel.mp4'), '-i', join(TMP, 'outro.mp4'),
+  '-y', '-i', join(TMP, 'spiel.mp4'), '-i', join(TMP, 'outro.mp4'),
   '-filter_complex',
-  `[0:v][1:v]xfade=transition=fade:duration=${BLENDE_SPIEL}:offset=${versatz1.toFixed(3)}[a];`
   // `fadeblack` statt `fade`: Sieg-Karte und Abspann tragen beide viel Text an
   // aehnlicher Stelle — eine direkte Kreuzblende legt sie uebereinander und
   // beides wird unleserlich. Der kurze Weg ueber Schwarz liest sich als
   // gewollter Schnitt.
-  + `[a][2:v]xfade=transition=fadeblack:duration=${BLENDE_ABSPANN}:offset=${versatz2.toFixed(3)},`
+  `[0:v][1:v]xfade=transition=fadeblack:duration=${BLENDE_ABSPANN}:offset=${versatz2.toFixed(3)},`
   + `format=yuv420p,fps=${FPS}[v]`,
   '-map', '[v]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19',
   join(TMP, 'stumm.mp4'),
@@ -253,7 +267,11 @@ const outroAb = Math.max(0, dauer - OUTRO_SEK);   // = Beginn der Abspann-Blende
 // erzeugt — mit demselben Synth wie in der App (synth.mjs).
 let beiblatt = {};
 try { beiblatt = JSON.parse(readFileSync(CLIP.replace(/\.mp4$/, '.json'), 'utf8')); } catch { /* optional */ }
-const versatzSpiel = HOOK_SEK - BLENDE_SPIEL;   // dort beginnt das Gameplay im fertigen Reel
+// Das Gameplay beginnt jetzt bei 0 — es gibt keinen Vorspann mehr, der die
+// Klickzeiten nach hinten schoebe. ⚠ Diese Zeile war der Grund, warum der
+// Umbau des Hooks nicht nur eine Frage der Optik ist: Bliebe hier ein Versatz
+// stehen, laegen alle Steinklaenge um HOOK_SEK hinter dem Bild.
+const versatzSpiel = 0;
 
 const ereignisse = (beiblatt.klicks ?? [])
   .map((k) => ({ t: versatzSpiel + k.t, klang: k.art }));
