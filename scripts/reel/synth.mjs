@@ -42,6 +42,89 @@ export const STIMMEN = {
   ],
 };
 
+// --- Melodie ----------------------------------------------------------------
+// Eigene Musik statt Chart-Musik: Trending-Sounds sind fuer PRIVATE Beitraege
+// lizenziert, nicht fuer Firmen, die ein Produkt bewerben. Was hier entsteht,
+// gehoert uns — es gibt keine Lizenzfrage, auch nicht bei bezahlten Beitraegen.
+//
+// ⚠ Der tragende Gedanke: Die Melodie sitzt auf den ECHTEN Zugzeiten des
+// Spiels, nicht auf einem eigenen Raster. `record-solitaire.mjs` beschleunigt
+// die Zuege von 820 ms auf 280 ms; legt man die Toene auf die mitgeschriebenen
+// `match`-Zeitpunkte, zieht die Musik von selbst mit an. Ein eigenes Metrum
+// wuerde dagegen gegen das Bild laufen — und genau das faellt auf.
+
+// D-Moll-Pentatonik. Die vier unteren Toene sind dieselben wie in der
+// `koto`-Stimme oben, damit die Melodie nach derselben Welt klingt wie die App.
+const PENTA = [293.66, 349.23, 392.0, 440.0, 523.25, 587.33]; // D4 F4 G4 A4 C5 D5
+const BASS = [146.83, 220.0];                                  // D3, A3
+
+/**
+ * Baut die Musikereignisse aus den Zugzeiten der Aufnahme.
+ *
+ * @param klicks   [{ t, art }] aus dem Beipackzettel, Zeiten SCHON auf die
+ *                 Zeitachse des fertigen Reels verschoben
+ * @param siegBei  Zeitpunkt des Siegs auf derselben Achse (oder null)
+ * @returns Ereignisse fuer `spurRendern` (mit `stimme` statt `klang`)
+ */
+export function melodie(klicks, siegBei) {
+  const schlaege = klicks.filter((k) => k.art === 'match');
+  if (schlaege.length < 2) return [];
+  const ereignisse = [];
+
+  schlaege.forEach((s, i) => {
+    const t = i / (schlaege.length - 1);        // 0 am Anfang, 1 am Ende
+
+    // Grundton wandert die Pentatonik hinauf. Kein Zufall, keine Sprünge:
+    // eine stetig steigende Linie liest das Ohr als "es geht auf etwas zu".
+    const stufe = Math.min(PENTA.length - 1, Math.floor(t * PENTA.length));
+    const ton = PENTA[stufe];
+
+    // Lautstaerke steigt leicht mit. Bewusst unter den Steinklaengen
+    // (0,12–0,16 in STIMMEN): Die Klaenge sind der Reiz, die Musik traegt nur.
+    const laut = 0.045 + 0.028 * t;
+
+    ereignisse.push({
+      t: s.t,
+      stimme: [
+        [ton, 0.42, 'triangle', laut, 0],
+        [ton * 2, 0.18, 'sine', laut * 0.35, 0],   // Anschlag-Brillanz wie beim Koto
+      ],
+    });
+
+    // Bass auf jedem zweiten Zug — er gibt den Puls, ohne das Bild zuzudecken.
+    if (i % 2 === 0) {
+      ereignisse.push({
+        t: s.t,
+        stimme: [[BASS[(i / 2) % 2], 0.55, 'sine', 0.075 + 0.03 * t, 0]],
+      });
+    }
+
+    // Zweite Haelfte: Oktave darueber. Der Klang wird dichter, ohne lauter zu
+    // werden — das ist der Unterschied zwischen Steigerung und Krach.
+    if (t > 0.55) {
+      ereignisse.push({
+        t: s.t,
+        stimme: [[ton * 2, 0.3, 'triangle', 0.03 + 0.025 * (t - 0.55) / 0.45, 0.04]],
+      });
+    }
+  });
+
+  // Auflösung: gehaltener D–A–D-Akkord unter der vorhandenen `win`-Fanfare.
+  // Ohne ihn bricht die Steigerung ab, statt anzukommen.
+  if (siegBei != null) {
+    ereignisse.push({
+      t: siegBei,
+      stimme: [
+        [146.83, 1.8, 'sine', 0.10, 0],
+        [220.0, 1.7, 'triangle', 0.07, 0.02],
+        [293.66, 1.6, 'triangle', 0.06, 0.04],
+      ],
+    });
+  }
+
+  return ereignisse;
+}
+
 function welle(art, phase) {
   switch (art) {
     case 'square': return phase % 1 < 0.5 ? 1 : -1;
@@ -62,7 +145,11 @@ function huelle(t, dauer, vol) {
 }
 
 /**
- * @param ereignisse [{ t: Sekunde, klang: 'tap'|'match'|'win'|'koto', vol?: Faktor }]
+ * @param ereignisse [{ t: Sekunde, klang?: 'tap'|'match'|'win'|'koto',
+ *                      stimme?: [[freq, dauer, welle, vol, verzug]], vol?: Faktor }]
+ *                   `klang` schlaegt in STIMMEN nach, `stimme` bringt die
+ *                   Toene direkt mit — das braucht die Melodie, deren Tonhoehen
+ *                   sich je Zug aendern und daher in keine feste Tabelle passen.
  * @param dauer      Gesamtlaenge der Spur in Sekunden
  */
 export function spurRendern(ereignisse, dauer, ziel) {
@@ -70,7 +157,7 @@ export function spurRendern(ereignisse, dauer, ziel) {
   const buf = new Float32Array(n);
 
   for (const e of ereignisse) {
-    const stimme = STIMMEN[e.klang];
+    const stimme = e.stimme ?? STIMMEN[e.klang];
     if (!stimme) throw new Error(`unbekannter Klang: ${e.klang}`);
     const faktor = e.vol ?? 1;
     for (const [freq, dur, art, vol, verzug] of stimme) {

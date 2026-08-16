@@ -15,7 +15,7 @@ import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { spurRendern } from './synth.mjs';
+import { spurRendern, melodie } from './synth.mjs';
 import { FORMATE, fakten, captionText } from './formate.mjs';
 import { browserPfad } from './browser.mjs';
 
@@ -36,6 +36,40 @@ const OUT = join(WURZEL, arg('out', 'out/reels'));
 const TMP = join(OUT, '.bau');
 const B = 1080, H = 1920, FPS = 30;
 
+// --musik aus|dezent|voll — damit sich Fassungen zum Vergleichen bauen lassen,
+// ohne den Code anzufassen. `aus` ist der Stand vor dem 16.08.2026.
+//
+// ⚠ Warum der Teppich ueberhaupt so leise war: Er lag auf 0,10, „damit in der
+// App noch ein Trending-Sound darueberpasst". Chart-Musik ist fuer ein
+// gewerbliches Konto aber nicht lizenziert — der Sound kommt also nie, und die
+// Reels liefen praktisch ohne Musik. Die eigene Melodie (synth.mjs) fuellt die
+// Luecke und gehoert uns.
+// Die Faktoren stehen auf gemessenen Einzelspuren: Spielklang −27,4 LUFS,
+// Melodie −32,0 LUFS. Die Melodie sitzt damit von sich aus 4,6 dB unter den
+// Steinen — ein stuetzender Teppich. `voll` hebt sie auf Augenhoehe.
+//
+// ⚠ Den GESAMTPEGEL des fertigen Reels nicht als Probe nehmen. Er aendert sich
+// zwischen `aus` und `dezent` nur um 0,4 LUFS, und das verleitet zu dem
+// Fehlschluss, die Melodie sei nicht da (genau darauf bin ich am 16.08.2026
+// hereingefallen und habe die Stufen unnoetig hochgezogen). Integrated LUFS
+// misst die Gesamtlautheit, und die bestimmen die Transienten der Steinklaenge
+// und die Sieg-Fanfare — ein leiser Dauerton darunter bewegt sie kaum, egal wie
+// deutlich er zu hoeren ist. Aussagekraeftig ist allein das VERHAELTNIS der
+// einzeln gerenderten Spuren.
+const MUSIK = arg('musik', 'dezent');
+const PEGEL = { aus: { bett: 0.10, mel: 0 }, dezent: { bett: 0.24, mel: 1.0 }, voll: { bett: 0.34, mel: 1.8 } };
+if (!PEGEL[MUSIK]) {
+  console.error(`✗ unbekannte Musikstufe: ${MUSIK}\n  Bekannt: ${Object.keys(PEGEL).join(', ')}`);
+  process.exit(1);
+}
+
+// Fortschrittsbalken oben. ⚠ Bewusst ein BALKEN und keine Zahl: Das Spiel
+// zeigt die Paarzahl in der Kopfzeile bereits an, eine zweite Zahl waere
+// Dopplung — und zwischen Brettunterkante (~y 1590) und Bedienleiste (~y 1670)
+// sind nur rund 80 px frei, zu wenig fuer etwas Lesbares. Der Balken liegt in
+// der Luecke zwischen Statusleiste und Kopfzeile und kostet keine Brettflaeche.
+const BALKEN_Y = 128, BALKEN_H = 12;
+
 if (!FORMATE[FORMAT]) {
   console.error(`✗ unbekanntes Format: ${FORMAT}\n  Bekannt: ${Object.keys(FORMATE).join(', ')}`);
   process.exit(1);
@@ -53,6 +87,13 @@ const BLENDE_ABSPANN = 0.55;
 // Beim Format `fakt` traegt die Unterzeile den Fakt selbst — deshalb wird er
 // hier schon geladen, er bestimmt den Text der Eingangskarte.
 const FAKT = FORMAT === 'fakt' ? fakten()[FAKT_NR % fakten().length] : null;
+
+// Beipackzettel der Aufnahme: Klickzeiten, Siegzeitpunkt, Paarzahl. Wird frueh
+// geladen, weil sowohl der Fortschrittsbalken (Bild) als auch Melodie und
+// Steinklaenge (Ton) daraus entstehen.
+let beiblatt = {};
+try { beiblatt = JSON.parse(readFileSync(CLIP.replace(/\.mp4$/, '.json'), 'utf8')); } catch { /* optional */ }
+const TREFFER = (beiblatt.klicks ?? []).filter((k) => k.art === 'match');
 
 const TEXTE = {
   hook: FORMATE[FORMAT].hook,
@@ -171,6 +212,27 @@ html,body{width:${B}px;height:${H}px;background:transparent;font-family:'Outfit'
                  border-radius:999px;background:#fff;opacity:.92"></div>`,
     join(TMP, 'status.png'));
 
+  // Fortschrittsbalken: zwei Bilder, Spur und Fuellung.
+  //
+  // ⚠ Zwei Sackgassen liegen hinter dieser Loesung, beide am ffmpeg-Build:
+  // (1) `drawtext` gibt es hier gar nicht (`-filters` listet ihn nicht, trotz
+  //     libfreetype) — eine Zahl per Filter einzublenden ist also unmoeglich.
+  // (2) `crop` kennt in diesem Build kein `eval`, seine Position steht damit
+  //     ab Start fest. Ein Streifen mit einer Zeile je Stand, aus dem man die
+  //     passende herausschneidet, faellt deshalb aus.
+  // `overlay` wertet seine Position dagegen pro Bild aus (`eval` steht auf
+  // `frame`). Darum faehrt die volle Leiste von links herein und wird vom
+  // Bildrand beschnitten — sichtbar waechst sie damit von 0 auf vollen Balken.
+  if (TREFFER.length >= 2) {
+    await page.setViewportSize({ width: B, height: BALKEN_H });
+    await schuss(
+      `<div style="position:absolute;inset:0;background:rgba(255,255,255,.16)"></div>`,
+      join(TMP, 'balken-spur.png'));
+    await schuss(
+      `<div style="position:absolute;inset:0;background:linear-gradient(90deg,#e8cf86,#f5b301)"></div>`,
+      join(TMP, 'balken-fuell.png'));
+  }
+
   await browser.close();
 }
 
@@ -225,15 +287,36 @@ const zwischen = HOOK_SEK + spielDauer - BLENDE_SPIEL;   // Laenge nach der erst
 const versatz2 = zwischen - BLENDE_ABSPANN;
 const dauer = zwischen + OUTRO_SEK - BLENDE_ABSPANN;
 
+const spielAb = HOOK_SEK - BLENDE_SPIEL;          // dort beginnt das Gameplay
+const spielBis = Math.max(0, dauer - OUTRO_SEK);  // dort beginnt der Abspann
+const balkenDa = existsSync(join(TMP, 'balken-fuell.png'));
+
+// Anteil geraeumter Paare als Ausdruck ueber die Zeit: Die Summe der
+// erfuellten `gte(t,…)` ist genau die Zahl der bis dahin geraeumten Paare.
+// Die Fuellung sitzt bei x = B*(anteil-1), ragt also anfangs komplett links
+// aus dem Bild und schiebt sich mit jedem Paar weiter herein.
+const anteil = `(${TREFFER.map((k) => `gte(t,${(spielAb + k.t).toFixed(3)})`).join('+')})/${TREFFER.length}`;
+const nurSpiel = `enable='between(t,${spielAb.toFixed(2)},${spielBis.toFixed(2)})'`;
+
 await lauf([
   '-y', '-i', join(TMP, 'hook.mp4'), '-i', join(TMP, 'spiel.mp4'), '-i', join(TMP, 'outro.mp4'),
+  // ⚠ `-loop 1` ist noetig, damit die Standbilder eine Zeitachse bekommen.
+  // Ohne das liegen sie bei t=0 fest und der Ausdruck ergaebe immer 0.
+  ...(balkenDa ? [
+    '-loop', '1', '-t', dauer.toFixed(2), '-i', join(TMP, 'balken-spur.png'),
+    '-loop', '1', '-t', dauer.toFixed(2), '-i', join(TMP, 'balken-fuell.png'),
+  ] : []),
   '-filter_complex',
   `[0:v][1:v]xfade=transition=fade:duration=${BLENDE_SPIEL}:offset=${versatz1.toFixed(3)}[a];`
   // `fadeblack` statt `fade`: Sieg-Karte und Abspann tragen beide viel Text an
   // aehnlicher Stelle — eine direkte Kreuzblende legt sie uebereinander und
   // beides wird unleserlich. Der kurze Weg ueber Schwarz liest sich als
   // gewollter Schnitt.
-  + `[a][2:v]xfade=transition=fadeblack:duration=${BLENDE_ABSPANN}:offset=${versatz2.toFixed(3)},`
+  + `[a][2:v]xfade=transition=fadeblack:duration=${BLENDE_ABSPANN}:offset=${versatz2.toFixed(3)}[b];`
+  + (balkenDa
+    ? `[b][3:v]overlay=0:${BALKEN_Y}:${nurSpiel}[sp];`
+      + `[sp][4:v]overlay=x='${B}*(${anteil}-1)':y=${BALKEN_Y}:${nurSpiel},`
+    : `[b]`)
   + `format=yuv420p,fps=${FPS}[v]`,
   '-map', '[v]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19',
   join(TMP, 'stumm.mp4'),
@@ -251,8 +334,6 @@ const outroAb = Math.max(0, dauer - OUTRO_SEK);   // = Beginn der Abspann-Blende
 // in einem Rhythmus, der mit dem Tempo anzieht. Die Aufnahme liefert nur Bild
 // (CDP-Screencast), also wird die Spur aus den mitgeschriebenen Klickzeiten neu
 // erzeugt — mit demselben Synth wie in der App (synth.mjs).
-let beiblatt = {};
-try { beiblatt = JSON.parse(readFileSync(CLIP.replace(/\.mp4$/, '.json'), 'utf8')); } catch { /* optional */ }
 const versatzSpiel = HOOK_SEK - BLENDE_SPIEL;   // dort beginnt das Gameplay im fertigen Reel
 
 const ereignisse = (beiblatt.klicks ?? [])
@@ -262,9 +343,8 @@ if (beiblatt.siegBei != null) {
 }
 
 const spuren = [
-  // Musikteppich leise, damit in der App noch ein Trending-Sound darüberpasst.
-  // Die Einblende nimmt ihm den Anfangs-Knacks.
-  `[0:a]atrim=0:${dauer.toFixed(2)},volume=0.10,afade=t=in:st=0:d=1.0[bed]`,
+  // Teppich-Pegel je Stufe (--musik). Die Einblende nimmt ihm den Anfangs-Knacks.
+  `[0:a]atrim=0:${dauer.toFixed(2)},volume=${PEGEL[MUSIK].bett},afade=t=in:st=0:d=1.0[bed]`,
   `[1:a]adelay=100|100,volume=0.55[w]`,
   `[2:a]adelay=${ms(outroAb)}|${ms(outroAb)},volume=0.7[o]`,
 ];
@@ -275,11 +355,30 @@ if (ereignisse.length) {
   const spielSpur = join(TMP, 'spielklang.wav');
   spurRendern(ereignisse, dauer + 1.5, spielSpur);
   eingaben.push('-i', spielSpur);
-  spuren.push(`[3:a]volume=1.0[spiel]`);
+  spuren.push(`[${namen.length}:a]volume=1.0[spiel]`);
   namen.push('[spiel]');
   console.log(`  ${beiblatt.klicks.length} Steinklaenge${beiblatt.siegBei != null ? ' + Sieg' : ''}`);
 } else {
   console.log('  ⚠ keine Klickzeiten im Beipackzettel — Reel bleibt ohne Spielklang');
+}
+
+// Eigene Melodie auf den ECHTEN Zugzeiten. Das Spiel zieht von 820 ms auf
+// 280 ms je Zug an (record-solitaire.mjs); sitzt die Musik auf denselben
+// Zeitpunkten, beschleunigt sie von selbst mit. Ein eigenes Metrum wuerde
+// dagegen gegen das Bild laufen — und genau das faellt auf.
+if (PEGEL[MUSIK].mel > 0 && TREFFER.length >= 2) {
+  const mel = melodie(
+    TREFFER.map((k) => ({ ...k, t: versatzSpiel + k.t })),
+    beiblatt.siegBei != null ? versatzSpiel + beiblatt.siegBei : null,
+  );
+  const melSpur = join(TMP, 'melodie.wav');
+  spurRendern(mel, dauer + 2.0, melSpur);
+  eingaben.push('-i', melSpur);
+  spuren.push(`[${namen.length}:a]volume=${PEGEL[MUSIK].mel.toFixed(2)}[mel]`);
+  namen.push('[mel]');
+  console.log(`  Melodie: ${mel.length} Toene, Stufe „${MUSIK}“`);
+} else if (PEGEL[MUSIK].mel === 0) {
+  console.log('  Melodie: aus');
 }
 
 await lauf([

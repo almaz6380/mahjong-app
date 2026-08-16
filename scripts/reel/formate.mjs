@@ -31,7 +31,10 @@ export function fakten() {
 // ein Fakt braucht laenger — sonst steht Text da, den niemand zu Ende liest.
 export const FORMATE = {
   paar: {
-    hookSek: 1.9,
+    // 1,9 s waren zu lang: Die Frage ist in gut einer Sekunde gelesen, und die
+    // ersten Sekunden sind im Feed die teuerste Zeit ueberhaupt — wer dort ein
+    // Standbild sieht, wischt weiter.
+    hookSek: 1.3,
     hook: 'Can you spot\nthe pair?',
     hookSub: 'Most people need three tries',
     hashtags: ['mahjong', 'mahjongsolitaire', 'puzzlegame', 'brainteaser', 'spotthedifference',

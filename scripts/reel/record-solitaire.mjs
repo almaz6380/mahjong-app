@@ -210,7 +210,12 @@ for (let i = 0; i < PAARE; i++) {
   const paar = await freiesPaar();
   if (!paar) { console.log(`  kein Paar mehr frei nach ${gespielt} Zuegen`); break; }
   const t = zuege > 1 ? Math.min(1, i / (zuege - 1)) : 1;   // 0 am Anfang, 1 am Ende
-  const vor = Math.round(300 - 190 * t);              // 300 ms → 110 ms
+  // Letztes Paar: bewusst ein Atemzug statt des schnellsten Zugs. Alles zieht
+  // an, dann haelt es kurz, dann loest es sich — der Halt ist das, was die
+  // Aufloesung ueberhaupt als Aufloesung lesbar macht. Ohne ihn endet das
+  // Video einfach, statt anzukommen.
+  const letzter = zuege > 1 && i === zuege - 1;
+  const vor = letzter ? 620 : Math.round(300 - 190 * t);   // 300 ms → 110 ms
   const nach = Math.round(520 - 350 * t);             // 520 ms → 170 ms
   await page.mouse.click(paar[0].x, paar[0].y);
   klicks.push({ t: jetzt(), art: 'tap' });            // erster Stein: nur Tick
