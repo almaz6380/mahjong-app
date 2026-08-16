@@ -1,12 +1,18 @@
 // Prueft die Beschreibungstexte ueber alle Format-/Plattform-Kombinationen.
 //
-// ⚠ Die wichtigste Zeile ist die URL-Pruefung. Ein Store-Link im
-// Instagram- oder TikTok-Text ist ein Fehler, den man dem Text NICHT ansieht:
-// Er ist dort nicht klickbar (sieht also nur aus wie Text) und drueckt
-// zusaetzlich die Ausspielung, weil beide Plattformen Beitraege benachteiligen,
-// die aus der App hinausfuehren. Wer den Text von der Facebook-Fassung
-// herueberkopiert, baut ihn versehentlich ein — und merkt monatelang nichts.
+// ⚠ Die wichtigste Zeile ist die URL-Pruefung — sie steht seit dem 16.08.2026
+// ANDERSHERUM als zuvor. Frueher galt: Instagram und TikTok duerfen KEINE
+// Adresse enthalten. Auf Josefs Vorgabe muss sie jetzt in ALLEN drei Fassungen
+// stehen, und die Pruefung erzwingt genau das. Wer den alten Kommentar im Kopf
+// hat, haelt einen Treffer sonst faelschlich fuer einen Fehler.
 //
+// Der Grund fuer die Umkehr ist eine Abwaegung, keine Korrektur: Auf Instagram
+// und TikTok ist die Adresse im Text nicht anklickbar und kann die Auslieferung
+// druecken — sie steht dort zum Ablesen. Josef will sie trotzdem ueberall
+// haben, damit niemand suchen muss.
+//
+// Facebook braucht zusaetzlich die VOLLE Form mit `https://`, sonst ist sie
+// dort nicht klickbar — und genau dort waere sie es.
 // Aufruf: node scripts/reel/check-captions.mjs
 
 import { FORMATE, PLATTFORMEN, LINK, captionText, fakten } from './formate.mjs';
@@ -27,13 +33,14 @@ for (const [fname, f] of Object.entries(FORMATE)) {
     if (pname === 'facebook' && tags.length !== 2) meckern(`facebook: ${tags.length} Hashtags — erwartet 2`);
 
     // Der eigentliche Riegel.
-    const hatURL = /https?:\/\//.test(text);
-    if (pname === 'facebook' && !hatURL) meckern('facebook: die klickbare Adresse fehlt');
-    if (pname !== 'facebook' && hatURL) meckern(`${pname}: enthaelt eine URL — dort nicht klickbar und reichweitenschaedlich`);
+    const hatAdresse = text.includes('mahjong-app-plum.vercel.app/links.html');
+    const klickbar = /https:\/\//.test(text);
+    if (!hatAdresse) meckern(`${pname}: die Adresse fehlt`);
+    if (pname === 'facebook' && !klickbar) meckern('facebook: Adresse ohne https:// — dort nicht klickbar');
 
     if (!text.trim()) meckern(`${pname}: leerer Text`);
     console.log(`  ${p.name.padEnd(10)} ${text.split('\n').length} Zeilen, ${tags.length} Hashtags`
-      + `${hatURL ? ', mit Link' : ''}`);
+      + `${klickbar ? ', klickbar' : ', zum Ablesen'}`);
   }
 }
 
@@ -46,17 +53,17 @@ if (!datei.includes(LINK)) meckern('die .txt enthaelt die Adresse nirgends');
 
 // --- Gegenprobe -------------------------------------------------------------
 // ⚠ Eine Pruefung, die nie anschlaegt, prueft nichts. Hier wird der Fehler
-// absichtlich herbeigefuehrt: eine Instagram-Fassung MIT Link muss auffallen.
+// absichtlich herbeigefuehrt: eine Fassung OHNE Adresse muss auffallen.
 // Schlaegt das hier nicht an, ist der Riegel oben wirkungslos — und niemand
 // wuerde es merken, weil dann eben alles „in Ordnung“ gemeldet wird.
 {
-  const kaputt = { ...PLATTFORMEN.instagram, text: (f, o) => `${f.koerper(o)}\n\n👉 ${LINK}` };
-  const erkannt = /https?:\/\//.test(kaputt.text(FORMATE.paar, PROBE));
+  const kaputt = { ...PLATTFORMEN.instagram, text: (f, o) => f.koerper(o) };
+  const erkannt = !kaputt.text(FORMATE.paar, PROBE).includes('mahjong-app-plum.vercel.app/links.html');
   if (!erkannt) {
-    console.error('  ✗ GEGENPROBE: Link in einer Instagram-Fassung wurde NICHT erkannt');
+    console.error('  ✗ GEGENPROBE: fehlende Adresse wurde NICHT erkannt');
     fehler++;
   } else {
-    console.log('  ✓ Gegenprobe: eingebauter Link wird erkannt');
+    console.log('  ✓ Gegenprobe: fehlende Adresse wird erkannt');
   }
 }
 

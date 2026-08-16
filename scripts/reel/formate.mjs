@@ -93,28 +93,31 @@ export const FORMATE = {
 // Der SCHLUSS unterscheidet sich, der Koerper nicht. Deshalb steht er hier
 // einmal je Plattform statt dreimal je Format.
 //
-// ⚠ Der Unterschied ist nicht kosmetisch:
-// • Auf Instagram und TikTok sind URLs im Beschreibungstext NICHT klickbar,
-//   und Beitraege, die aus der App hinausfuehren, werden schlechter
-//   ausgespielt. Ein Store-Link dort schadet also doppelt — deshalb „link in
-//   bio“, und deshalb prueft check-captions.mjs ausdruecklich, dass in diesen
-//   beiden Fassungen kein `http` steht.
-// • Auf Facebook ist der Link klickbar und erwartet; „link in bio“ gibt es
-//   dort als Konvention gar nicht. Hashtags bringen dort kaum Reichweite und
-//   lassen einen Beitrag nach Werbung aussehen — daher nur zwei.
+// ⚠ Die Adresse steht seit dem 16.08.2026 in ALLEN drei Fassungen (Josefs
+// Vorgabe). Vorher trug sie nur Facebook, und `check-captions.mjs` hat das
+// Gegenteil erzwungen — wer die alte Regel im Kopf hat, wundert sich sonst.
+//
+// Zur Einordnung, damit die Entscheidung nachvollziehbar bleibt: Auf Instagram
+// und TikTok ist eine Adresse im Beschreibungstext NICHT anklickbar, und
+// Beitraege, die aus der App hinausfuehren, werden tendenziell schlechter
+// ausgespielt. Sie steht dort also zum Ablesen, nicht zum Antippen — der
+// klickbare Weg bleibt das Profil. Auf Facebook ist sie klickbar und gehoert
+// deshalb in voller Form mit `https://` hinein.
 export const LINK = 'https://mahjong-app-plum.vercel.app/links.html';
 
 export const PLATTFORMEN = {
   instagram: {
     name: 'Instagram',
-    text: (f, o) => `${f.koerper(o)}\n\nMahjong Royale — free on iOS & Android. Link in bio.`,
+    text: (f, o) => `${f.koerper(o)}\n\nMahjong Royale — free on iOS & Android\n`
+      + `${LINK.replace('https://', '')}`,
     tags: (f) => f.hashtags,
   },
   tiktok: {
     name: 'TikTok',
     // Einfache statt doppelter Umbrueche: Im TikTok-Feld ist wenig Platz, und
     // die ersten Zeilen entscheiden, ob jemand „mehr“ antippt.
-    text: (f, o) => `${f.koerper(o).replace(/\n\n/g, '\n')}\nFree on iOS & Android — link in bio`,
+    text: (f, o) => `${f.koerper(o).replace(/\n\n/g, '\n')}\nFree on iOS & Android\n`
+      + `${LINK.replace('https://', '')}`,
     tags: (f) => f.hashtags,
   },
   facebook: {
@@ -150,7 +153,9 @@ export function captionText(format, o) {
     '- KEINE Chart-/Trending-Sounds. Die sind für private Beiträge lizenziert,',
     '  nicht für Firmen, die ein Produkt bewerben — erkennt die Plattform das,',
     '  wird das Video stummgeschaltet.',
-    '- Keinen Store-Link in die Caption (drückt die Auslieferung), nur "link in bio".',
+    '- Die Adresse steht in allen drei Fassungen. Auf Instagram und TikTok ist',
+    '  sie NICHT anklickbar — sie steht dort zum Ablesen; der klickbare Weg',
+    '  bleibt der Link im Profil. Auf Facebook ist sie klickbar.',
     '- TikTok als BUSINESS-Konto: nur so gibt es unter 1000 Followern ein',
     '  Website-Feld. Instagram als Creator-Konto — dort ist der Link ohnehin frei.',
     '- Auf Instagram den Haken für Facebook mitnehmen. Die Zielgruppe für',
