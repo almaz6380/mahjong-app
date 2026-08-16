@@ -36,7 +36,7 @@
   Benutzerkonto</strong> und überträgt deinen Spielfortschritt <strong>nicht an unsere Server</strong> —
   Spielstände, Münzen und Einstellungen werden ausschließlich <strong>lokal auf deinem Gerät</strong>
   gespeichert. Personenbezogene Daten werden nur in dem unten beschriebenen Umfang durch
-  eingebundene Dienste (Werbung, App-Stores) verarbeitet.</p>
+  eingebundene Dienste (Werbung, App-Stores, Reichweitenmessung der Web-Version) verarbeitet.</p>
 
   <h2>3. Lokal gespeicherte Daten</h2>
   <p>Spielfortschritt (Level, Münzen, Erfolge, Bestwerte, Einstellungen) wird lokal auf dem Gerät
@@ -66,9 +66,23 @@
   App-Store abgewickelt (Apple App Store bzw. Google Play). Wir erhalten dabei keine
   Zahlungsdaten; es gelten die Datenschutzbestimmungen von Apple bzw. Google.</p>
 
-  <h2>6. Keine sonstige Datenerhebung</h2>
-  <p>Die App enthält keine eigenen Analyse- oder Tracking-Dienste, keine Push-Benachrichtigungen
-  mit Profilbildung und verkauft keine Daten an Dritte.</p>
+  <h2>6. Reichweitenmessung (nur Web-Version)</h2>
+  <p>Die im Browser spielbare Fassung unter
+  <a href="https://mahjong-app-plum.vercel.app" rel="noopener">mahjong-app-plum.vercel.app</a>
+  nutzt <strong>Vercel Web Analytics</strong>, um zu zählen, wie oft die Seite aufgerufen wird.
+  Erfasst werden dabei ausschließlich aggregierte Angaben: aufgerufene Seite, Zeitpunkt,
+  verweisende Seite, Land, Gerätetyp und Browser. Es werden <strong>keine Cookies gesetzt</strong>,
+  keine geräteübergreifende Kennung gebildet und keine Einzelprofile erstellt; die IP-Adresse wird
+  nicht gespeichert. Anbieter ist die Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, USA
+  (<a href="https://vercel.com/legal/privacy-policy" rel="noopener">Datenschutzerklärung</a>).
+  Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einer
+  datensparsamen Reichweitenmessung).</p>
+  <p><strong>Die installierbaren Apps für iOS und Android enthalten diese Messung nicht.</strong>
+  Sie ist technisch auf die Web-Fassung beschränkt.</p>
+
+  <h2>6a. Keine sonstige Datenerhebung</h2>
+  <p>Darüber hinaus enthalten App und Web-Version keine Analyse- oder Tracking-Dienste, keine
+  Push-Benachrichtigungen mit Profilbildung und verkaufen keine Daten an Dritte.</p>
 
   <h2>7. Deine Rechte (DSGVO)</h2>
   <p>Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung,
@@ -100,7 +114,8 @@
   <p>Mahjong Royale is a game for iOS, Android and the web. The app requires <strong>no user
   account</strong> and does <strong>not upload your game progress to our servers</strong> — game
   state, coins and settings are stored <strong>locally on your device only</strong>. Personal data
-  is processed only to the extent described below by embedded services (advertising, app stores).</p>
+  is processed only to the extent described below by embedded services (advertising, app stores,
+  audience measurement on the web version).</p>
 
   <h2>3. Locally stored data</h2>
   <p>Game progress (levels, coins, awards, best scores, settings) is stored locally on your device
@@ -128,9 +143,22 @@
   (Apple App Store or Google Play). We never receive your payment details; Apple's or Google's
   privacy policies apply.</p>
 
-  <h2>6. No other data collection</h2>
-  <p>The app contains no first-party analytics or tracking services, no profiling push
-  notifications, and does not sell data to third parties.</p>
+  <h2>6. Audience measurement (web version only)</h2>
+  <p>The browser version at
+  <a href="https://mahjong-app-plum.vercel.app" rel="noopener">mahjong-app-plum.vercel.app</a>
+  uses <strong>Vercel Web Analytics</strong> to count page views. Only aggregated information is
+  recorded: page visited, time, referring page, country, device type and browser.
+  <strong>No cookies are set</strong>, no cross-device identifier is created and no individual
+  profiles are built; the IP address is not stored. The provider is Vercel Inc., 440 N Barranca Ave
+  #4133, Covina, CA 91723, USA
+  (<a href="https://vercel.com/legal/privacy-policy" rel="noopener">privacy policy</a>).
+  Legal basis: Art. 6(1)(f) GDPR (legitimate interest in privacy-friendly audience measurement).</p>
+  <p><strong>The installable iOS and Android apps do not include this measurement.</strong>
+  It is technically limited to the web version.</p>
+
+  <h2>6a. No other data collection</h2>
+  <p>Beyond this, the app and the web version contain no analytics or tracking services, no
+  profiling push notifications, and do not sell data to third parties.</p>
 
   <h2>7. Your rights (GDPR)</h2>
   <p>You have the right of access, rectification, erasure, restriction of processing, data
@@ -145,5 +173,7 @@
   <h2>9. Changes</h2>
   <p>This policy may be updated, e.g. when new features are added. The current version is always
   available at this address.</p>
+  <!-- Vercel Web Analytics (nur Web, cookiefrei) — siehe Abschnitt 6 oben. -->
+  <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
