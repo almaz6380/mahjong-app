@@ -86,12 +86,21 @@ charge.mjs             fährt den Plan ab
 
 Steht in jeder `.txt` noch einmal, hier zum Nachschlagen:
 
-- **Creator-Konto, nicht Business** — bei TikTok *und* Instagram ist die
-  Musikbibliothek für Unternehmenskonten beschnitten. Der Trending-Sound ist bei
-  einem frischen Kanal mehr wert als ein klickbarer Link in der Bio.
-- **Trending-Sound in der App drüberlegen.** Unsere Tonspur läuft bewusst leise
-  mit. ⚠ **Nicht bei bezahlten Beiträgen** — Trending-Sounds sind nur für
-  organische Posts lizenziert.
+- **TikTok als Business-Konto, Instagram als Creator-Konto.** Unter 1000 Followern
+  gibt TikTok das Website-Feld nur Unternehmenskonten; Instagram macht den Link
+  unabhängig von Kontoart und Followerzahl klickbar.
+  ⚠ **Bis 16.08.2026 stand hier das Gegenteil** („Creator, nicht Business — sonst
+  fehlt die volle Musikbibliothek"). Der Rat war falsch, und zwar aus einem Grund,
+  der die Bibliotheksfrage gleich mit erledigt: siehe nächster Punkt.
+- **Keine Chart-/Trending-Sounds unter die Reels.** Sie sind für *private* Beiträge
+  lizenziert, nicht für Firmen, die ein Produkt bewerben — Mahjong Royale verdient
+  über Werbung und Käufe, ein Chart-Hit darunter ist gewerbliche Nutzung. Genau
+  deshalb ist die Bibliothek für Unternehmenskonten beschnitten; das ist kein
+  Nachteil des Kontotyps, sondern die Lizenzlage. Wird es erkannt, ist das Video
+  stumm — und ein stummes Reel ist tot.
+  **Die Reels brauchen ohnehin keine Musik:** sie bringen Steinklänge und
+  Sieg-Zeremonie mit, und beim Format `clear` ist genau das der Reiz („Sound on").
+  Wer Musik will, nimmt die **Commercial Music Library** des Business-Kontos.
 - **Kein Store-Link in der Caption** (drückt die Auslieferung), nur „link in bio".
 - **Auf Instagram den Facebook-Haken mitnehmen.** Die Mahjong-Zielgruppe ist dort
   älter und der Wettbewerb geringer als auf TikTok.
