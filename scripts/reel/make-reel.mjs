@@ -75,7 +75,37 @@ if (!FORMATE[FORMAT]) {
   console.error(`✗ unbekanntes Format: ${FORMAT}\n  Bekannt: ${Object.keys(FORMATE).join(', ')}`);
   process.exit(1);
 }
-const HOOK_SEK = FORMATE[FORMAT].hookSek;
+// --- Vorspann ---------------------------------------------------------------
+// Kurze Filmszene vor dem Spiel (Junge und Sensei im Tempel, mit kie.ai
+// erzeugt, Modell veo3_lite, 9:16).
+//
+// ⚠ Der Vorspann ERSETZT das eingefrorene Standbild hinter der Hook-Karte,
+// er kommt NICHT zusaetzlich davor. Sonst kostete er 2–3 Sekunden genau dort,
+// wo im Feed entschieden wird, ob jemand bleibt. So kostet er nichts: Statt
+// eines Standbilds liegt bewegtes Material unter demselben Text.
+//
+// ⚠ Und er traegt KEINE Statusleiste. Der Rest des Reels gibt sich als
+// Handy-Aufnahme; der Vorspann ist bewusst Film. Der Schnitt auf das Geraet
+// ist damit ein Bruch mit Absicht — und die Steine des Sensei gehen in das
+// Brett der App ueber, was die Bruecke zwischen Film und Spiel schlaegt.
+//
+// --vorspann aus   schaltet ihn ab
+// --vorspann <datei>  waehlt eine andere Szene
+const VORSPANN_STD = join(ASSETS, 'vorspann', 'sensei-spiel.mp4');
+const VORSPANN_ARG = arg('vorspann', null);
+const VORSPANN = VORSPANN_ARG === 'aus' ? null
+  : (VORSPANN_ARG ? join(WURZEL, VORSPANN_ARG)
+    : (existsSync(VORSPANN_STD) ? VORSPANN_STD : null));
+const VORSPANN_SEK = 2.4;   // laenger als eine Hook-Karte: bewegtes Bild will gesehen werden
+
+if (VORSPANN_ARG && VORSPANN_ARG !== 'aus' && !existsSync(VORSPANN)) {
+  console.error(`✗ Vorspann nicht gefunden: ${VORSPANN}`);
+  process.exit(1);
+}
+
+// Der Vorspann bestimmt die Laenge des ersten Abschnitts — alle Zeitrechnungen
+// unten haengen an HOOK_SEK und ziehen damit von selbst nach.
+const HOOK_SEK = VORSPANN ? VORSPANN_SEK : FORMATE[FORMAT].hookSek;
 const OUTRO_SEK = 4.2;
 
 // Ueberblendzeiten. Der Hartschnitt war der Grund, warum das Reel am Ende
@@ -242,21 +272,41 @@ await karten();
 
 // --- Hook: erstes Bild der Aufnahme einfrieren, Karte darüber ---------------
 console.log('Hook bauen …');
-await lauf(['-y', '-i', CLIP, '-frames:v', '1', join(TMP, 'standbild.png')]);
-await lauf([
-  '-y', '-loop', '1', '-t', String(HOOK_SEK), '-i', join(TMP, 'standbild.png'),
-  '-loop', '1', '-t', String(HOOK_SEK), '-i', join(TMP, 'hook.png'),
-  '-loop', '1', '-t', String(HOOK_SEK), '-i', join(TMP, 'status.png'),
-  '-filter_complex',
-  // Das Brett wird abgedunkelt, damit die Frage liest, wer nur kurz hinsieht.
-  // Die Statusleiste liegt UEBER der Abdunklung — sie gehoert zum Geraet,
-  // nicht zum Bild.
-  `[0:v]scale=${B}:${H},eq=brightness=-0.10[bg];`
-  + `[1:v]format=rgba,fade=t=in:st=0.15:d=0.3:alpha=1[k];`
-  + `[bg][k]overlay=0:0[m];[m][2:v]overlay=0:0,fps=${FPS}[v]`,
-  '-map', '[v]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19',
-  '-pix_fmt', 'yuv420p', join(TMP, 'hook.mp4'),
-]);
+if (VORSPANN) {
+  // Filmszene als Untergrund. Der Ton der Szene wird verworfen (`-an`) — die
+  // gesamte Tonspur des Reels entsteht weiter unten aus einem Guss.
+  console.log(`  Vorspann: ${VORSPANN.split('/').pop()}`);
+  await lauf([
+    '-y', '-t', String(VORSPANN_SEK), '-i', VORSPANN,
+    '-loop', '1', '-t', String(VORSPANN_SEK), '-i', join(TMP, 'hook.png'),
+    '-filter_complex',
+    // `increase` + Beschnitt statt Verzerren: Die Szene ist 720×1280, also
+    // dasselbe Seitenverhaeltnis — der Beschnitt ist ein Sicherheitsnetz,
+    // falls je eine Szene mit anderem Format dazukommt.
+    `[0:v]scale=${B}:${H}:force_original_aspect_ratio=increase,crop=${B}:${H},`
+    + `eq=brightness=-0.10[bg];`
+    + `[1:v]format=rgba,fade=t=in:st=0.35:d=0.4:alpha=1[k];`
+    + `[bg][k]overlay=0:0,fps=${FPS}[v]`,
+    '-map', '[v]', '-an', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19',
+    '-pix_fmt', 'yuv420p', join(TMP, 'hook.mp4'),
+  ]);
+} else {
+  await lauf(['-y', '-i', CLIP, '-frames:v', '1', join(TMP, 'standbild.png')]);
+  await lauf([
+    '-y', '-loop', '1', '-t', String(HOOK_SEK), '-i', join(TMP, 'standbild.png'),
+    '-loop', '1', '-t', String(HOOK_SEK), '-i', join(TMP, 'hook.png'),
+    '-loop', '1', '-t', String(HOOK_SEK), '-i', join(TMP, 'status.png'),
+    '-filter_complex',
+    // Das Brett wird abgedunkelt, damit die Frage liest, wer nur kurz hinsieht.
+    // Die Statusleiste liegt UEBER der Abdunklung — sie gehoert zum Geraet,
+    // nicht zum Bild.
+    `[0:v]scale=${B}:${H},eq=brightness=-0.10[bg];`
+    + `[1:v]format=rgba,fade=t=in:st=0.15:d=0.3:alpha=1[k];`
+    + `[bg][k]overlay=0:0[m];[m][2:v]overlay=0:0,fps=${FPS}[v]`,
+    '-map', '[v]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19',
+    '-pix_fmt', 'yuv420p', join(TMP, 'hook.mp4'),
+  ]);
+}
 
 // --- Abspann ----------------------------------------------------------------
 console.log('Abspann bauen …');

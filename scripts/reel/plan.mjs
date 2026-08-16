@@ -42,3 +42,9 @@ export const reelName = (j) => `${String(j.nr).padStart(2, '0')}-${j.format}-lvl
 
 // Namensschema der Rohaufnahme — kommt aus record-solitaire.mjs.
 export const clipName = (level) => `mahjong-solitaire-lvl${level}-en`;
+
+// Die drei Filmszenen wechseln sich ab. ⚠ Ohne das begaennen alle zwanzig
+// Reels mit demselben Bild — im Feed liest sich das als ein und dasselbe
+// Video, und genau daran sterben frisch gestartete Kanaele.
+const VORSPANN = ['sensei-spiel.mp4', 'tempel-tor.mp4', 'tempel-innen.mp4'];
+export const vorspannFuer = (nr) => `scripts/reel/assets/vorspann/${VORSPANN[(nr - 1) % VORSPANN.length]}`;
