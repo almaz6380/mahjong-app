@@ -17,9 +17,10 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spurRendern } from './synth.mjs';
 import { FORMATE, fakten, captionText } from './formate.mjs';
+import { browserPfad } from './browser.mjs';
 
 const require = createRequire(import.meta.url);
-const { chromium } = require('playwright');
+const { chromium } = require('playwright-core');
 const FFMPEG = require('ffmpeg-static');
 
 const HIER = dirname(fileURLToPath(import.meta.url));
@@ -100,9 +101,7 @@ html,body{width:${B}px;height:${H}px;background:transparent;font-family:'Outfit'
 .mitte{position:absolute;left:70px;width:940px;text-align:center}
 .schatten{text-shadow:0 0 30px rgba(6,32,24,.95),-3px -3px 0 #06201a,3px -3px 0 #06201a,-3px 3px 0 #06201a,3px 3px 0 #06201a}`;
 
-  const browser = await chromium.launch(
-    process.env.CHROMIUM_PFAD ? { executablePath: process.env.CHROMIUM_PFAD } : {},
-  );
+  const browser = await chromium.launch({ executablePath: browserPfad() });
   const page = await browser.newPage({ viewport: { width: B, height: H } });
 
   const schuss = async (html, datei) => {

@@ -62,6 +62,17 @@ charge.mjs             fährt den Plan ab
 4. **Playwrights mitgelieferter ffmpeg kann kein MP4** (nur VP8/WebM) — deshalb
    `ffmpeg-static`. `ffprobe` gibt es in der Cloud-Sitzung nicht; Längen misst
    `dauerVon()` über `ffmpeg -i`.
+5. **`playwright-core`, niemals `playwright`.** Das volle Paket lädt bei jeder
+   Installation drei Browser herunter (~150 MB, eigener postinstall). Vercel
+   installiert die devDependencies mit, bevor es baut — mit `playwright` in der
+   `package.json` hinge an jedem Deploy des Web-Bundles ein Browser-Download,
+   der mit dem Bundle nichts zu tun hat. Den Pfad liefert `browser.mjs`; ohne
+   Fund bricht es mit einer Anleitung ab statt mit einem Stapelabzug.
+   ⚠ Beide Pakete gehören in die `package.json`. Sie fehlten dort bis zum
+   16.08.2026 und steckten nur in der `node_modules` der Sitzung, in der sie
+   installiert wurden — eine frische Sitzung starb sofort mit
+   „Cannot find module 'playwright'", und weil die Charge nach drei
+   Fehlschlägen abbricht, meldete sie irreführend den Preview-Server.
 5. **`.app` nicht zu einer Flexbox machen**, um das Brett zu zentrieren — dabei
    kollabiert die Breite und das Brett schrumpft auf einen Streifen. Und
    Kopfzeile/Bedienleiste heißen `.hud` und `.controls`; ein Selektor auf
