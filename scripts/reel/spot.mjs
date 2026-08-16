@@ -12,12 +12,13 @@
 // der Schnitt aufs Brett wirkt wie ein Bruch statt wie eine Aufloesung. Als
 // eigener Spot traegt dieselbe Szene, weil sie erzaehlen darf.
 
-import { mkdirSync, rmSync, readFileSync, existsSync } from 'node:fs';
+import { mkdirSync, rmSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { lauf, dauerVon } from './ffmpeg.mjs';
 import { mitBrowser, abspannKarte, B, H } from './karten.mjs';
 import { spurRendern, melodie } from './synth.mjs';
+import { captionText } from './formate.mjs';
 
 const HIER = dirname(fileURLToPath(import.meta.url));
 const WURZEL = join(HIER, '..', '..');
@@ -267,5 +268,13 @@ await lauf(['-y', '-i', join(TMP, 'stumm.mp4'), '-i', join(TMP, 'ton.m4a'),
 
 rmSync(TMP, { recursive: true, force: true });
 const echt = await dauerVon(ziel);
+
+// Beschreibung daneben — wie beim Reel, mit den drei Plattform-Fassungen.
+writeFileSync(join(OUT, `${NAME}.txt`), captionText('spot', {
+  datei: `${NAME}.mp4`, level: '-', paare: '-',
+  spielSek: BRETT_SEK.toFixed(0), gesamtSek: echt.toFixed(0), fakt: null,
+}));
+
 console.log(`\n✓ ${ziel}  (${echt.toFixed(1)} s)`);
+console.log(`✓ ${join(OUT, `${NAME}.txt`)}`);
 console.log(`  Film ${filmSek.toFixed(1)} s → Brett ${BRETT_SEK} s → Abspann ${ABSPANN_SEK} s`);

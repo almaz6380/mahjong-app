@@ -63,6 +63,20 @@ export const FORMATE = {
     koerper: (o) => `${o.fakt}\n\n`
       + `Playing level ${o.level} while you read. 🀄`,
   },
+
+  // Der Werbespot (spot.mjs) — kein Gameplay-Reel, deshalb keine Hook-Karte.
+  // Er erzaehlt eine Geschichte statt eine Runde zu zeigen, und der Text muss
+  // das aufnehmen: „Spot the pair" waere hier sinnlos.
+  spot: {
+    hookSek: null, hook: null, hookSub: null,
+    hashtags: ['mahjong', 'mahjongsolitaire', 'puzzlegame', 'mobilegame', 'satisfying'],
+    // ⚠ Weder Modi noch Levelzahl hier nennen — der Facebook-Schluss traegt
+    // beides schon („Solitaire, Connect, Riichi … 370 levels"). Doppelt
+    // gelesen wirkt es wie ein Textbaustein-Unfall, und genau das stand in der
+    // ersten Fassung.
+    koerper: () => `Some games you don't just play. You're taught. 🀄\n\n`
+      + `From your first pair to boards that fight back.`,
+  },
 };
 
 // --- Plattformen ------------------------------------------------------------
