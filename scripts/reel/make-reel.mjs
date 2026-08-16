@@ -56,7 +56,8 @@ const B = 1080, H = 1920, FPS = 30;
 // und die Sieg-Fanfare — ein leiser Dauerton darunter bewegt sie kaum, egal wie
 // deutlich er zu hoeren ist. Aussagekraeftig ist allein das VERHAELTNIS der
 // einzeln gerenderten Spuren.
-const MUSIK = arg('musik', 'dezent');
+// Standard `voll` — von Josef am 16.08.2026 aus den drei Hoerproben gewaehlt.
+const MUSIK = arg('musik', 'voll');
 const PEGEL = { aus: { bett: 0.10, mel: 0 }, dezent: { bett: 0.24, mel: 1.0 }, voll: { bett: 0.34, mel: 1.8 } };
 if (!PEGEL[MUSIK]) {
   console.error(`✗ unbekannte Musikstufe: ${MUSIK}\n  Bekannt: ${Object.keys(PEGEL).join(', ')}`);
