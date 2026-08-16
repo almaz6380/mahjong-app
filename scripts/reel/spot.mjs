@@ -30,15 +30,35 @@ const OUT = join(WURZEL, arg('out', 'out/reels'));
 const NAME = arg('name', 'mahjong-spot-EN');
 const TMP = join(OUT, '.spot');
 
-// Die Filmszenen in Erzaehlreihenfolge, mit ihrer Schnittlaenge.
-// ⚠ Jede Szene ist 8 s lang, wir nehmen nur den Anfang: Veo-Clips werden zum
-// Ende hin haeufig unruhig (Haende, Gesichter), der Anfang traegt.
+// Die Filmszenen in Erzaehlreihenfolge: `ab` = Startpunkt in der Quelle.
+//
+// ⚠ Der Startpunkt ist der Grund, warum der Uebergang „er setzt sich und
+// beginnt zu spielen" zuerst komisch aussah. `tempel-innen` und
+// `sensei-spiel` sind zwei getrennt erzeugte Clips, die MIT DER ZEIT
+// aufeinander zulaufen: In beiden endet man bei „Junge links, Meister rechts,
+// Steine auf dem Tisch". Nimmt man von beiden die Mitte, blendet man zwischen
+// zwei fast gleichen Bildern — zu aehnlich, um als neue Einstellung zu lesen,
+// zu verschieden, um durchzugehen. Das Ergebnis wirkt wie ein Morph, nicht
+// wie ein Schnitt.
+//
+// Deshalb wird von jedem Clip der Teil genommen, in dem er sich vom anderen
+// UNTERSCHEIDET:
+//   tempel-innen ab 0,0 — der Junge kommt von hinten herein, klein und fern
+//   sensei-spiel ab 3,5 — er spielt bereits, nah und in Bewegung
+// Damit stehen eine weite und eine nahe Einstellung nebeneinander, und die
+// Blende hat etwas zu tun.
 const SZENEN = [
-  { datei: 'tempel-tor.mp4', sek: 3.0 },
-  { datei: 'tempel-innen.mp4', sek: 3.0 },
-  { datei: 'sensei-spiel.mp4', sek: 3.5 },
+  { datei: 'tempel-tor.mp4', ab: 0.0, sek: 3.0 },
+  { datei: 'tempel-innen.mp4', ab: 0.0, sek: 2.2 },
+  { datei: 'sensei-spiel.mp4', ab: 3.5, sek: 3.5 },
 ];
-const BLENDE = 0.4;          // zwischen den Filmszenen
+// Blende je Uebergang, nicht global.
+// ⚠ Der zweite ist bewusst fast ein HARTER Schnitt (0,12 s = 3–4 Bilder).
+// Eine lange Blende war der Notbehelf, solange die beiden Einstellungen fast
+// gleich aussahen — sie hat die Doppelbelichtung erzeugt, die wie ein Morph
+// wirkte. Jetzt stehen eine weite und eine nahe Einstellung nebeneinander,
+// und dort gehoert ein Schnitt hin, keine Ueberblendung.
+const BLENDEN = [0.4, 0.12];
 const BRETT_SEK = 5.0;       // wie lange das echte Spiel zu sehen ist
 const ABSPANN_SEK = 3.0;
 
@@ -108,7 +128,7 @@ for (const [i, s] of SZENEN.entries()) {
       + `,colorchannelmixer=rr=0.95:bb=1.07`
     : '';
   await lauf([
-    '-y', '-t', String(s.sek), '-i', join(ASSETS, 'vorspann', s.datei),
+    '-y', '-ss', String(s.ab), '-t', String(s.sek), '-i', join(ASSETS, 'vorspann', s.datei),
     '-vf', `scale=${B}:${H}:force_original_aspect_ratio=increase,crop=${B}:${H},fps=${FPS}${fahrt},format=yuv420p`,
     '-an', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', join(TMP, `f${i}.mp4`),
   ]);
@@ -120,7 +140,7 @@ for (const [i, s] of SZENEN.entries()) {
 for (const [i, s] of SZENEN.entries()) {
   const quelle = join(ASSETS, 'vorspann', s.datei);
   try {
-    await lauf(['-y', '-t', String(s.sek), '-i', quelle, '-vn',
+    await lauf(['-y', '-ss', String(s.ab), '-t', String(s.sek), '-i', quelle, '-vn',
       '-c:a', 'pcm_s16le', '-ar', '48000', '-ac', '2', join(TMP, `a${i}.wav`)]);
   } catch {
     await lauf(['-y', '-f', 'lavfi', '-t', String(s.sek),
@@ -128,15 +148,15 @@ for (const [i, s] of SZENEN.entries()) {
   }
 }
 
-const filmSek = SZENEN.reduce((a, s) => a + s.sek, 0) - BLENDE * (SZENEN.length - 1);
-const v1 = SZENEN[0].sek - BLENDE;
-const v2 = v1 + SZENEN[1].sek - BLENDE;
+const filmSek = SZENEN.reduce((a, s) => a + s.sek, 0) - BLENDEN.reduce((a, b) => a + b, 0);
+const v1 = SZENEN[0].sek - BLENDEN[0];
+const v2 = v1 + SZENEN[1].sek - BLENDEN[1];
 
 await lauf([
   '-y', '-i', join(TMP, 'f0.mp4'), '-i', join(TMP, 'f1.mp4'), '-i', join(TMP, 'f2.mp4'),
   '-filter_complex',
-  `[0:v][1:v]xfade=transition=fade:duration=${BLENDE}:offset=${v1.toFixed(3)}[a];`
-  + `[a][2:v]xfade=transition=fade:duration=${BLENDE}:offset=${v2.toFixed(3)},fps=${FPS}[v]`,
+  `[0:v][1:v]xfade=transition=fade:duration=${BLENDEN[0]}:offset=${v1.toFixed(3)}[a];`
+  + `[a][2:v]xfade=transition=fade:duration=${BLENDEN[1]}:offset=${v2.toFixed(3)},fps=${FPS}[v]`,
   '-map', '[v]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19',
   '-pix_fmt', 'yuv420p', join(TMP, 'film.mp4'),
 ]);
