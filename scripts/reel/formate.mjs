@@ -42,9 +42,8 @@ export const FORMATE = {
     hook: 'Can you spot\nthe pair?',
     hookSub: 'Most people need three tries',
     hashtags: ['mahjong', 'mahjongsolitaire', 'puzzletok', 'brainteaser', 'satisfying'],
-    caption: (o) => `Can you spot the matching pair before I do? 👀\n\n`
-      + `Level ${o.level} · ${o.paare} pairs · cleared in ${o.spielSek}s\n\n`
-      + `Mahjong Royale — free on iOS & Android. Link in bio.`,
+    koerper: (o) => `Can you spot the matching pair before I do? 👀\n\n`
+      + `Level ${o.level} · ${o.paare} pairs · cleared in ${o.spielSek}s`,
   },
 
   clear: {
@@ -52,9 +51,8 @@ export const FORMATE = {
     hook: 'Every single tile.\nGone.',
     hookSub: 'Sound on 🔊',
     hashtags: ['mahjong', 'mahjongsolitaire', 'oddlysatisfying', 'asmr', 'relaxing'],
-    caption: (o) => `${o.paare} pairs, no mistakes. Sound on for the tiles. 🔊\n\n`
-      + `Level ${o.level} · ${o.spielSek}s\n\n`
-      + `Mahjong Royale — free on iOS & Android. Link in bio.`,
+    koerper: (o) => `${o.paare} pairs, no mistakes. Sound on for the tiles. 🔊\n\n`
+      + `Level ${o.level} · ${o.spielSek}s`,
   },
 
   fakt: {
@@ -62,9 +60,45 @@ export const FORMATE = {
     hook: 'Did you know?',
     hookSub: null,         // kommt aus dem Fakt
     hashtags: ['mahjong', 'mahjongsolitaire', 'didyouknow', 'funfacts', 'boardgames'],
-    caption: (o) => `${o.fakt}\n\n`
-      + `Playing level ${o.level} while you read. 🀄\n\n`
-      + `Mahjong Royale — free on iOS & Android. Link in bio.`,
+    koerper: (o) => `${o.fakt}\n\n`
+      + `Playing level ${o.level} while you read. 🀄`,
+  },
+};
+
+// --- Plattformen ------------------------------------------------------------
+// Der SCHLUSS unterscheidet sich, der Koerper nicht. Deshalb steht er hier
+// einmal je Plattform statt dreimal je Format.
+//
+// ⚠ Der Unterschied ist nicht kosmetisch:
+// • Auf Instagram und TikTok sind URLs im Beschreibungstext NICHT klickbar,
+//   und Beitraege, die aus der App hinausfuehren, werden schlechter
+//   ausgespielt. Ein Store-Link dort schadet also doppelt — deshalb „link in
+//   bio“, und deshalb prueft check-captions.mjs ausdruecklich, dass in diesen
+//   beiden Fassungen kein `http` steht.
+// • Auf Facebook ist der Link klickbar und erwartet; „link in bio“ gibt es
+//   dort als Konvention gar nicht. Hashtags bringen dort kaum Reichweite und
+//   lassen einen Beitrag nach Werbung aussehen — daher nur zwei.
+export const LINK = 'https://mahjong-app-plum.vercel.app/links.html';
+
+export const PLATTFORMEN = {
+  instagram: {
+    name: 'Instagram',
+    text: (f, o) => `${f.koerper(o)}\n\nMahjong Royale — free on iOS & Android. Link in bio.`,
+    tags: (f) => f.hashtags,
+  },
+  tiktok: {
+    name: 'TikTok',
+    // Einfache statt doppelter Umbrueche: Im TikTok-Feld ist wenig Platz, und
+    // die ersten Zeilen entscheiden, ob jemand „mehr“ antippt.
+    text: (f, o) => `${f.koerper(o).replace(/\n\n/g, '\n')}\nFree on iOS & Android — link in bio`,
+    tags: (f) => f.hashtags,
+  },
+  facebook: {
+    name: 'Facebook',
+    text: (f, o) => `${f.koerper(o)}\n\n`
+      + `Mahjong Royale is free on iOS and Android — Solitaire, Connect, Riichi and `
+      + `4-player mahjong. 370 levels, no account needed.\n\n👉 ${LINK}`,
+    tags: (f) => f.hashtags.slice(0, 2),
   },
 };
 
@@ -73,17 +107,18 @@ export const FORMATE = {
 // Hinweise, die man beim Hochladen sonst vergisst.
 export function captionText(format, o) {
   const f = FORMATE[format];
+  const abschnitt = (p) => [
+    `## ${p.name}`,
+    '',
+    p.text(f, o),
+    '',
+    p.tags(f).map((h) => `#${h}`).join(' '),
+    '',
+  ];
   return [
     `# ${o.datei}`,
     '',
-    '## Caption (kopieren)',
-    '',
-    f.caption(o),
-    '',
-    '## Hashtags',
-    '',
-    f.hashtags.map((h) => `#${h}`).join(' '),
-    '',
+    ...Object.values(PLATTFORMEN).flatMap(abschnitt),
     '## Beim Hochladen',
     '',
     '- Die eigene Tonspur reicht. Beim Format "clear" IST der Klang der Reiz',
