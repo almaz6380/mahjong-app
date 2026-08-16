@@ -27,6 +27,10 @@ export function fakten() {
 }
 
 // --- Formate ----------------------------------------------------------------
+// ⚠ HOECHSTENS FUENF HASHTAGS je Format (Josefs Vorgabe, 16.08.2026). Vorher
+// waren es zehn. Die Liste ist deshalb keine Sammelstelle: Wer einen neuen
+// aufnimmt, muss einen alten streichen. Gewaehlt sind je Format zwei breite
+// (`mahjong`, `mahjongsolitaire`) und drei, die das Format selbst treffen.
 // hookSek: Wie lange die Eingangskarte steht. Eine Frage ist in 1,8 s gelesen,
 // ein Fakt braucht laenger — sonst steht Text da, den niemand zu Ende liest.
 export const FORMATE = {
@@ -37,8 +41,7 @@ export const FORMATE = {
     hookSek: 1.3,
     hook: 'Can you spot\nthe pair?',
     hookSub: 'Most people need three tries',
-    hashtags: ['mahjong', 'mahjongsolitaire', 'puzzlegame', 'brainteaser', 'spotthedifference',
-      'satisfying', 'mobilegame', 'freegame', 'tilematching', 'puzzletok'],
+    hashtags: ['mahjong', 'mahjongsolitaire', 'puzzletok', 'brainteaser', 'satisfying'],
     caption: (o) => `Can you spot the matching pair before I do? 👀\n\n`
       + `Level ${o.level} · ${o.paare} pairs · cleared in ${o.spielSek}s\n\n`
       + `Mahjong Royale — free on iOS & Android. Link in bio.`,
@@ -48,8 +51,7 @@ export const FORMATE = {
     hookSek: 1.6,
     hook: 'Every single tile.\nGone.',
     hookSub: 'Sound on 🔊',
-    hashtags: ['mahjong', 'satisfying', 'oddlysatisfying', 'asmr', 'mahjongsolitaire',
-      'puzzlegame', 'relaxing', 'mobilegame', 'freegame', 'tilematching'],
+    hashtags: ['mahjong', 'mahjongsolitaire', 'oddlysatisfying', 'asmr', 'relaxing'],
     caption: (o) => `${o.paare} pairs, no mistakes. Sound on for the tiles. 🔊\n\n`
       + `Level ${o.level} · ${o.spielSek}s\n\n`
       + `Mahjong Royale — free on iOS & Android. Link in bio.`,
@@ -59,8 +61,7 @@ export const FORMATE = {
     hookSek: 3.6,          // ein Satz will gelesen werden
     hook: 'Did you know?',
     hookSub: null,         // kommt aus dem Fakt
-    hashtags: ['mahjong', 'didyouknow', 'mahjongsolitaire', 'history', 'funfacts',
-      'boardgames', 'puzzlegame', 'mobilegame', 'freegame', 'tilematching'],
+    hashtags: ['mahjong', 'mahjongsolitaire', 'didyouknow', 'funfacts', 'boardgames'],
     caption: (o) => `${o.fakt}\n\n`
       + `Playing level ${o.level} while you read. 🀄\n\n`
       + `Mahjong Royale — free on iOS & Android. Link in bio.`,
