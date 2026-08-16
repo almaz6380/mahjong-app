@@ -147,5 +147,11 @@
       else { ios.classList.add('primary'); }
     })();
   </script>
+  <!-- Vercel Web Analytics. Statische Seite, deshalb das Skript direkt statt über
+       das React-Bundle (src/analytics.ts). Diese Seite ist der Link aus dem
+       Instagram-/TikTok-Profil — hier steht der Referrer, an dem man sieht, ob
+       aus einem Reel wirklich jemand kommt. Wird nie in der nativen App geladen,
+       die kennt nur index.html. -->
+  <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

@@ -85,6 +85,10 @@ createRoot(document.getElementById('root')!).render(
 initAds().catch((e) => console.warn('AdMob init übersprungen:', e))
 initIAP().catch((e) => console.warn('IAP init übersprungen:', e))
 
+// Besucherzählung nur im Web (Vercel), nie in der nativen App — siehe analytics.ts.
+import { initAnalytics } from './analytics'
+initAnalytics()
+
 // PWA-Service-Worker nur im (sicheren) Web-Kontext, nicht in der nativen App.
 import { Capacitor } from '@capacitor/core'
 if (!Capacitor.isNativePlatform() && 'serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {

@@ -400,6 +400,45 @@ Build bricht mit „Failed to apply patch" ab → einmalig ohne Cache deployen
 - **Git-Autor muss 63almaz80@gmail.com sein** (celorenz1234@… blockiert Vercel-Deploys!)
 - Web zeigt keine echten Ads/IAP — beides nur nativ.
 
+## Besucherzahlen: wo welche Zahl steht (seit 16.08.2026)
+
+Die Frage „wie viele Leute waren da und wann?" hat **vier verschiedene Antworten**, je nachdem,
+wonach gefragt ist — und nur eine davon kennt Uhrzeiten:
+
+| Quelle | Was | Zeitauflösung |
+|---|---|---|
+| **Vercel → Projekt „mahjong-app" → Analytics** | Besucher/Seitenaufrufe der **Web-Fassung**, Referrer, Land, Gerät | **stundengenau** |
+| Play Console → Statistiken | Installationen, aktive Nutzer, Sitzungen (Android-App) | tagesweise |
+| App Store Connect → App-Analysen | Impressionen, Downloads, Sessions, aktive Geräte (iOS-App) | tagesweise |
+| AdMob | Impressionen als grober Aktivitätsindikator (nur nativ) | tagesweise |
+
+Store-Konsolen rechnen also **in Tagen**; wer eine Uhrzeit braucht, muss in Vercel schauen.
+
+**Die Zählung ist absichtlich auf das Web beschränkt** (`src/analytics.ts` + je ein `<script>` in
+`public/links.html`, `privacy.html`, `impressum.html`).
+
+⚠ **Der Riegel gegen die native App ist die ganze Sache.** Capacitor kopiert das gebaute Bundle
+unverändert nach ios/ und android/ — ohne `Capacitor.isNativePlatform()`-Sperre würden die
+Store-Apps mitfunken. Das wäre eine neue Datenweitergabe und müsste in **Apples „App Privacy"**,
+in **Plays „Data safety"** und in `public/privacy.html` stehen; die App ist heute in allen dreien
+als trackingfrei geführt. Wer die Sperre entfernt, muss alle drei nachziehen — sonst stimmen die
+Store-Angaben nicht mehr. Auf `localhost` zählt es ebenfalls nicht, damit dev/preview still bleibt.
+Prüfskript: **`npm run build && node scripts/check-analytics.mjs`** — lädt das FERTIGE `dist/` in
+einem echten Browser und zählt die Aufrufe an `/_vercel/insights/`. Zwei Kunstgriffe stecken darin:
+`window.androidBridge` setzen (so erkennt Capacitor eine native WebView) und ein Host-Alias über
+Chromes `host-resolver-rules` (weil localhost bewusst nicht zählt). Der Server im Skript ist
+bewusst selbstgebaut statt `vite preview` — Vite blockt fremde Hostnamen und macht damit genau
+den Web-Fall unprüfbar.
+
+⚠ **Ohne den Schalter im Vercel-Dashboard passiert gar nichts.** Das Zählskript liegt unter
+`/_vercel/insights/script.js` und existiert erst, wenn im Projekt unter *Analytics* Web Analytics
+aktiviert ist — vorher 404 und keine Zahlen, ohne jede Fehlermeldung. Kostenlos bis 50.000 Events
+im Monat (Hobby-Plan).
+
+Die App ist eine Single-Page-Anwendung ohne Router, es gibt also **einen Seitenaufruf je Besuch** —
+gut für „wie viele und wann", aber es sagt nichts darüber, welche Spielmodi benutzt werden. Dafür
+bräuchte es eigene Ereignisse (`track()`), das ist bewusst nicht eingebaut.
+
 ## Builds ohne eigenen Mac (GitHub Actions)
 
 `.github/workflows/android-release.yml` + `ios-release.yml` bauen, signieren und laden auf GitHubs
