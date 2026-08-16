@@ -58,27 +58,6 @@ export async function mitBrowser(fn) {
   }
 }
 
-/**
- * KI-Kennzeichen fuer den Spot.
- *
- * ⚠ Josefs eigenes Symbol hat Vorrang: Liegt `assets/ai-badge.png` vor, wird
- * es genommen und dieser Entwurf gar nicht erst gerendert. Der Ersatz hier ist
- * nur dafuer da, dass der Spot auch ohne die Datei vollstaendig ist.
- */
-export const AI_BADGE = join(ASSETS, 'ai-badge.png');
-export const BADGE_H = 64;
-
-export async function kiKarte(schuss, datei) {
-  await schuss(
-    `<div style="position:absolute;inset:0;display:flex;align-items:center;gap:12px;
-                 padding:0 20px;border-radius:${BADGE_H / 2}px;
-                 background:rgba(6,32,26,.72);border:2px solid rgba(232,207,134,.75)">
-       <div style="font-size:30px;font-weight:800;letter-spacing:.5px;color:#e8cf86">AI</div>
-       <div style="font-size:21px;font-weight:600;color:rgba(255,255,255,.82)">generated</div>
-     </div>`,
-    datei, { width: 210, height: BADGE_H });
-}
-
 /** Der deckende Abspann: Logo, Name, Modi, goldener Knopf. */
 export async function abspannKarte(schuss, datei) {
   const logo = readFileSync(join(ASSETS, 'logo.png')).toString('base64');

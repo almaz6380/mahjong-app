@@ -16,7 +16,7 @@ import { mkdirSync, rmSync, readFileSync, writeFileSync, existsSync } from 'node
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { lauf, dauerVon } from './ffmpeg.mjs';
-import { mitBrowser, abspannKarte, kiKarte, AI_BADGE, BADGE_H, B, H } from './karten.mjs';
+import { mitBrowser, abspannKarte, B, H } from './karten.mjs';
 import { spurRendern, melodie } from './synth.mjs';
 import { captionText } from './formate.mjs';
 
@@ -105,15 +105,9 @@ mkdirSync(OUT, { recursive: true });
 
 // --- Karten -----------------------------------------------------------------
 console.log('Karten rendern …');
-// KI-Kennzeichen: Josefs eigenes Symbol, sonst der Entwurf aus karten.mjs.
-const badge = join(TMP, 'ki.png');
-const eigenes = existsSync(AI_BADGE);
 await mitBrowser(async (schuss) => {
   await abspannKarte(schuss, join(TMP, 'abspann.png'));
-  if (!eigenes) await kiKarte(schuss, badge);
 });
-const badgeDatei = eigenes ? AI_BADGE : badge;
-console.log(`  KI-Kennzeichen: ${eigenes ? 'ai-badge.png (deins)' : 'Entwurf'}`);
 
 // --- Filmteil ---------------------------------------------------------------
 // Jede Szene einzeln auf 1080×1920 bringen, dann ueberblenden. Einzeln, weil
@@ -159,31 +153,16 @@ const filmSek = SZENEN.reduce((a, s) => a + s.sek, 0) - BLENDEN.reduce((a, b) =>
 const v1 = SZENEN[0].sek - BLENDEN[0];
 const v2 = v1 + SZENEN[1].sek - BLENDEN[1];
 
-// ⚠ Das KI-Kennzeichen liegt NUR auf dem Film, nicht auf dem Gameplay. Es
-// deshalb hier in `film.mp4` einbrennen und nicht spaeter ueber das ganze
-// Video legen: Ein Symbol ueber der echten Bildschirmaufnahme wuerde
-// behaupten, auch die App sei generiert — das Gegenteil dessen, was es
-// aussagen soll, und bei einer App-Anzeige der teuerste Irrtum von allen.
-//
-// Die Hoehe wird erzwungen (`scale=-1:BADGE_H`), damit Josefs eigenes Symbol
-// unabhaengig von seiner Aufloesung gleich gross erscheint.
-const badgeY = H - BADGE_H - 150;   // etwas ueber dem Rand: ganz unten liegen
-                                    // auf TikTok und Instagram Kontoname und
-                                    // Beschreibung ueber dem Bild.
+// ⚠ KEIN KI-Symbol im Bild — auf Josefs Wunsch. Die Kennzeichnung steht
+// stattdessen im Beschreibungstext (formate.mjs, Format `spot`) und beim
+// Hochladen ueber den plattformeigenen Schalter. Wer das Symbol doch will:
+// Es lag hier als overlay auf film.mp4, damit es NUR die Filmszenen trifft
+// und nicht das echte Gameplay.
 await lauf([
   '-y', '-i', join(TMP, 'f0.mp4'), '-i', join(TMP, 'f1.mp4'), '-i', join(TMP, 'f2.mp4'),
-  // ⚠ `-loop 1 -t` ist Pflicht: Ohne das liegt das Standbild bei t=0 fest, die
-  // Alpha-Blenden unten haben keine Zeitachse und das Symbol erscheint gar
-  // nicht. Genau daran ist die erste Fassung gescheitert — die Datei selbst war
-  // in Ordnung, nur unsichtbar.
-  '-loop', '1', '-t', filmSek.toFixed(2), '-i', badgeDatei,
   '-filter_complex',
   `[0:v][1:v]xfade=transition=fade:duration=${BLENDEN[0]}:offset=${v1.toFixed(3)}[a];`
-  + `[a][2:v]xfade=transition=fade:duration=${BLENDEN[1]}:offset=${v2.toFixed(3)},fps=${FPS}[vv];`
-  + `[3:v]scale=-1:${BADGE_H},format=rgba,colorchannelmixer=aa=0.85,`
-  // Ausblenden kurz vor dem Match-Cut, damit es nicht hart abreisst.
-  + `fade=t=in:st=0.3:d=0.4:alpha=1,fade=t=out:st=${(filmSek - 0.6).toFixed(2)}:d=0.4:alpha=1[ki];`
-  + `[vv][ki]overlay=44:${badgeY}[v]`,
+  + `[a][2:v]xfade=transition=fade:duration=${BLENDEN[1]}:offset=${v2.toFixed(3)},fps=${FPS}[v]`,
   '-map', '[v]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19',
   '-pix_fmt', 'yuv420p', join(TMP, 'film.mp4'),
 ]);

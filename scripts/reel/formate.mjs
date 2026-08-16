@@ -74,14 +74,18 @@ export const FORMATE = {
     // beides schon („Solitaire, Connect, Riichi … 370 levels"). Doppelt
     // gelesen wirkt es wie ein Textbaustein-Unfall, und genau das stand in der
     // ersten Fassung.
-    // ⚠ KI-Hinweis: Generiert sind NUR die Tempelszenen. Das Gameplay ist eine
-    // echte Bildschirmaufnahme. Ein pauschales „dieses Video ist KI" waere
-    // falsch und wuerde ausgerechnet den Teil in Zweifel ziehen, auf den es bei
-    // einer App-Anzeige ankommt — dass die gezeigte App wirklich so aussieht.
-    // Der Satz trennt beides deshalb ausdruecklich.
+    // ⚠ KI-Hinweis. Im Bild gibt es KEIN Symbol mehr (Josefs Entscheidung) —
+    // dieser Satz traegt die Kennzeichnung also allein und muss deutlich sein.
+    //
+    // Generiert sind NUR die Tempelszenen; das Gameplay ist eine echte
+    // Bildschirmaufnahme. Ein pauschales „dieses Video ist KI" waere falsch und
+    // wuerde ausgerechnet den Teil in Zweifel ziehen, auf den es bei einer
+    // App-Anzeige ankommt — dass die gezeigte App wirklich so aussieht. Der
+    // Satz sagt deshalb beides.
     koerper: () => `Some games you don't just play. You're taught. 🀄\n\n`
       + `From your first pair to boards that fight back.\n\n`
-      + `Temple scenes created with AI · gameplay is real footage`,
+      + `🤖 The temple scenes in this video were created with AI. `
+      + `The gameplay is real footage from the app.`,
   },
 };
 
