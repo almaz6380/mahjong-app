@@ -399,6 +399,14 @@ Build bricht mit „Failed to apply patch" ab → einmalig ohne Cache deployen
   `POST api.vercel.com/v13/deployments?teamId=team_hp1h5xj3PD8KAn98cxsWddt6` mit gitSource ref main.
 - **Git-Autor muss 63almaz80@gmail.com sein** (celorenz1234@… blockiert Vercel-Deploys!)
 - Web zeigt keine echten Ads/IAP — beides nur nativ.
+- **`vercel.json` — kurze Adressen ohne `.html`** (`/links`, `/privacy`, `/datenschutz`,
+  `/impressum`). Bewusst `rewrites`, nicht `redirects`: Die schöne Adresse soll in der Zeile
+  stehen bleiben, statt auf die Datei umzuspringen — der Link im Instagram-Profil ist genau
+  das, was der Besucher sieht. Die alten `*.html`-Adressen funktionieren unverändert weiter;
+  die Store-Einträge zeigen darauf und dürfen nicht brechen.
+  ⚠ **Die vercel.app-Adresse ist frei wählbar** (Settings → Domains): `mahjong-app-plum` ist
+  bloß der Zufallsname vom Anlegen. Eine schönere Subdomain **hinzufügen, nie ersetzen** —
+  an der im Store hinterlegten Website hängt `app-ads.txt` und damit Werbegeld (siehe dort).
 
 ## Besucherzahlen: wo welche Zahl steht (seit 16.08.2026)
 
