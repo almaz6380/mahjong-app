@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Eigenstaendiger Werbespot: Filmszene → Brett mit Download → Abspann.
+// Eigenstaendiger Werbespot: Filmszene → Brett → Abspann.
 //
 //   node scripts/reel/spot.mjs [--clip out/reels/roh/mahjong-solitaire-lvl18-en.mp4]
 //
@@ -16,7 +16,7 @@ import { mkdirSync, rmSync, readFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { lauf, dauerVon } from './ffmpeg.mjs';
-import { mitBrowser, abspannKarte, downloadLeiste, B, H } from './karten.mjs';
+import { mitBrowser, abspannKarte, B, H } from './karten.mjs';
 import { spurRendern, melodie } from './synth.mjs';
 
 const HIER = dirname(fileURLToPath(import.meta.url));
@@ -41,8 +41,6 @@ const SZENEN = [
 const BLENDE = 0.4;          // zwischen den Filmszenen
 const BRETT_SEK = 5.0;       // wie lange das echte Spiel zu sehen ist
 const ABSPANN_SEK = 3.0;
-const LEISTE_H = 150;        // Hoehe der Download-Leiste
-const LEISTE_AB = 1.8;       // wann sie erscheint, nach Beginn des Bretts
 
 // --- Der Match-Cut ----------------------------------------------------------
 // ⚠ Zwei Fassungen sind vorher gescheitert, weil der Uebergang als BLENDE
@@ -88,7 +86,6 @@ mkdirSync(OUT, { recursive: true });
 console.log('Karten rendern …');
 await mitBrowser(async (schuss) => {
   await abspannKarte(schuss, join(TMP, 'abspann.png'));
-  await downloadLeiste(schuss, join(TMP, 'leiste.png'), LEISTE_H);
 });
 
 // --- Filmteil ---------------------------------------------------------------
@@ -144,28 +141,21 @@ await lauf([
   '-pix_fmt', 'yuv420p', join(TMP, 'film.mp4'),
 ]);
 
-// --- Brett mit Download-Leiste ---------------------------------------------
-// ⚠ Der Schnitt Film → Brett ist bewusst HART. Die echten Steine des Sensei
-// gehen unmittelbar in das Brett der App ueber; eine Blende wuerde genau diese
-// Pointe verwischen.
+// --- Brett -----------------------------------------------------------------
 console.log('Brett schneiden …');
-// Die Leiste sitzt ganz unten am Rand, nicht ueber der Bedienleiste des
-// Spiels — dort wirkte sie aufgeklebt. Und sie blendet weich ein, statt
-// hereinzufahren.
-const leisteY = H - LEISTE_H;
+// ⚠ KEINE Download-Leiste ueber dem Brett. Sie lag zuerst ueber den
+// Bedienknoepfen, dann am unteren Rand — beides wirkte aufgeklebt und hat das
+// Bild zugestellt. Der Aufruf zum Laden steht im Abspann, und dort genuegt er.
 const auszoomBilder = Math.round(AUSZOOM_SEK * FPS);
 await lauf([
   '-y', '-t', String(BRETT_SEK), '-i', CLIP,
-  '-loop', '1', '-t', String(BRETT_SEK), '-i', join(TMP, 'leiste.png'),
-  '-filter_complex',
+  '-vf',
   // Beginnt formatfuellend auf dem Brett und zieht dann auf das ganze Geraet
   // zurueck. Das ist die zweite Haelfte des Match-Cuts.
-  `[0:v]scale=${B}:${H},fps=${FPS},`
+  `scale=${B}:${H},fps=${FPS},`
   + `zoompan=z='max(1,${BRETT_ZOOM}-${(BRETT_ZOOM - 1).toFixed(3)}*min(1,on/${auszoomBilder}))'`
-  + `:x='(iw-iw/zoom)/2':y='(ih-ih/zoom)/2':d=1:s=${B}x${H}:fps=${FPS}[bg];`
-  + `[1:v]format=rgba,fade=t=in:st=${LEISTE_AB}:d=0.5:alpha=1[l];`
-  + `[bg][l]overlay=0:${leisteY},format=yuv420p[v]`,
-  '-map', '[v]', '-an', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19',
+  + `:x='(iw-iw/zoom)/2':y='(ih-ih/zoom)/2':d=1:s=${B}x${H}:fps=${FPS},format=yuv420p`,
+  '-an', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19',
   join(TMP, 'brett.mp4'),
 ]);
 

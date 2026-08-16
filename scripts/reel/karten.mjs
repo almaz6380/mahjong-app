@@ -72,18 +72,3 @@ export async function abspannKarte(schuss, datei) {
                  background:linear-gradient(100deg,#ffe07a,#f5b301)">${ABSPANN.cta}</div>`,
     datei, { width: B, height: H });
 }
-
-/**
- * Die Download-Leiste, die im Spot ueber dem Brett hereinfaehrt.
- * Volle Breite; sie wird spaeter per `overlay` von links ins Bild geschoben.
- */
-export async function downloadLeiste(schuss, datei, hoehe) {
-  await schuss(
-    `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-                 gap:26px;background:linear-gradient(100deg,#ffe07a,#f5b301);
-                 box-shadow:0 -18px 44px rgba(0,0,0,.45)">
-       <div style="font-size:52px;font-weight:800;color:#06201a;letter-spacing:-.5px">Download free</div>
-       <div style="font-size:38px;font-weight:600;color:#06201a;opacity:.72">iOS &amp; Android</div>
-     </div>`,
-    datei, { width: B, height: hoehe });
-}
