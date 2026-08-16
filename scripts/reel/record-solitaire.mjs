@@ -28,9 +28,10 @@ import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { browserPfad } from './browser.mjs';
 
 const require = createRequire(import.meta.url);
-const { chromium } = require('playwright');
+const { chromium } = require('playwright-core');
 const FFMPEG = require('ffmpeg-static');
 
 const HIER = dirname(fileURLToPath(import.meta.url));
@@ -65,9 +66,7 @@ mkdirSync(TMP, { recursive: true });
 const MATCH_KEY = `(id) => id.startsWith('flower') ? 'flower'
                         : id.startsWith('season') ? 'season' : id`;
 
-const browser = await chromium.launch(
-  process.env.CHROMIUM_PFAD ? { executablePath: process.env.CHROMIUM_PFAD } : {},
-);
+const browser = await chromium.launch({ executablePath: browserPfad() });
 // isMobile/hasTouch absichtlich NICHT gesetzt — sonst greift @media (hover:hover)
 // nicht und die Steine verschwinden ohne Ausblende.
 const ctx = await browser.newContext({
