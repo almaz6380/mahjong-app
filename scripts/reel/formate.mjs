@@ -74,8 +74,14 @@ export const FORMATE = {
     // beides schon („Solitaire, Connect, Riichi … 370 levels"). Doppelt
     // gelesen wirkt es wie ein Textbaustein-Unfall, und genau das stand in der
     // ersten Fassung.
+    // ⚠ KI-Hinweis: Generiert sind NUR die Tempelszenen. Das Gameplay ist eine
+    // echte Bildschirmaufnahme. Ein pauschales „dieses Video ist KI" waere
+    // falsch und wuerde ausgerechnet den Teil in Zweifel ziehen, auf den es bei
+    // einer App-Anzeige ankommt — dass die gezeigte App wirklich so aussieht.
+    // Der Satz trennt beides deshalb ausdruecklich.
     koerper: () => `Some games you don't just play. You're taught. 🀄\n\n`
-      + `From your first pair to boards that fight back.`,
+      + `From your first pair to boards that fight back.\n\n`
+      + `Temple scenes created with AI · gameplay is real footage`,
   },
 };
 
@@ -145,6 +151,15 @@ export function captionText(format, o) {
     '  Website-Feld. Instagram als Creator-Konto — dort ist der Link ohnehin frei.',
     '- Auf Instagram den Haken für Facebook mitnehmen. Die Zielgruppe für',
     '  Mahjong ist dort älter und der Wettbewerb geringer.',
+    ...(format === 'spot' ? [
+      '- ⚠ NUR beim Spot: in der App den Schalter für KI-GENERIERTE INHALTE',
+      '  setzen. Instagram und TikTok haben dafür ein eigenes Feld beim',
+      '  Hochladen, und diese plattformeigene Kennzeichnung zählt mehr als',
+      '  eine Zeile im Beschreibungstext. Erkennt die Plattform es selbst und',
+      '  hängt ihr Label nachträglich an, sieht es nach Vertuschen aus.',
+      '  Die Gameplay-Reels bekommen den Schalter NICHT — sie enthalten kein',
+      '  KI-Material, und eine falsche Kennzeichnung schadet wie eine fehlende.',
+    ] : []),
     '',
     '## Inhalt',
     '',
