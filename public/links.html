@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Mahjong Royale — Free on iOS &amp; Android</title>
+  <meta name="description" content="Mahjong Royale — Solitaire, Connect, Riichi and 4-Player mahjong. Free on the App Store and Google Play." />
+  <link rel="icon" href="/pwa-192.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta property="og:title" content="Mahjong Royale" />
+  <meta property="og:description" content="Solitaire · Connect · Riichi · 4 Players. Free on iOS and Android." />
+  <meta property="og:image" content="/pwa-512.png" />
+  <meta property="og:type" content="website" />
+  <style>
+    /* Farben und Hintergrund folgen bewusst der App (Jade + Tempel), damit die
+       Seite nach demselben Spiel aussieht wie die Anzeige, aus der man kommt.
+       Die Grundfarbe ist dieselbe #121e1d wie in styles.css — auf iOS fuellt
+       nur eine Hintergrund-FARBE den Streifen unter dem Home-Indikator, nie
+       ein Bild. Deshalb liegt sie wie in der App auf <html>. */
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    html {
+      background-color: #121e1d;
+      background-image:
+        linear-gradient(180deg, rgba(18,30,29,.35) 0%, rgba(18,30,29,.85) 62%, #121e1d 100%),
+        url('/links-bg.webp');
+      background-size: cover;
+      background-position: center top;
+      background-repeat: no-repeat;
+      background-attachment: scroll;
+      min-height: 100%;
+    }
+    body {
+      margin: 0;
+      background: transparent;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 22px calc(34px + env(safe-area-inset-bottom));
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: #eef3f0;
+      text-align: center;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { width: 100%; max-width: 420px; }
+
+    .icon {
+      width: 108px; height: 108px; border-radius: 24px; display: block; margin: 0 auto 18px;
+      box-shadow: 0 12px 34px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.09);
+    }
+    h1 {
+      margin: 0 0 6px; font-size: 30px; line-height: 1.15; letter-spacing: -0.02em; font-weight: 800;
+      text-shadow: 0 2px 14px rgba(0,0,0,.6);
+    }
+    .tagline {
+      margin: 0 0 4px; font-size: 15px; color: #cfe0d6; letter-spacing: .01em;
+      text-shadow: 0 1px 10px rgba(0,0,0,.6);
+    }
+    .sub { margin: 0 0 28px; font-size: 13.5px; color: rgba(238,243,240,.62); }
+
+    .btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 16px 18px; margin-bottom: 12px;
+      border-radius: 15px; text-decoration: none; font-size: 16.5px; font-weight: 700;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.09);
+      color: #eef3f0;
+      -webkit-backdrop-filter: blur(9px); backdrop-filter: blur(9px);
+      transition: transform .12s ease, background .18s ease;
+    }
+    .btn:active { transform: scale(.985); }
+    @media (hover: hover) { .btn:hover { background: rgba(255,255,255,.15); } }
+    .btn svg { flex: 0 0 auto; }
+
+    /* Der Knopf der erkannten Plattform wird golden hervorgehoben — genau wie
+       der angetippte Stein im Spiel. Erkennung per JS unten; ohne JS bleiben
+       beide gleichwertig sichtbar, es geht also nichts verloren. */
+    .btn.primary {
+      background: linear-gradient(180deg, #f0c65a 0%, #d9a62e 100%);
+      color: #2a1e05; border-color: rgba(0,0,0,.18);
+      box-shadow: 0 8px 24px rgba(217,166,46,.32);
+    }
+    @media (hover: hover) { .btn.primary:hover { background: linear-gradient(180deg, #f5d071 0%, #e0ae37 100%); } }
+
+    .btn.ghost { background: transparent; font-weight: 600; font-size: 15px; color: rgba(238,243,240,.82); }
+
+    .modes {
+      margin: 22px 0 0; display: flex; flex-wrap: wrap; gap: 7px; justify-content: center;
+    }
+    .modes span {
+      font-size: 12px; padding: 5px 11px; border-radius: 999px;
+      background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.1);
+      color: rgba(238,243,240,.78);
+    }
+
+    footer { margin-top: 30px; font-size: 12px; color: rgba(238,243,240,.45); }
+    footer a { color: rgba(238,243,240,.62); text-decoration: none; border-bottom: 1px solid rgba(238,243,240,.2); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <img class="icon" src="/pwa-512.png" width="108" height="108"
+         alt="Mahjong Royale app icon" />
+
+    <h1>Mahjong Royale</h1>
+    <p class="tagline">Solitaire · Connect · Riichi · 4 Players</p>
+    <p class="sub">Free · No account needed · 370 levels</p>
+
+    <a class="btn" id="ios" href="https://apps.apple.com/app/id6787721454">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M16.4 12.8c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.8-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.3-.9-1.7 0-3.3 1-4.2 2.5-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8 1.5 0 2 .8 3.3.8 1.4 0 2.2-1.2 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9-.1 0-2.6-1-2.6-4zM14 5.2c.7-.9 1.2-2.1 1-3.2-1 0-2.3.7-3 1.5-.7.8-1.3 2-1.1 3.1 1.2.1 2.4-.5 3.1-1.4z"/>
+      </svg>
+      Download on the App Store
+    </a>
+
+    <a class="btn" id="android" href="https://play.google.com/store/apps/details?id=com.mahjongroyale.app">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M3.6 1.8c-.3.3-.5.8-.5 1.4v17.6c0 .6.2 1.1.5 1.4l.1.1 9.9-9.9v-.2L3.6 1.8zM17.1 15.7l-3.3-3.3v-.2l3.3-3.3.1.1 3.9 2.2c1.1.6 1.1 1.7 0 2.3l-3.9 2.2zM16.9 16l-3.4-3.4-9.9 9.9c.4.4 1 .4 1.7.1L16.9 16M16.9 8L5.3 1.4C4.6 1 4 1.1 3.6 1.5l9.9 9.9L16.9 8z"/>
+      </svg>
+      Get it on Google Play
+    </a>
+
+    <a class="btn ghost" href="/">▶ Play free in your browser</a>
+
+    <div class="modes">
+      <span>Solitaire</span><span>Connect</span><span>Riichi</span>
+      <span>4 Players</span><span>Zen</span><span>Pagoda</span><span>Daily</span>
+    </div>
+
+    <footer>
+      <a href="/privacy.html">Privacy</a>
+    </footer>
+  </div>
+
+  <script>
+    // Den Knopf der erkannten Plattform nach oben und golden hervorheben.
+    // Bewusst nur eine Hervorhebung, KEINE Weiterleitung: Ein automatischer
+    // Sprung in den Store wirkt wie eine Falle und kostet auf TikTok/Instagram
+    // Vertrauen — beide Wege bleiben sichtbar und anklickbar.
+    (function () {
+      var ua = navigator.userAgent || '';
+      var iOS = /iPad|iPhone|iPod/.test(ua) ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      var android = /Android/.test(ua);
+      var ios = document.getElementById('ios');
+      var apk = document.getElementById('android');
+      if (iOS) { ios.classList.add('primary'); }
+      else if (android) { apk.classList.add('primary'); apk.parentNode.insertBefore(apk, ios); }
+      else { ios.classList.add('primary'); }
+    })();
+  </script>
+</body>
+</html>
