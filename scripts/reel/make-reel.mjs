@@ -64,6 +64,58 @@ if (!PEGEL[MUSIK]) {
   process.exit(1);
 }
 
+// --- Vorspann ---------------------------------------------------------------
+// Nahaufnahme aus einem kie.ai-Clip: eine Hand legt einen Mahjong-Stein ab und
+// zieht sich zurueck. Danach blendet das Bild auf das Spielbrett.
+//
+// ⚠ Warum das hier funktioniert, waehrend der erste Anlauf mit den Tempel-Szenen
+// gescheitert ist: Damals lag die Hook-Karte UEBER einer Filmszene, zu der sie
+// nichts sagte, und Film und flache App-Oberflaeche haben kein gemeinsames
+// Motiv — eine Blende dazwischen verlangsamt denselben Bruch nur. Hier laeuft
+// der Vorspann VOR der Hook-Karte, und beide Seiten zeigen dasselbe: Mahjong-
+// Steine, formatfuellend. Das ist ein Match-Cut.
+//
+// ⚠ Die Zeiten sind AUSGEMESSEN, nicht geschaetzt — deshalb steht hier eine
+// TABELLE und nicht ein Dateiname. Ein Clip ohne Eintrag laesst sich nicht
+// verwenden, und genau das ist der Zweck: Ein frueherer Schnitt bei 2,4 s riss
+// mitten in die Bewegung („der Uebergang ist zu schnell"), weil er geraten war.
+//
+// Messrezept (so sind die Werte unten entstanden): Bewegung je 1/5 Sekunde als
+// mittlere Pixeldifferenz zweier Graustufenbilder auftragen. Der Schnitt
+// beginnt kurz VOR dem Bewegungsberg und endet in der RUHE dahinter, damit die
+// Blende auf einem stehenden Bild sitzt und nicht mitten in der Bewegung.
+//   steine-legen  Bewegung bis 5,8 s, Ruhe ab 6,0 → Stein steht allein
+//   steine-kippen Sturz 4,4–6,0 s, Ruhe ab 6,2 → Steine liegen ruhig
+// Bei `steine-kippen` beginnt der Schnitt bewusst schon bei 3,8 s, also in der
+// Stille VOR dem Sturz: Ein Beitrag, der mit einer ruhigen Reihe anfaengt und
+// dann kippt, haelt besser als einer, der mitten im Umfallen einsetzt.
+const VORSPAENNE = {
+  'steine-legen': { ab: 2.2, sek: 4.2 },   // Stein senkt sich, wird abgelegt, Hand zieht sich zurueck
+  'steine-kippen': { ab: 3.8, sek: 4.2 },  // Reihe kippt wie Dominosteine und kommt zur Ruhe
+};
+const VORSPANN_BLENDE = 0.6;
+const VORSPANN_NAME = arg('vorspann', 'steine-legen');
+const VORSPANN = VORSPANN_NAME === 'aus' ? null : VORSPAENNE[VORSPANN_NAME];
+if (VORSPANN_NAME !== 'aus' && !VORSPANN) {
+  console.error(`✗ unbekannter Vorspann: ${VORSPANN_NAME}\n`
+    + `  Bekannt: ${Object.keys(VORSPAENNE).join(', ')}, aus\n`
+    + `  Ein neuer Clip braucht erst seinen gemessenen Schnittpunkt in VORSPAENNE.`);
+  process.exit(1);
+}
+const VORSPANN_DATEI = VORSPANN ? join(ASSETS, 'vorspann', `${VORSPANN_NAME}.mp4`) : null;
+if (VORSPANN && !existsSync(VORSPANN_DATEI)) {
+  console.error(`✗ Vorspann-Clip fehlt: ${VORSPANN_DATEI}`);
+  process.exit(1);
+}
+
+// ⚠ DIE Stelle, an der dieser Umbau schiefgehen kann. Der Ton der Reels sitzt
+// auf mitgeschriebenen Klickzeiten aus dem Beipackzettel; ein Vorspann schiebt
+// die gesamte Zeitachse nach hinten. Deshalb gibt es genau EINE Konstante
+// dafuer, und sie wird ueberall addiert — Blenden, Balken, Steinklaenge,
+// Melodie, Whoosh. Ein zweiter Rechenweg driftet frueher oder spaeter, und
+// zwar so, dass es beim fluechtigen Ansehen kaum auffaellt.
+const VOR_VERSATZ = VORSPANN ? VORSPANN.sek - VORSPANN_BLENDE : 0;
+
 // Fortschrittsbalken oben. ⚠ Bewusst ein BALKEN und keine Zahl: Das Spiel
 // zeigt die Paarzahl in der Kopfzeile bereits an, eine zweite Zahl waere
 // Dopplung — und zwischen Brettunterkante (~y 1590) und Bedienleiste (~y 1670)
@@ -258,6 +310,29 @@ await lauf([
   '-pix_fmt', 'yuv420p', join(TMP, 'hook.mp4'),
 ]);
 
+// --- Vorspann-Segment -------------------------------------------------------
+// Bild und Ton getrennt: Das Bild geht per `xfade` in die Videokette, der Ton
+// als eigener Eingang in die Mischung — sonst muesste die Tonspur durch
+// dieselbe Blende und wuerde dort mitverrechnet.
+//
+// ⚠ Kein `zoompan`. Der Clip bringt seine eigene, sehr ruhige Bewegung mit;
+// eine zusaetzliche Fahrt darueber hat den Einstieg hastig wirken lassen.
+if (VORSPANN) {
+  console.log(`Vorspann schneiden … (${VORSPANN_NAME}, ${VORSPANN.ab}–${(VORSPANN.ab + VORSPANN.sek).toFixed(1)} s)`);
+  const schnitt = ['-ss', String(VORSPANN.ab), '-t', String(VORSPANN.sek), '-i', VORSPANN_DATEI];
+  await lauf([
+    '-y', ...schnitt,
+    '-vf', `scale=${B}:${H}:force_original_aspect_ratio=increase,crop=${B}:${H},fps=${FPS}`,
+    '-an', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', '-pix_fmt', 'yuv420p',
+    join(TMP, 'vorspann.mp4'),
+  ]);
+  await lauf([
+    '-y', ...schnitt,
+    '-vn', '-af', `afade=t=in:st=0:d=0.3,afade=t=out:st=${(VORSPANN.sek - 0.6).toFixed(2)}:d=0.6`,
+    '-c:a', 'aac', '-b:a', '160k', '-ar', '48000', join(TMP, 'vorspann.m4a'),
+  ]);
+}
+
 // --- Abspann ----------------------------------------------------------------
 console.log('Abspann bauen …');
 await lauf([
@@ -283,13 +358,15 @@ await lauf([
 // Abspann auf, statt von ihm verdeckt zu werden.
 console.log('Blenden setzen …');
 const spielDauer = await dauerVon(join(TMP, 'spiel.mp4'));
-const versatz1 = HOOK_SEK - BLENDE_SPIEL;
-const zwischen = HOOK_SEK + spielDauer - BLENDE_SPIEL;   // Laenge nach der ersten Blende
+// ⚠ Jede dieser Zeiten traegt `VOR_VERSATZ`. Ohne Vorspann ist er 0 und die
+// Rechnung ist Zeile fuer Zeile die alte.
+const versatz1 = VOR_VERSATZ + HOOK_SEK - BLENDE_SPIEL;
+const zwischen = VOR_VERSATZ + HOOK_SEK + spielDauer - BLENDE_SPIEL;   // Laenge nach der ersten Blende
 const versatz2 = zwischen - BLENDE_ABSPANN;
 const dauer = zwischen + OUTRO_SEK - BLENDE_ABSPANN;
 
-const spielAb = HOOK_SEK - BLENDE_SPIEL;          // dort beginnt das Gameplay
-const spielBis = Math.max(0, dauer - OUTRO_SEK);  // dort beginnt der Abspann
+const spielAb = VOR_VERSATZ + HOOK_SEK - BLENDE_SPIEL;   // dort beginnt das Gameplay
+const spielBis = Math.max(0, dauer - OUTRO_SEK);         // dort beginnt der Abspann
 const balkenDa = existsSync(join(TMP, 'balken-fuell.png'));
 
 // Anteil geraeumter Paare als Ausdruck ueber die Zeit: Die Summe der
@@ -299,26 +376,55 @@ const balkenDa = existsSync(join(TMP, 'balken-fuell.png'));
 const anteil = `(${TREFFER.map((k) => `gte(t,${(spielAb + k.t).toFixed(3)})`).join('+')})/${TREFFER.length}`;
 const nurSpiel = `enable='between(t,${spielAb.toFixed(2)},${spielBis.toFixed(2)})'`;
 
+// ⚠ Die Eingangsnummern standen hier frueher fest im Filterstring ([0:v] …
+// [4:v]). Sobald ein Eingang dazukommt — und der Vorspann ist genau das —
+// verschiebt sich alles dahinter, und der Balken-Overlay zeigt auf den
+// falschen Eingang. Das sieht dann nach einem ffmpeg-Fehler aus und ist
+// keiner. Deshalb vergibt `nimm()` die Nummern und der Filterstring liest sie
+// aus Variablen.
+let nr = 0;
+const eingang = [];
+const nimm = (...args) => { eingang.push(...args); return nr++; };   // genau EIN -i je Aufruf
+
+const iVor = VORSPANN ? nimm('-i', join(TMP, 'vorspann.mp4')) : null;
+const iHook = nimm('-i', join(TMP, 'hook.mp4'));
+const iSpiel = nimm('-i', join(TMP, 'spiel.mp4'));
+const iOutro = nimm('-i', join(TMP, 'outro.mp4'));
+// ⚠ `-loop 1` ist noetig, damit die Standbilder eine Zeitachse bekommen.
+// Ohne das liegen sie bei t=0 fest und der Ausdruck ergaebe immer 0.
+const iSpur = balkenDa
+  ? nimm('-loop', '1', '-t', dauer.toFixed(2), '-i', join(TMP, 'balken-spur.png')) : null;
+const iFuell = balkenDa
+  ? nimm('-loop', '1', '-t', dauer.toFixed(2), '-i', join(TMP, 'balken-fuell.png')) : null;
+
+// ⚠ `settb=AVTB` auf alle Segmente: Die Zeitbasen der Eingaenge muessen fuer
+// `xfade` uebereinstimmen, sonst bricht der Graph mit „do not match … Failed to
+// configure output pad" ab. Bei gleich erzeugten Dateien geht es auch ohne —
+// aber sobald ein fremd kodierter Clip dazukommt, nicht mehr.
+const tb = (i, aus) => `[${i}:v]settb=AVTB[${aus}]`;
+const ketten = [tb(iHook, 'kh'), tb(iSpiel, 'ks'), tb(iOutro, 'ko')];
+let vorn = '[kh]';
+if (VORSPANN) {
+  ketten.push(tb(iVor, 'kv'));
+  ketten.push(`[kv][kh]xfade=transition=fade:duration=${VORSPANN_BLENDE}`
+    + `:offset=${VOR_VERSATZ.toFixed(3)}[e]`);
+  vorn = '[e]';
+}
+ketten.push(`${vorn}[ks]xfade=transition=fade:duration=${BLENDE_SPIEL}:offset=${versatz1.toFixed(3)}[a]`);
+// `fadeblack` statt `fade`: Sieg-Karte und Abspann tragen beide viel Text an
+// aehnlicher Stelle — eine direkte Kreuzblende legt sie uebereinander und
+// beides wird unleserlich. Der kurze Weg ueber Schwarz liest sich als
+// gewollter Schnitt.
+ketten.push(`[a][ko]xfade=transition=fadeblack:duration=${BLENDE_ABSPANN}:offset=${versatz2.toFixed(3)}[b]`);
+ketten.push(balkenDa
+  ? `[b][${iSpur}:v]overlay=0:${BALKEN_Y}:${nurSpiel}[sp];`
+    + `[sp][${iFuell}:v]overlay=x='${B}*(${anteil}-1)':y=${BALKEN_Y}:${nurSpiel},`
+    + `format=yuv420p,fps=${FPS}[v]`
+  : `[b]format=yuv420p,fps=${FPS}[v]`);
+
 await lauf([
-  '-y', '-i', join(TMP, 'hook.mp4'), '-i', join(TMP, 'spiel.mp4'), '-i', join(TMP, 'outro.mp4'),
-  // ⚠ `-loop 1` ist noetig, damit die Standbilder eine Zeitachse bekommen.
-  // Ohne das liegen sie bei t=0 fest und der Ausdruck ergaebe immer 0.
-  ...(balkenDa ? [
-    '-loop', '1', '-t', dauer.toFixed(2), '-i', join(TMP, 'balken-spur.png'),
-    '-loop', '1', '-t', dauer.toFixed(2), '-i', join(TMP, 'balken-fuell.png'),
-  ] : []),
-  '-filter_complex',
-  `[0:v][1:v]xfade=transition=fade:duration=${BLENDE_SPIEL}:offset=${versatz1.toFixed(3)}[a];`
-  // `fadeblack` statt `fade`: Sieg-Karte und Abspann tragen beide viel Text an
-  // aehnlicher Stelle — eine direkte Kreuzblende legt sie uebereinander und
-  // beides wird unleserlich. Der kurze Weg ueber Schwarz liest sich als
-  // gewollter Schnitt.
-  + `[a][2:v]xfade=transition=fadeblack:duration=${BLENDE_ABSPANN}:offset=${versatz2.toFixed(3)}[b];`
-  + (balkenDa
-    ? `[b][3:v]overlay=0:${BALKEN_Y}:${nurSpiel}[sp];`
-      + `[sp][4:v]overlay=x='${B}*(${anteil}-1)':y=${BALKEN_Y}:${nurSpiel},`
-    : `[b]`)
-  + `format=yuv420p,fps=${FPS}[v]`,
+  '-y', ...eingang,
+  '-filter_complex', ketten.join(';'),
   '-map', '[v]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19',
   join(TMP, 'stumm.mp4'),
 ]);
@@ -335,7 +441,7 @@ const outroAb = Math.max(0, dauer - OUTRO_SEK);   // = Beginn der Abspann-Blende
 // in einem Rhythmus, der mit dem Tempo anzieht. Die Aufnahme liefert nur Bild
 // (CDP-Screencast), also wird die Spur aus den mitgeschriebenen Klickzeiten neu
 // erzeugt — mit demselben Synth wie in der App (synth.mjs).
-const versatzSpiel = HOOK_SEK - BLENDE_SPIEL;   // dort beginnt das Gameplay im fertigen Reel
+const versatzSpiel = spielAb;   // dort beginnt das Gameplay im fertigen Reel (traegt VOR_VERSATZ)
 
 const ereignisse = (beiblatt.klicks ?? [])
   .map((k) => ({ t: versatzSpiel + k.t, klang: k.art }));
@@ -346,11 +452,23 @@ if (beiblatt.siegBei != null) {
 const spuren = [
   // Teppich-Pegel je Stufe (--musik). Die Einblende nimmt ihm den Anfangs-Knacks.
   `[0:a]atrim=0:${dauer.toFixed(2)},volume=${PEGEL[MUSIK].bett},afade=t=in:st=0:d=1.0[bed]`,
-  `[1:a]adelay=100|100,volume=0.55[w]`,
+  // ⚠ Der Whoosh gehoert zur HOOK-Karte, nicht zum Vorspann — er sass frueher
+  // fest bei 100 ms. Mit Vorspann laege er sonst mitten im Ablegen des Steins
+  // und kuendigte etwas an, das erst vier Sekunden spaeter kommt.
+  `[1:a]adelay=${ms(VOR_VERSATZ + 0.1)}|${ms(VOR_VERSATZ + 0.1)},volume=0.55[w]`,
   `[2:a]adelay=${ms(outroAb)}|${ms(outroAb)},volume=0.7[o]`,
 ];
 const namen = ['[bed]', '[w]', '[o]'];
 const eingaben = ['-i', sfx('bett'), '-i', sfx('whoosh'), '-i', sfx('outro')];
+
+// Der Originalton des Vorspanns — das Aufsetzen des Steins auf dem Holz. Er
+// ist der Grund, warum der Einstieg nicht wie ein stummes Vorspiel wirkt.
+// Leicht abgesenkt, damit der Whoosh der Hook-Karte danach die Fuehrung hat.
+if (VORSPANN) {
+  eingaben.push('-i', join(TMP, 'vorspann.m4a'));
+  spuren.push(`[${namen.length}:a]volume=0.85[vor]`);
+  namen.push('[vor]');
+}
 
 if (ereignisse.length) {
   const spielSpur = join(TMP, 'spielklang.wav');

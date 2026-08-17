@@ -36,6 +36,15 @@ export const PLAN = [
   { nr: 20, format: 'fakt',  level: 175, fakt: 31 },
 ];
 
+// Welcher Vorspann vor welchem Reel steht. Die beiden wechseln sich ab, damit
+// der Kanal nicht bei jedem Beitrag mit demselben Bild anfaengt — nach drei
+// Reels haette das jeder wiedererkannt, und Wiedererkennung ist beim Einstieg
+// genau das Falsche: Wer die ersten Sekunden schon kennt, wischt weiter.
+//
+// ⚠ Die Namen muessen in `VORSPAENNE` (make-reel.mjs) stehen. Dort liegt zu
+// jedem der gemessene Schnittpunkt; ein Clip ohne Eintrag wird abgelehnt.
+export const vorspannFuer = (j) => (j.nr % 2 === 1 ? 'steine-legen' : 'steine-kippen');
+
 // Namensschema der fertigen Dateien. Steht hier, damit charge.mjs und
 // captions-neu.mjs nicht zwei Fassungen davon pflegen.
 export const reelName = (j) => `${String(j.nr).padStart(2, '0')}-${j.format}-lvl${j.level}-EN`;

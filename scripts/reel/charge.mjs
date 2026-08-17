@@ -23,7 +23,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { PLAN, reelName, clipName } from './plan.mjs';
+import { PLAN, reelName, clipName, vorspannFuer } from './plan.mjs';
 
 const HIER = dirname(fileURLToPath(import.meta.url));
 const WURZEL = join(HIER, '..', '..');
@@ -80,7 +80,8 @@ for (const j of jobs) {
     fehler = 0;
   }
 
-  const args = ['--clip', clip, '--format', j.format, '--name', name, '--out', 'out/reels/charge'];
+  const args = ['--clip', clip, '--format', j.format, '--name', name, '--out', 'out/reels/charge',
+    '--vorspann', vorspannFuer(j)];
   if (j.fakt != null) args.push('--fakt', String(j.fakt));
   const r = node('make-reel.mjs', args);
   if (r.status !== 0) { console.error(`✗ Bau fehlgeschlagen bei ${name}`); continue; }

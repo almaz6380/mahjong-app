@@ -34,6 +34,41 @@ Die Fakten kommen **live aus `src/game/facts.ts`** (34 Stück, DE+EN,
 redaktionell geprüft und bewusst harmlos). Nicht hierher kopieren — eine
 zweite Kopie läuft auseinander.
 
+## Der Vorspann (seit 17.08.2026)
+
+Vor jedem Reel steht eine 4,2 s lange Nahaufnahme aus einem kie.ai-Clip —
+Hände und echte Mahjong-Steine im Kerzenlicht —, die per Kreuzblende auf das
+Spielbrett übergeht. `plan.mjs` wechselt über die Charge zwischen zwei
+Aufnahmen (`vorspannFuer`): `steine-legen` (ein Stein wird abgelegt) und
+`steine-kippen` (eine Reihe kippt wie Dominosteine).
+
+```bash
+node scripts/reel/make-reel.mjs --clip … --vorspann steine-kippen
+node scripts/reel/make-reel.mjs --clip … --vorspann aus     # der alte Einstieg
+```
+
+**Warum das trägt, während der erste Anlauf mit den Tempel-Szenen scheiterte:**
+Damals lag die Hook-Karte *über* einer Filmszene, zu der sie nichts sagte, und
+Film und flache App-Oberfläche haben kein gemeinsames Motiv — eine Blende
+dazwischen verlangsamt denselben Bruch nur. Jetzt läuft der Vorspann *vor* der
+Hook-Karte, und beide Seiten zeigen dasselbe: Mahjong-Steine, formatfüllend.
+Das ist ein Match-Cut.
+
+⚠ **Der Schnittpunkt jedes Clips ist ausgemessen, nicht geschätzt** — deshalb
+steht in `make-reel.mjs` eine Tabelle `VORSPAENNE` und nicht ein Dateiname. Ein
+Clip ohne Eintrag wird abgelehnt. Ein geratener Schnitt bei 2,4 s riss mitten in
+die Bewegung; erst der gemessene bei 2,2–6,4 s zeigt den ganzen Bogen (absenken
+→ ablegen → Hand zurück → Stein steht allein). Messrezept: Bewegung je 1/5 s als
+mittlere Pixeldifferenz zweier Graustufenbilder auftragen — der Schnitt beginnt
+kurz vor dem Bewegungsberg und endet in der Ruhe dahinter.
+
+⚠ **`VOR_VERSATZ` ist die Stelle, an der das kaputtgeht.** Der Ton sitzt auf
+mitgeschriebenen Klickzeiten; der Vorspann schiebt die ganze Zeitachse nach
+hinten. Es gibt deshalb genau eine Konstante dafür, und sie wird überall addiert
+— Blenden, Fortschrittsbalken, Steinklänge, Melodie, Whoosh. Gegenprobe: Bilder
+zu den Match-Zeiten aus beiden Fassungen vergleichen (Abweichung < 0,5/255),
+bei 0,4 s Versatz muss sie deutlich springen.
+
 ## Aufbau
 
 ```
@@ -41,8 +76,10 @@ record-solitaire.mjs   spielt ein Level echt durch, nimmt per CDP-Screencast auf
    └─ *.json           Beipackzettel: Klickzeiten, Siegzeitpunkt, Paarzahl
 synth.mjs              erzeugt die Tonspur — Nachbau des WebAudio-Synths der App
 formate.mjs            Texte, Hashtags, Caption-Vorlagen
-make-reel.mjs          Hook + Spiel + Abspann + Ton → fertiges Reel + .txt
+make-reel.mjs          Vorspann + Hook + Spiel + Abspann + Ton → Reel + .txt
+plan.mjs               welches Reel welches Format, Level und welchen Vorspann hat
 charge.mjs             fährt den Plan ab
+assets/vorspann/       die kie.ai-Clips
 ```
 
 ## Fallen, die hier schon zugeschnappt sind
@@ -101,7 +138,13 @@ Steht in jeder `.txt` noch einmal, hier zum Nachschlagen:
   **Die Reels brauchen ohnehin keine Musik:** sie bringen Steinklänge und
   Sieg-Zeremonie mit, und beim Format `clear` ist genau das der Reiz („Sound on").
   Wer Musik will, nimmt die **Commercial Music Library** des Business-Kontos.
-- **Kein Store-Link in der Caption** (drückt die Auslieferung), nur „link in bio".
+- **Die Download-Adresse steht in allen drei Fassungen** (Josefs Vorgabe,
+  16.08.2026). ⚠ Hier stand bis dahin das Gegenteil („kein Store-Link in der
+  Caption"). Die Abwägung dahinter gilt weiter: Auf Instagram und TikTok ist die
+  Adresse *nicht anklickbar* und kann die Auslieferung drücken — sie steht dort
+  zum Ablesen, der klickbare Weg bleibt der Link im Profil. Auf Facebook ist sie
+  klickbar und gehört in voller Form mit `https://` hinein. Erzwungen von
+  `check-captions.mjs`.
 - **Auf Instagram den Facebook-Haken mitnehmen.** Die Mahjong-Zielgruppe ist dort
   älter und der Wettbewerb geringer als auf TikTok.
 
