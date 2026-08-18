@@ -36,16 +36,36 @@ zweite Kopie läuft auseinander.
 
 ## Der Vorspann (seit 17.08.2026)
 
-Vor jedem Reel steht eine 4,2 s lange Nahaufnahme aus einem kie.ai-Clip —
+Vor jedem Reel steht eine rund 4 s lange Nahaufnahme aus einem kie.ai-Clip —
 Hände und echte Mahjong-Steine im Kerzenlicht —, die per Kreuzblende auf das
-Spielbrett übergeht. `plan.mjs` wechselt über die Charge zwischen zwei
-Aufnahmen (`vorspannFuer`): `steine-legen` (ein Stein wird abgelegt) und
-`steine-kippen` (eine Reihe kippt wie Dominosteine).
+Spielbrett übergeht. `plan.mjs` rotiert über die Charge durch **sieben Motive**
+(`vorspannFuer`), damit niemand denselben Einstieg zweimal hintereinander sieht:
+
+| Motiv | Was passiert |
+|---|---|
+| `steine-legen` | ein Stein wird abgelegt, die Hand zieht sich zurück |
+| `steine-kippen` | eine Reihe kippt wie Dominosteine |
+| `stein-drehen-a` | verdeckter Stein wird gedreht, roter Drache erscheint |
+| `stein-drehen-b` | dasselbe mit drei Steinen (nur 4,0 s) |
+| `steine-mischen-a` | Hände mischen eine Fläche aus Steinen |
+| `steine-mischen-b` | dasselbe, tiefe Kamera |
+| `mauer-bauen-a` | ein Turm wächst nach oben |
 
 ```bash
-node scripts/reel/make-reel.mjs --clip … --vorspann steine-kippen
+node scripts/reel/kie-clip.mjs                 # Trockenlauf: Prompts + Kosten
+node scripts/reel/kie-clip.mjs --los           # Clips erzeugen (kostet Geld!)
+node scripts/reel/messe-vorspann.mjs           # Schnittpunkte messen
+node scripts/reel/make-reel.mjs --clip … --vorspann stein-drehen-a
 node scripts/reel/make-reel.mjs --clip … --vorspann aus     # der alte Einstieg
 ```
+
+⚠ **Nicht jeder erzeugte Clip taugt.** Zwei von neun liegen ungenutzt im
+Ordner, und beide Gründe sind lehrreich: `steine-zwei-haende` hat ein
+Ruhefenster, in dem die Hände bloß *reglos im Bild stehen* — die Kurve sieht
+still aus, das Bild ist es nicht. `mauer-bauen-b` besteht die Messung, zeigt
+aber eine Reihe, die fast von vorn ins Bild läuft; die Steine füllen nur ein
+Drittel der Fläche, und der Match-Cut lebt davon, dass sie sie füllen. Ihre
+Messwerte stehen als Kommentar in `vorspaenne.mjs`.
 
 **Warum das trägt, während der erste Anlauf mit den Tempel-Szenen scheiterte:**
 Damals lag die Hook-Karte *über* einer Filmszene, zu der sie nichts sagte, und
@@ -77,9 +97,12 @@ record-solitaire.mjs   spielt ein Level echt durch, nimmt per CDP-Screencast auf
 synth.mjs              erzeugt die Tonspur — Nachbau des WebAudio-Synths der App
 formate.mjs            Texte, Hashtags, Caption-Vorlagen
 make-reel.mjs          Vorspann + Hook + Spiel + Abspann + Ton → Reel + .txt
+vorspaenne.mjs         die Clips mit ihren GEMESSENEN Schnittpunkten
+kie-clip.mjs           erzeugt neue Clips über kie.ai (Google Veo)
+messe-vorspann.mjs     misst den Bewegungsverlauf, schlägt den Schnitt vor
 plan.mjs               welches Reel welches Format, Level und welchen Vorspann hat
 charge.mjs             fährt den Plan ab
-assets/vorspann/       die kie.ai-Clips
+assets/vorspann/       die kie.ai-Clips samt Prompt daneben
 ```
 
 ## Fallen, die hier schon zugeschnappt sind
