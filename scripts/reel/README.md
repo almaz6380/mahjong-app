@@ -41,15 +41,28 @@ Hände und echte Mahjong-Steine im Kerzenlicht —, die per Kreuzblende auf das
 Spielbrett übergeht. `plan.mjs` rotiert über die Charge durch **sieben Motive**
 (`vorspannFuer`), damit niemand denselben Einstieg zweimal hintereinander sieht:
 
-| Motiv | Was passiert |
-|---|---|
-| `steine-legen` | ein Stein wird abgelegt, die Hand zieht sich zurück |
-| `steine-kippen` | eine Reihe kippt wie Dominosteine |
-| `stein-drehen-a` | verdeckter Stein wird gedreht, roter Drache erscheint |
-| `stein-drehen-b` | dasselbe mit drei Steinen (nur 4,0 s) |
-| `steine-mischen-a` | Hände mischen eine Fläche aus Steinen |
-| `steine-mischen-b` | dasselbe, tiefe Kamera |
-| `mauer-bauen-a` | ein Turm wächst nach oben |
+| Motiv | Was passiert | Übergang |
+|---|---|---|
+| `steine-legen` | ein Stein wird abgelegt, die Hand zieht sich zurück | `fade` |
+| `steine-kippen` | eine Reihe kippt wie Dominosteine | `smoothdown` |
+| `stein-drehen-a` | verdeckter Stein wird gedreht, roter Drache erscheint | `circleopen` |
+| `stein-drehen-b` | dasselbe mit drei Steinen (nur 4,0 s) | `circleopen` |
+| `steine-mischen-a` | Hände mischen eine Fläche aus Steinen | `smoothleft` |
+| `steine-mischen-b` | dasselbe, tiefe Kamera | `smoothright` |
+| `mauer-bauen-a` | ein Turm wächst nach oben | `smoothup` |
+
+**Der Übergang setzt die Bewegung des Clips fort** — wächst der Turm nach oben,
+steigt das Brett von unten herein; wischen die Hände quer, wischt der Übergang
+mit. Ein richtungsloser Übergang nach einer gerichteten Bewegung lässt den
+Schnitt stehen, statt ihn zu tragen.
+
+⚠ **Die Hook-Karte braucht ihre Standzeit** (`HOOK_LANG`). `hookSek` sagt, wie
+lange die Frage *steht* — beim Einbau des Vorspanns blieb die Karte auf ihren
+1,3 s, von denen dann 0,6 s Einblende und 0,35 s Ausblende abgingen: Sie stand
+noch 0,35 s statt 0,95 s, und der Text blendete mitten in der Kreuzblende ein.
+Film, Brett und Schrift lagen gleichzeitig übereinander. Die Blendzeit gehört
+oben drauf, und der Text kommt erst danach — erst wechselt das Material, dann
+die Botschaft.
 
 ```bash
 node scripts/reel/kie-clip.mjs                 # Trockenlauf: Prompts + Kosten
