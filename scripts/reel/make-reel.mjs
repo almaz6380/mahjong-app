@@ -118,6 +118,16 @@ if (!FORMATE[FORMAT]) {
 const HOOK_SEK = FORMATE[FORMAT].hookSek;
 const OUTRO_SEK = 4.2;
 
+// ⚠ `hookSek` sagt, wie lange die Frage STEHT — die Blendzeit gehoert oben
+// drauf, nicht abgezogen. Das war beim Einbau des Vorspanns falsch: Die Karte
+// behielt ihre 1,3 s, von denen nun 0,6 s Einblende und 0,35 s Ausblende
+// abgingen. Sie stand damit noch 0,35 s statt 0,95 s, und der Text blendete
+// mitten in der Kreuzblende ein — Film, Brett und Schrift lagen gleichzeitig
+// uebereinander, dann war es vorbei. Genau das hat Josef als „abrupt" gesehen.
+// Der Wert in FORMATE ist fuer eine Karte OHNE eingehende Blende bemessen
+// („1,9 s waren zu lang"); mit Vorspann muss die Blende dazukommen.
+const HOOK_LANG = HOOK_SEK + (VORSPANN ? VORSPANN_BLENDE : 0);
+
 // Ueberblendzeiten. Der Hartschnitt war der Grund, warum das Reel am Ende
 // „abgehackt" wirkte: Das halb geraeumte Brett verschwand von einem Bild aufs
 // naechste hinter dem deckenden Abspann. Die Blende zum Abspann ist bewusst
@@ -284,15 +294,18 @@ await karten();
 console.log('Hook bauen …');
 await lauf(['-y', '-i', CLIP, '-frames:v', '1', join(TMP, 'standbild.png')]);
 await lauf([
-  '-y', '-loop', '1', '-t', String(HOOK_SEK), '-i', join(TMP, 'standbild.png'),
-  '-loop', '1', '-t', String(HOOK_SEK), '-i', join(TMP, 'hook.png'),
-  '-loop', '1', '-t', String(HOOK_SEK), '-i', join(TMP, 'status.png'),
+  '-y', '-loop', '1', '-t', String(HOOK_LANG), '-i', join(TMP, 'standbild.png'),
+  '-loop', '1', '-t', String(HOOK_LANG), '-i', join(TMP, 'hook.png'),
+  '-loop', '1', '-t', String(HOOK_LANG), '-i', join(TMP, 'status.png'),
   '-filter_complex',
   // Das Brett wird abgedunkelt, damit die Frage liest, wer nur kurz hinsieht.
   // Die Statusleiste liegt UEBER der Abdunklung — sie gehoert zum Geraet,
   // nicht zum Bild.
   `[0:v]scale=${B}:${H},eq=brightness=-0.10[bg];`
-  + `[1:v]format=rgba,fade=t=in:st=0.15:d=0.3:alpha=1[k];`
+  // ⚠ Der Text erscheint NACH der Blende, nicht darin. Sonst sieht man Film,
+  // Brett und Schrift gleichzeitig — ein Brei, der sich schlagartig aufloest.
+  // So entsteht ein Zweitakt: erst wechselt das Material, dann kommt die Frage.
+  + `[1:v]format=rgba,fade=t=in:st=${(VOR_VERSATZ ? VORSPANN_BLENDE + 0.15 : 0.15).toFixed(2)}:d=0.3:alpha=1[k];`
   + `[bg][k]overlay=0:0[m];[m][2:v]overlay=0:0,fps=${FPS}[v]`,
   '-map', '[v]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19',
   '-pix_fmt', 'yuv420p', join(TMP, 'hook.mp4'),
@@ -348,12 +361,12 @@ console.log('Blenden setzen …');
 const spielDauer = await dauerVon(join(TMP, 'spiel.mp4'));
 // ⚠ Jede dieser Zeiten traegt `VOR_VERSATZ`. Ohne Vorspann ist er 0 und die
 // Rechnung ist Zeile fuer Zeile die alte.
-const versatz1 = VOR_VERSATZ + HOOK_SEK - BLENDE_SPIEL;
-const zwischen = VOR_VERSATZ + HOOK_SEK + spielDauer - BLENDE_SPIEL;   // Laenge nach der ersten Blende
+const versatz1 = VOR_VERSATZ + HOOK_LANG - BLENDE_SPIEL;
+const zwischen = VOR_VERSATZ + HOOK_LANG + spielDauer - BLENDE_SPIEL;   // Laenge nach der ersten Blende
 const versatz2 = zwischen - BLENDE_ABSPANN;
 const dauer = zwischen + OUTRO_SEK - BLENDE_ABSPANN;
 
-const spielAb = VOR_VERSATZ + HOOK_SEK - BLENDE_SPIEL;   // dort beginnt das Gameplay
+const spielAb = VOR_VERSATZ + HOOK_LANG - BLENDE_SPIEL;   // dort beginnt das Gameplay
 const spielBis = Math.max(0, dauer - OUTRO_SEK);         // dort beginnt der Abspann
 const balkenDa = existsSync(join(TMP, 'balken-fuell.png'));
 
@@ -394,7 +407,11 @@ const ketten = [tb(iHook, 'kh'), tb(iSpiel, 'ks'), tb(iOutro, 'ko')];
 let vorn = '[kh]';
 if (VORSPANN) {
   ketten.push(tb(iVor, 'kv'));
-  ketten.push(`[kv][kh]xfade=transition=fade:duration=${VORSPANN_BLENDE}`
+  // Der Uebergang kommt aus der Tabelle und setzt die Bewegung des Clips fort
+  // (Turm waechst → smoothup, Haende wischen quer → smoothleft). Nicht
+  // Abwechslung um ihrer selbst willen: Ein richtungsloser Uebergang nach einer
+  // gerichteten Bewegung laesst den Schnitt stehen statt ihn zu tragen.
+  ketten.push(`[kv][kh]xfade=transition=${VORSPANN.blende ?? 'fade'}:duration=${VORSPANN_BLENDE}`
     + `:offset=${VOR_VERSATZ.toFixed(3)}[e]`);
   vorn = '[e]';
 }
