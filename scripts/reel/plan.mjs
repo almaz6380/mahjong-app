@@ -13,6 +13,8 @@
 // (Level 6 ≈ 36 Steine, Level 200 ≈ 60). Bei `paar` bleiben sie klein — die
 // Frage soll in zwei Sekunden beantwortbar sein. Bei `clear` duerfen sie gross
 // sein, dort ist die Laenge der Reiz.
+import { VORSPANN_NAMEN } from './vorspaenne.mjs';
+
 export const PLAN = [
   { nr: 1,  format: 'paar',  level: 18 },
   { nr: 2,  format: 'clear', level: 40 },
@@ -36,14 +38,19 @@ export const PLAN = [
   { nr: 20, format: 'fakt',  level: 175, fakt: 31 },
 ];
 
-// Welcher Vorspann vor welchem Reel steht. Die beiden wechseln sich ab, damit
-// der Kanal nicht bei jedem Beitrag mit demselben Bild anfaengt — nach drei
-// Reels haette das jeder wiedererkannt, und Wiedererkennung ist beim Einstieg
-// genau das Falsche: Wer die ersten Sekunden schon kennt, wischt weiter.
+// Welcher Vorspann vor welchem Reel steht. Sie wechseln sich reihum ab, damit
+// der Kanal nicht bei jedem Beitrag mit demselben Bild anfaengt — Wiedererkennung
+// ist beim Einstieg genau das Falsche: Wer die ersten Sekunden schon kennt,
+// wischt weiter. Bei sieben Motiven und zwanzig Reels sieht niemand denselben
+// Einstieg zweimal hintereinander.
 //
-// ⚠ Die Namen muessen in `VORSPAENNE` (make-reel.mjs) stehen. Dort liegt zu
-// jedem der gemessene Schnittpunkt; ein Clip ohne Eintrag wird abgelehnt.
-export const vorspannFuer = (j) => (j.nr % 2 === 1 ? 'steine-legen' : 'steine-kippen');
+// ⚠ Die Liste kommt aus `vorspaenne.mjs` — dort liegt zu jedem Clip der
+// GEMESSENE Schnittpunkt, und make-reel.mjs lehnt einen unbekannten Namen ab.
+// Die Reihenfolge ist die der Tabelle und damit fest; wer dort einen Clip
+// einfuegt, verschiebt die Zuordnung aller folgenden Reels. Das ist beim
+// Neubau einer bestehenden Charge zu bedenken, sonst wechseln Beitraege ihren
+// Einstieg ohne Grund.
+export const vorspannFuer = (j) => VORSPANN_NAMEN[(j.nr - 1) % VORSPANN_NAMEN.length];
 
 // Namensschema der fertigen Dateien. Steht hier, damit charge.mjs und
 // captions-neu.mjs nicht zwei Fassungen davon pflegen.

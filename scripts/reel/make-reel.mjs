@@ -18,6 +18,7 @@ import { fileURLToPath } from 'node:url';
 import { spurRendern, melodie } from './synth.mjs';
 import { FORMATE, fakten, captionText } from './formate.mjs';
 import { browserPfad } from './browser.mjs';
+import { VORSPAENNE } from './vorspaenne.mjs';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright-core');
@@ -75,24 +76,11 @@ if (!PEGEL[MUSIK]) {
 // der Vorspann VOR der Hook-Karte, und beide Seiten zeigen dasselbe: Mahjong-
 // Steine, formatfuellend. Das ist ein Match-Cut.
 //
-// ⚠ Die Zeiten sind AUSGEMESSEN, nicht geschaetzt — deshalb steht hier eine
-// TABELLE und nicht ein Dateiname. Ein Clip ohne Eintrag laesst sich nicht
-// verwenden, und genau das ist der Zweck: Ein frueherer Schnitt bei 2,4 s riss
-// mitten in die Bewegung („der Uebergang ist zu schnell"), weil er geraten war.
-//
-// Messrezept (so sind die Werte unten entstanden): Bewegung je 1/5 Sekunde als
-// mittlere Pixeldifferenz zweier Graustufenbilder auftragen. Der Schnitt
-// beginnt kurz VOR dem Bewegungsberg und endet in der RUHE dahinter, damit die
-// Blende auf einem stehenden Bild sitzt und nicht mitten in der Bewegung.
-//   steine-legen  Bewegung bis 5,8 s, Ruhe ab 6,0 → Stein steht allein
-//   steine-kippen Sturz 4,4–6,0 s, Ruhe ab 6,2 → Steine liegen ruhig
-// Bei `steine-kippen` beginnt der Schnitt bewusst schon bei 3,8 s, also in der
-// Stille VOR dem Sturz: Ein Beitrag, der mit einer ruhigen Reihe anfaengt und
-// dann kippt, haelt besser als einer, der mitten im Umfallen einsetzt.
-const VORSPAENNE = {
-  'steine-legen': { ab: 2.2, sek: 4.2 },   // Stein senkt sich, wird abgelegt, Hand zieht sich zurueck
-  'steine-kippen': { ab: 3.8, sek: 4.2 },  // Reihe kippt wie Dominosteine und kommt zur Ruhe
-};
+// ⚠ Die Zeiten sind AUSGEMESSEN, nicht geschaetzt — deshalb liegt in
+// `vorspaenne.mjs` eine TABELLE und nicht ein Dateiname. Ein Clip ohne Eintrag
+// laesst sich nicht verwenden, und genau das ist der Zweck: Ein frueherer
+// Schnitt bei 2,4 s riss mitten in die Bewegung („der Uebergang ist zu
+// schnell"), weil er geraten war. Messen mit `messe-vorspann.mjs`.
 const VORSPANN_BLENDE = 0.6;
 const VORSPANN_NAME = arg('vorspann', 'steine-legen');
 const VORSPANN = VORSPANN_NAME === 'aus' ? null : VORSPAENNE[VORSPANN_NAME];
