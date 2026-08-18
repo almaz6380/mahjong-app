@@ -41,15 +41,20 @@ const TMP = join(OUT, '.domino');
 // Die Filmclips in Erzaehlreihenfolge, Schnittpunkte an Einzelbildern und
 // Bewegungskurven ausgemessen (messe-vorspann.mjs + Kontaktbogen je Clip).
 //
-// ⚠ `anstoss` MUSS bei ~3,6 s enden: Veo laesst die Kette danach stocken —
-// die Welle stirbt, die Reihe bleibt stehen. Der Schnitt sitzt mitten im
-// Fallen der ersten Steine, bevor das zu sehen ist. Wer den Ausschnitt
-// verlaengert, holt den Stillstand ins Video.
+// ⚠ Veo kann KEINE durchlaufende Kettenreaktion: In allen vier Clips fallen
+// je 2-3 Steine, dann steht die Reihe wieder. Die erste Fassung hat das
+// vorgefuehrt („der Fall der Dominosteine ist komisch") — zu lange
+// Ausschnitte, der Finger lag zwei Sekunden auf dem Stein, und das Finale
+// war ab 3,3 s geschnitten, also NACH der Kaskade: 3,7 s unbewegte Reihe.
+// Das Rezept dagegen: NUR die Fall-Momente schneiden, kurz und schnell
+// hintereinander — der Eindruck der laufenden Kette entsteht im Schnitt,
+// nicht im Material. Wer einen Ausschnitt verlaengert, holt Veos stockende
+// Welle ins Video.
 const SZENEN = [
-  { datei: 'domino-anstoss.mp4', ab: 0.6, sek: 3.0 },  // Finger kippt den ersten Stein
-  { datei: 'domino-lauf.mp4', ab: 0.4, sek: 2.6 },     // Steine stuerzen vor der Laterne
-  { datei: 'domino-stufe.mp4', ab: 1.3, sek: 2.6 },    // die Reihe kippt nach vorn
-  { datei: 'domino-finale.mp4', ab: 3.3, sek: 3.7 },   // Kaskade ueber die Kante, endet still
+  { datei: 'domino-anstoss.mp4', ab: 1.6, sek: 2.0 },  // Finger kippt, erste Steine fallen
+  { datei: 'domino-lauf.mp4', ab: 0.2, sek: 2.0 },     // Steine stuerzen vor der Laterne
+  { datei: 'domino-stufe.mp4', ab: 2.0, sek: 1.8 },    // der Pulk kippt nach vorn
+  { datei: 'domino-finale.mp4', ab: 2.8, sek: 4.0 },   // Kaskade, kommt zur Ruhe (Match-Cut)
 ];
 const BLENDEN = [0.15, 0.15, 0.3];   // fast harte Schnitte, letzter etwas weicher
 
