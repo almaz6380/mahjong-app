@@ -21,7 +21,6 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HIER = dirname(fileURLToPath(import.meta.url));
-const ZIEL = join(HIER, 'assets', 'vorspann');
 
 const API = 'https://api.kie.ai';
 const MODELL = 'veo3_lite';        // 30 Credits/Clip; veo3_fast 80, veo3 400
@@ -31,6 +30,7 @@ const SCHLUESSEL = process.env.KIE_API_KEY;
 const arg = (n, s) => { const i = process.argv.indexOf(`--${n}`); return i === -1 ? s : process.argv[i + 1]; };
 const LOS = process.argv.includes('--los');
 const NUR = arg('nur', null);
+const SATZ = arg('satz', 'vorspann');
 
 // --- Die Prompts ------------------------------------------------------------
 // ⚠ Vier Dinge muessen in JEDEM Prompt stehen. Das ist keine Stilfrage,
@@ -91,6 +91,54 @@ export const MOTIVE = {
   },
 };
 
+// --- Der Domino-Lauf (Werbespot, kein Vorspann) ------------------------------
+// Eine Kettenreaktion aus Mahjong-Steinen durch den Tempel, in vier Clips.
+// Geschnitten wird MITTEN IN DER BEWEGUNG (match on action) — deshalb steht in
+// jedem Prompt dieselbe Laufrichtung (die Welle laeuft nach RECHTS) und ein
+// aehnliches Tempo. Nur der letzte Clip endet in Ruhe; auf seinem stehenden
+// Schlussbild sitzt der Match-Cut in die App, wo die Bombe das Brett raeumt.
+const KIPPT = 'A chain reaction of toppling ivory mahjong tiles, the falling wave '
+  + 'traveling from left to right, tiles clacking one into the next.';
+export const DOMINO = {
+  'domino-anstoss': {
+    was: 'Ein Finger stoesst den ersten Stein an, die Welle laeuft los',
+    prompt: `Extreme close-up, camera at table height: a long row of standing ivory mahjong `
+      + `tiles stretches away to the right on dark polished wood. An elderly finger enters `
+      + `from the left and gently tips the first tile. ${KIPPT} The camera tracks the wave `
+      + `moving right; the hand leaves the frame after the push. ${LICHT}`,
+  },
+  'domino-lauf': {
+    was: 'Die Welle laeuft an der Laterne vorbei',
+    prompt: `Close-up, camera at table height, tracking right at the speed of the wave: `
+      + `${KIPPT} The long row curves gently past a glowing paper lantern in the background, `
+      + `the wave racing through the frame from left to right. ${LICHT}`,
+  },
+  'domino-stufe': {
+    was: 'Die Reihe faellt eine Holzstufe hinab',
+    prompt: `Close-up: a row of standing ivory mahjong tiles descends a shallow wooden temple `
+      + `step. ${KIPPT} The wave arrives from the left, cascades down the step and continues `
+      + `to the right without stopping. ${LICHT}`,
+  },
+  'domino-finale': {
+    was: 'Die letzten Steine fallen, dann Ruhe',
+    prompt: `Extreme close-up: the end of a long row of standing ivory mahjong tiles on dark `
+      + `polished wood. ${KIPPT} The wave arrives from the left and the last few tiles topple `
+      + `one by one; the final tile wobbles and falls flat with a soft clack. Then nothing `
+      + `moves — the fallen tiles rest completely still for the final two seconds, only `
+      + `incense smoke drifting. ${LICHT}`,
+  },
+};
+
+const SAETZE = {
+  vorspann: { tabelle: MOTIVE, ordner: 'vorspann' },
+  domino: { tabelle: DOMINO, ordner: 'domino' },
+};
+if (!SAETZE[SATZ]) {
+  console.error(`✗ unbekannter Satz: ${SATZ}\n  Bekannt: ${Object.keys(SAETZE).join(', ')}`);
+  process.exit(1);
+}
+const ZIEL = join(HIER, 'assets', SAETZE[SATZ].ordner);
+
 // --- Schnittstelle ----------------------------------------------------------
 const kopf = () => ({ Authorization: `Bearer ${SCHLUESSEL}`, 'Content-Type': 'application/json' });
 
@@ -146,9 +194,10 @@ async function laden(url, datei) {
 }
 
 // --- Ablauf -----------------------------------------------------------------
-const auswahl = NUR ? { [NUR]: MOTIVE[NUR] } : MOTIVE;
-if (NUR && !MOTIVE[NUR]) {
-  console.error(`✗ unbekanntes Motiv: ${NUR}\n  Bekannt: ${Object.keys(MOTIVE).join(', ')}`);
+const TABELLE = SAETZE[SATZ].tabelle;
+const auswahl = NUR ? { [NUR]: TABELLE[NUR] } : TABELLE;
+if (NUR && !TABELLE[NUR]) {
+  console.error(`✗ unbekanntes Motiv: ${NUR}\n  Bekannt: ${Object.keys(TABELLE).join(', ')}`);
   process.exit(1);
 }
 const namen = Object.keys(auswahl);

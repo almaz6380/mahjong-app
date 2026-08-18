@@ -87,6 +87,20 @@ export const FORMATE = {
       + `🤖 The temple scenes in this video were created with AI. `
       + `The gameplay is real footage from the app.`,
   },
+
+  // Der Domino-Spot (spot-domino.mjs): eine Kettenreaktion aus echten Steinen
+  // muendet in die Schlussrampe des Spiels. Gleiche Regeln wie beim `spot`:
+  // kein Gameplay-Reel, keine Hook-Karte, KI-Hinweis nur im Text — und der
+  // Hinweis muss trennen, was erzeugt ist und was echt (die Kettenreaktion ist
+  // KI, das Gameplay eine echte Aufnahme).
+  domino: {
+    hookSek: null, hook: null, hookSub: null,
+    hashtags: ['mahjong', 'mahjongsolitaire', 'dominoeffect', 'satisfying', 'chainreaction'],
+    koerper: () => `One tile. That's all it takes. 🀄\n\n`
+      + `Watch the whole board go.\n\n`
+      + `🤖 The domino scenes in this video were created with AI. `
+      + `The gameplay is real footage from the app.`,
+  },
 };
 
 // --- Plattformen ------------------------------------------------------------
