@@ -6,7 +6,7 @@ Bildmodelle, keine Stimmen, kein fal.ai.
 
 ```bash
 npm run build
-npx vite preview --port 5199 --host 127.0.0.1     # muss laufen!
+npx vite preview --port 5199 --host 127.0.0.1     # nur wenn Aufnahmen FEHLEN
 export CHROMIUM_PFAD=/opt/pw-browsers/chromium    # nur in der Cloud-Sitzung
 
 node scripts/reel/charge.mjs                      # die ganze Charge (20 Reels, ~25 min)
@@ -75,8 +75,8 @@ Hook-Karte, und beide Seiten zeigen dasselbe: Mahjong-Steine, formatfüllend.
 Das ist ein Match-Cut.
 
 ⚠ **Der Schnittpunkt jedes Clips ist ausgemessen, nicht geschätzt** — deshalb
-steht in `make-reel.mjs` eine Tabelle `VORSPAENNE` und nicht ein Dateiname. Ein
-Clip ohne Eintrag wird abgelehnt. Ein geratener Schnitt bei 2,4 s riss mitten in
+steht in `vorspaenne.mjs` eine Tabelle und nicht ein Dateiname. Ein Clip ohne
+Eintrag wird abgelehnt. Ein geratener Schnitt bei 2,4 s riss mitten in
 die Bewegung; erst der gemessene bei 2,2–6,4 s zeigt den ganzen Bogen (absenken
 → ablegen → Hand zurück → Stein steht allein). Messrezept: Bewegung je 1/5 s als
 mittlere Pixeldifferenz zweier Graustufenbilder auftragen — der Schnitt beginnt
@@ -107,10 +107,16 @@ assets/vorspann/       die kie.ai-Clips samt Prompt daneben
 
 ## Fallen, die hier schon zugeschnappt sind
 
-1. **Der Preview-Server muss wirklich laufen.** Am 11.08. war er als
-   abgekoppelter Prozess gestartet und starb nach zwei Reels; die Charge rannte
-   18 Mal in denselben Fehler. Sie prüft das jetzt vorab und bricht nach drei
-   Fehlschlägen ab.
+1. **Der Preview-Server muss laufen — aber nur, wenn Aufnahmen fehlen.** Am
+   11.08. war er als abgekoppelter Prozess gestartet und starb nach zwei Reels;
+   die Charge rannte 18 Mal in denselben Fehler. Sie prüft ihn jetzt vorab und
+   bricht nach drei Fehlschlägen ab.
+   ⚠ Die Prüfung lief bis zum 17.08. **bedingungslos** und stand damit jedem
+   Neubau im Weg: Liegen alle Rohaufnahmen vor, ist eine Charge reine
+   Nachvertonung aus den Beipackzetteln — kein Browser, keine App, kein Server.
+   Trotzdem verlangte sie `npm run build` plus laufenden Server und zwang einen
+   Lauf, der nichts aufnimmt, ausgerechnet durch die Fehlerquelle, gegen die sie
+   erfunden wurde. Sie fragt jetzt nur noch, wenn eine Aufnahme wirklich fehlt.
 2. **Zeitstempel niemals vom letzten Bild nehmen.** Der Screencast liefert nur
    bei Bildänderung — in einer Wartepause steht er still, und ein Klick bekäme
    die Zeit des letzten Bildwechsels. Die Uhr hängt deshalb an der Ankunft des
