@@ -88,6 +88,19 @@ export const FORMATE = {
       + `The gameplay is real footage from the app.`,
   },
 
+  // Das Rueckwaerts-Reel (reel-rueckwaerts.mjs): echtes Gameplay umgekehrt,
+  // die Steine fliegen zurueck aufs Brett. Die Pointe ist ein wahrer Fakt
+  // ueber den Generator (Rueckwaertskonstruktion = immer loesbar). KEIN
+  // KI-Material — die Beschreibung sagt ausdruecklich, dass es echte,
+  // umgekehrte Aufnahme ist, sonst wirkt es wie ein Trick.
+  rueckwaerts: {
+    hookSek: null, hook: null, hookSub: null,
+    hashtags: ['mahjong', 'mahjongsolitaire', 'reverse', 'oddlysatisfying', 'didyouknow'],
+    koerper: (o) => `Every board in Mahjong Royale is built backwards — `
+      + `that's why it's always solvable. 🀄\n\n`
+      + `This is real gameplay, just reversed. Level ${o.level}, ${o.paare} pairs flying home.`,
+  },
+
   // Der Domino-Spot (spot-domino.mjs): eine Kettenreaktion aus echten Steinen
   // muendet in die Schlussrampe des Spiels. Gleiche Regeln wie beim `spot`:
   // kein Gameplay-Reel, keine Hook-Karte, KI-Hinweis nur im Text — und der
