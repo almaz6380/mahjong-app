@@ -116,7 +116,36 @@ messe-vorspann.mjs     misst den Bewegungsverlauf, schlägt den Schnitt vor
 plan.mjs               welches Reel welches Format, Level und welchen Vorspann hat
 charge.mjs             fährt den Plan ab
 assets/vorspann/       die kie.ai-Clips samt Prompt daneben
+
+record-modi.mjs        fährt jeden Spielmodus an und nimmt ihn bewegt auf
+reel-modi.mjs          schneidet die Modi zum „sechs Spiele"-Reel zusammen
+spot-domino.mjs        der Domino-Spot (kie.ai-Kettenreaktion + Endrampe)
 ```
+
+### Das Modi-Reel
+
+Zwanzig Beiträge lang zeigte der Kanal **ein** Spiel. `reel-modi.mjs` ist das
+erste Format, das etwas über das Produkt erzählt: Solitaire → Paare → Connect →
+3D → Riichi → Zeit-Blitz, absteigend kürzer geschnitten (3,4 → 2,2 s), damit es
+von allein anzieht.
+
+Zwei Regeln, die dabei teuer gelernt wurden:
+
+- **Ausgewählt wird nach optischer Verschiedenheit, nicht nach Beliebtheit.**
+  Die erste Fassung hatte Connect *und* Match-3 — beides ein dichtes flaches
+  Raster aus denselben Steinen, nebeneinander liest sich das als dasselbe Spiel
+  zweimal. Genau den Eindruck soll das Reel ja widerlegen.
+- **Ein Modus, der nur seinen Zustand wechselt, ist kein Filmmaterial.**
+  Der CDP-Screencast liefert Bilder nur bei Bildänderung. Match-3 setzt mit
+  `setGrid()` das fertig aufgelöste Brett in EINEM Schritt (die CSS-Regel
+  `.m3-cell.clear` ist verwaist) — Ergebnis: rund ein Bild je Zug, eine
+  Diashow. Dasselbe gilt für 2048. Umgekehrt ist **Dimensions 3D** mit Abstand
+  das beste Material, weil sich seine Szene wirklich dreht: gemessen Ø5,99
+  Bildänderung gegen 0,3–0,8 bei allen anderen.
+
+Die Antriebe rechnen den gültigen Zug **vorher im Browser** (dieselbe Regel wie
+`canConnect`, `findMatches`, bzw. `faceId` bei Paare) und klicken dann genau
+ihn. Blind zu tippen ergab bei Connect zwei gültige Züge in neun Sekunden.
 
 ## Fallen, die hier schon zugeschnappt sind
 
@@ -160,6 +189,21 @@ assets/vorspann/       die kie.ai-Clips samt Prompt daneben
 6. **Der Erfolgs-Hinweis der App** (`.ach-toast`) hängt an
    `env(safe-area-inset-top)`, das im Browser 0 ist — ohne Korrektur klebt er
    auf der eingeblendeten Statusleiste.
+
+### Playwright: „ist da" heißt nicht „ist sichtbar"
+
+`waitForSelector` wartet von Haus aus auf **sichtbar**. `.dim-scene` ist immer
+da, hat aber keine eigene Fläche (ihre Steine sitzen absolut in einem
+3D-Raum) — Playwright meldet sie als `hidden` und der Zeitgeber läuft ab,
+während `locator('.dim-scene').count()` im selben Moment 1 liefert. Das hat
+Dimensions 3D einen halben Abend lang als „nicht aufnehmbar" erscheinen lassen.
+Auf ein Element warten, das Fläche hat (`.dim-tile`).
+
+Dazu kam ein zweiter Trugschluss: Der fehlgeschlagene Lauf wirkte wie ein
+**Hänger**. Tatsächlich war die Zusammenfassung längst gedruckt — nur stand
+`browser.close()` im Gutfall statt im `finally`, also blieb Chromium offen und
+node kam nicht zum Ende. Aufräumen gehört ins `finally`, sonst diagnostiziert
+man den Aufräumfehler als Navigationsproblem.
 
 ## Beim Hochladen
 

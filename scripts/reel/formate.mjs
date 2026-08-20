@@ -88,6 +88,19 @@ export const FORMATE = {
       + `The gameplay is real footage from the app.`,
   },
 
+  // Das Modi-Reel (reel-modi.mjs): sechs Spiele hintereinander. Kein
+  // KI-Hinweis — alles echte Bildschirmaufnahme.
+  // ⚠ Der Text muss das Versprechen des Bildes einloesen und die Frage am
+  // Ende STELLEN: „welches wuerdest du spielen" ist der Kommentar-Koeder,
+  // und Kommentare sind das Einzige, was die Auslieferung wirklich treibt.
+  modi: {
+    hookSek: null, hook: null, hookSub: null,
+    hashtags: ['mahjong', 'mahjongsolitaire', 'mobilegame', 'puzzlegame', 'gaming'],
+    koerper: () => `Six games in one app — and they're all mahjong. 🀄\n\n`
+      + `Solitaire · Memory · Connect · 3D · Riichi · Time Blitz\n\n`
+      + `Which one would you play first? 👇`,
+  },
+
   // Das Rueckwaerts-Reel (reel-rueckwaerts.mjs): echtes Gameplay umgekehrt,
   // die Steine fliegen zurueck aufs Brett. Die Pointe ist ein wahrer Fakt
   // ueber den Generator (Rueckwaertskonstruktion = immer loesbar). KEIN
