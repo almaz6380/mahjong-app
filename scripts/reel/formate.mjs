@@ -4,9 +4,12 @@
 // Videobau anzufassen. Sprache ist Englisch: Ein Kanal, groesster Markt,
 // und das Video selbst ist bis auf Hook und Abspann sprachfrei.
 //
-// ⚠ Der Abspann sagt „Free on the App Store & Google Play“. Das stimmt fuer
-// Mahjong Royale (beide Stores seit 29.7.2026). Bei Anigosha war genau dieser
-// Satz das Problem — dort gilt er nicht. Nicht gedankenlos kopieren.
+// ⚠ Der Abspann zeigt seit 21.08.2026 die BADGES beider Stores statt des
+// Satzes „Free on the App Store & Google Play“. Die Aussage ist dieselbe, nur
+// als Bild — und damit gilt dieselbe Warnung: Sie stimmt fuer Mahjong Royale
+// (beide Stores seit 29.7.2026). Bei Anigosha war genau das das Problem, dort
+// gilt sie nicht. Ein Badge ist keine Verzierung, sondern eine Behauptung ueber
+// Verfuegbarkeit — nicht gedankenlos in eine andere App kopieren.
 
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';

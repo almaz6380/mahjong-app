@@ -7,6 +7,14 @@
 // ⚠ Die Abspannkarte ist die MARKE. Sie steht deshalb genau einmal hier und
 // nicht je einmal in make-reel.mjs und spot.mjs — zwei Fassungen der Karte
 // waeren der Anfang davon, dass Reel und Spot verschieden aussehen.
+//
+// ⚠ GENAU DAS WAR BIS ZUM 21.08.2026 TROTZDEM DER FALL: `make-reel.mjs` trug
+// eine zweite, Zeichen fuer Zeichen gleiche Fassung inline (`TEXTE.outro*`).
+// Aufgefallen ist es erst, als der Abspann geaendert werden sollte — die 20
+// Charge-Reels haetten stumm den alten behalten. Geteilt wird jetzt das
+// MARKUP (`abspannHtml()`), nicht der Renderer: make-reel.mjs bringt seinen
+// eigenen Browser mit, und den umzubauen waere ein Risiko ohne Gewinn.
+// Wer die Karte anfasst, fasst sie hier an — sonst nirgends.
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -23,8 +31,77 @@ export const B = 1080, H = 1920;
 export const ABSPANN = {
   titel: 'Mahjong\nRoyale',
   sub: 'Solitaire · Connect · Riichi · 4 Players',
-  cta: 'Free on the App Store & Google Play',
+  claim: "The coolest mahjong app you've ever played — let's give it a try.",
 };
+
+// --- Store-Badges -----------------------------------------------------------
+// ⚠ NICHT NACHZEICHNEN. Apple untersagt in den Marketing-Richtlinien
+// ausdruecklich, das Badge nachzubauen, Google ebenso; ein selbstgemalter
+// schwarzer Knopf mit Apfel waere eine Markenverletzung, auch wenn er
+// identisch aussieht. Die Dateien unter `assets/badges/` sind unveraendert
+// von developer.apple.com bzw. play.google.com.
+//
+// ⚠ Die beiden sind nicht gleich gebaut: Apples SVG ist 119,66×40 und randlos,
+// Googles PNG 646×250 mit einem einbelichteten durchsichtigen Rand von 41 px
+// auf allen vier Seiten (nachgemessen). Auf dieselbe DATEIhoehe skaliert wirkt
+// Google spuerbar kleiner, weil ein Sechstel seiner Hoehe leerer Rand ist.
+// Deshalb wird ueber die SICHTBARE Flaeche (564×168) gerechnet und der Rand
+// weggeschnitten. Beide Richtlinien verlangen gleiche Hoehe nebeneinander.
+const G_RAND = 41, G_INHALT_B = 564, G_INHALT_H = 168;
+
+const b64 = (datei, typ) =>
+  `data:${typ};base64,${readFileSync(join(ASSETS, datei)).toString('base64')}`;
+
+/** Beide Badges nebeneinander, auf gleiche sichtbare Hoehe gebracht. */
+export function badges(hoehe, oben, abstand = 34) {
+  const f = hoehe / G_INHALT_H;
+  const gb = Math.round(G_INHALT_B * f), gr = Math.round(G_RAND * f);
+  return `<div style="position:absolute;left:0;top:${oben}px;width:${B}px;display:flex;
+                      justify-content:center;align-items:center;gap:${abstand}px">
+    <img src="${b64('badges/apple-app-store.svg', 'image/svg+xml')}"
+         style="height:${hoehe}px;display:block">
+    <span style="display:inline-block;position:relative;overflow:hidden;
+                 width:${gb}px;height:${hoehe}px">
+      <img src="${b64('badges/google-play.png', 'image/png')}"
+           style="position:absolute;left:${-gr}px;top:${-gr}px;
+                  width:${gb + 2 * gr}px;height:${hoehe + 2 * gr}px;display:block">
+    </span>
+  </div>`;
+}
+
+// ⚠ `logo.png` ist zu 100 % DECKEND und bringt seinen eigenen Gruenton mit
+// (#164D3C, nachgemessen), waehrend der Kartenverlauf dunkler ist. Bis zum
+// 21.08.2026 stand deshalb in JEDEM Abspann ein sichtbar hellerer Kasten
+// hinter dem Logo. Nicht freistellen: Das Bild IST das App-Icon, und ein Icon
+// darf eine eigene Flaeche haben. Runde Ecken und ein Schatten machen daraus
+// ein Icon statt einer Panne.
+const ikone = (groesse, links, oben) =>
+  `<img src="${b64('logo.png', 'image/png')}"
+        style="position:absolute;left:${links}px;top:${oben}px;
+               width:${groesse}px;height:${groesse}px;
+               border-radius:${Math.round(groesse * 0.225)}px;
+               box-shadow:0 18px 44px rgba(0,0,0,.45)">`;
+
+/**
+ * Das Markup der Abspannkarte — die eine Quelle fuer alle Bauskripte.
+ *
+ * Aufbau (Josefs Wahl vom 21.08.2026, Variante „B"): Icon → Name → Modus-Zeile
+ * → Spruch → beide Store-Badges. Die Schriftgroessen sind gegenueber der alten
+ * Karte kleiner, weil mit Spruch UND Modus-Zeile zwei Textbloecke mehr auf
+ * derselben Flaeche stehen.
+ */
+export function abspannHtml() {
+  return `<div style="position:absolute;inset:0;
+            background:linear-gradient(160deg,#123f2e,#0b2a1e 60%,#06201a)"></div>
+    ${ikone(270, 405, 420)}
+    <div class="mitte" style="top:750px;font-size:94px;font-weight:800;line-height:1.05">
+      ${ABSPANN.titel.split('\n').join('<br>')}</div>
+    <div class="mitte" style="top:1000px;font-size:34px;font-weight:500;opacity:.75">
+      ${ABSPANN.sub}</div>
+    <div class="mitte" style="top:1090px;font-size:40px;font-weight:600;line-height:1.3;opacity:.92">
+      ${ABSPANN.claim}</div>
+    ${badges(104, 1400)}`;
+}
 
 const css = () => {
   const font = readFileSync(join(ASSETS, 'outfit.woff2')).toString('base64');
@@ -58,17 +135,7 @@ export async function mitBrowser(fn) {
   }
 }
 
-/** Der deckende Abspann: Logo, Name, Modi, goldener Knopf. */
+/** Der deckende Abspann: Icon, Name, Modi, Spruch, beide Store-Badges. */
 export async function abspannKarte(schuss, datei) {
-  const logo = readFileSync(join(ASSETS, 'logo.png')).toString('base64');
-  await schuss(
-    `<div style="position:absolute;inset:0;background:linear-gradient(160deg,#123f2e,#0b2a1e 60%,#06201a)"></div>
-     <img src="data:image/png;base64,${logo}" style="position:absolute;left:390px;top:545px;width:300px;height:300px">
-     <div class="mitte" style="top:930px;font-size:104px;font-weight:800;line-height:1.05">
-       ${ABSPANN.titel.split('\n').join('<br>')}</div>
-     <div class="mitte" style="top:1200px;font-size:36px;font-weight:500;opacity:.8">${ABSPANN.sub}</div>
-     <div style="position:absolute;left:130px;top:1330px;width:820px;padding:32px 0;border-radius:999px;
-                 text-align:center;font-size:38px;font-weight:700;color:#06201a;
-                 background:linear-gradient(100deg,#ffe07a,#f5b301)">${ABSPANN.cta}</div>`,
-    datei, { width: B, height: H });
+  await schuss(abspannHtml(), datei, { width: B, height: H });
 }

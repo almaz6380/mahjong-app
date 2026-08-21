@@ -191,6 +191,31 @@ ihn. Blind zu tippen ergab bei Connect zwei gültige Züge in neun Sekunden.
    `env(safe-area-inset-top)`, das im Browser 0 ist — ohne Korrektur klebt er
    auf der eingeblendeten Statusleiste.
 
+### Der Abspann
+
+Die Abspannkarte ist die **Marke** und steht genau einmal, als `abspannHtml()`
+in `karten.mjs`. Seit 21.08.2026 zeigt sie Icon → „Mahjong Royale" →
+Modus-Zeile → Spruch → **beide Store-Badges** (Josefs Variante „B").
+
+⚠ **Sie stand bis dahin doppelt im Code** — einmal hier und noch einmal
+Zeichen für Zeichen inline in `make-reel.mjs`, das die Charge-Reels baut.
+Aufgefallen ist es erst, als der Abspann geändert werden sollte: Nur eine
+Stelle zu ändern hätte bedeutet, dass die Charge-Reels stumm den alten
+Goldbalken behalten. Geteilt wird das **Markup**, nicht der Renderer —
+`make-reel.mjs` bringt seinen eigenen Browser mit, und den umzubauen wäre ein
+Risiko ohne Gewinn. Wer die Karte anfasst, fasst sie in `karten.mjs` an.
+
+Aus demselben Grund gibt es **kein Vorschau-Skript** für Abspann-Varianten
+mehr: Es trug die Anordnung ein zweites Mal und wäre nach der ersten Änderung
+an der echten Karte veraltet gewesen — also wieder genau der Fehler, den dieser
+Abschnitt beschreibt. Für einen künftigen Vergleich baut man es in Minuten neu.
+
+Nebenbei behoben: `logo.png` ist zu 100 % deckend und bringt seinen eigenen
+Grünton mit (#164D3C), während der Kartenverlauf dunkler ist — hinter dem Logo
+stand deshalb in **jedem** bisherigen Abspann ein sichtbar hellerer Kasten.
+Nicht freigestellt, denn das Bild *ist* das App-Icon: runde Ecken und ein
+Schatten machen daraus ein Icon statt einer Panne.
+
 ### Effekte zwischen den Modi
 
 Seit 21.08.2026 liegt auf jedem Schnitt ein Effekt — auf Josefs ausdrücklichen
@@ -272,6 +297,16 @@ Steht in jeder `.txt` noch einmal, hier zum Nachschlagen:
 - **Auf Instagram den Facebook-Haken mitnehmen.** Die Mahjong-Zielgruppe ist dort
   älter und der Wettbewerb geringer als auf TikTok.
 
-⚠ Der Abspann sagt „Free on the App Store & Google Play". Das stimmt für Mahjong
-Royale (beide Stores seit 29.7.2026). **Für Anigosha gilt der Satz nicht** —
-diese Vorlage nicht ungeprüft dorthin kopieren.
+⚠ Der Abspann zeigt seit 21.08.2026 die **Badges beider Stores** statt des
+Satzes „Free on the App Store & Google Play". Die Aussage ist dieselbe, nur als
+Bild — ein Badge ist keine Verzierung, sondern eine Behauptung über
+Verfügbarkeit. Das stimmt für Mahjong Royale (beide Stores seit 29.7.2026);
+**für Anigosha gilt sie nicht** — diese Vorlage nicht ungeprüft dorthin kopieren.
+
+Die Badge-Dateien unter `assets/badges/` sind **unverändert** von
+developer.apple.com und play.google.com. ⚠ **Niemals nachzeichnen**: Apple
+untersagt das in den Marketing-Richtlinien ausdrücklich, Google ebenso. Ein
+selbstgemalter schwarzer Knopf mit Apfel ist eine Markenverletzung, auch wenn
+er identisch aussieht. Und beide müssen **gleich hoch** nebeneinander stehen —
+dafür wird Googles einbelichteter 41-px-Rand herausgerechnet, sonst wirkt sein
+Badge kleiner als Apples.

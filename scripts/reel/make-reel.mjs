@@ -19,6 +19,7 @@ import { spurRendern, melodie } from './synth.mjs';
 import { FORMATE, fakten, captionText } from './formate.mjs';
 import { browserPfad } from './browser.mjs';
 import { VORSPAENNE } from './vorspaenne.mjs';
+import { abspannHtml } from './karten.mjs';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright-core');
@@ -149,9 +150,6 @@ const TREFFER = (beiblatt.klicks ?? []).filter((k) => k.art === 'match');
 const TEXTE = {
   hook: FORMATE[FORMAT].hook,
   hookSub: FORMATE[FORMAT].hookSub ?? (FAKT ? FAKT.en : ''),
-  outroTitel: 'Mahjong\nRoyale',
-  outroSub: 'Solitaire · Connect · Riichi · 4 Players',
-  outroCta: 'Free on the App Store & Google Play',
 };
 
 if (!existsSync(CLIP)) {
@@ -185,7 +183,6 @@ const dauerVon = (datei) => new Promise((res) => {
 // kann. omitBackground liefert den Alphakanal.
 async function karten() {
   const font = readFileSync(join(ASSETS, 'outfit.woff2')).toString('base64');
-  const logo = readFileSync(join(ASSETS, 'logo.png')).toString('base64');
   const css = `
 @font-face{font-family:'Outfit';src:url(data:font/woff2;base64,${font}) format('woff2');font-weight:100 900}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -227,16 +224,12 @@ html,body{width:${B}px;height:${H}px;background:transparent;font-family:'Outfit'
     join(TMP, 'hook.png'));
 
   // Der Abspann ist deckend — er soll das Brett ersetzen, nicht überlagern.
-  await schuss(
-    `<div style="position:absolute;inset:0;background:linear-gradient(160deg,#123f2e,#0b2a1e 60%,#06201a)"></div>
-     <img src="data:image/png;base64,${logo}" style="position:absolute;left:390px;top:545px;width:300px;height:300px">
-     <div class="mitte" style="top:930px;font-size:104px;font-weight:800;line-height:1.05">
-       ${TEXTE.outroTitel.split('\n').join('<br>')}</div>
-     <div class="mitte" style="top:1200px;font-size:36px;font-weight:500;opacity:.8">${TEXTE.outroSub}</div>
-     <div style="position:absolute;left:130px;top:1330px;width:820px;padding:32px 0;border-radius:999px;
-                 text-align:center;font-size:38px;font-weight:700;color:#06201a;
-                 background:linear-gradient(100deg,#ffe07a,#f5b301)">${TEXTE.outroCta}</div>`,
-    join(TMP, 'outro.png'));
+  // ⚠ Das Markup kommt aus `karten.mjs` und steht NICHT mehr hier. Bis zum
+  // 21.08.2026 lag an dieser Stelle eine zweite, Zeichen fuer Zeichen gleiche
+  // Fassung — genau der Zustand, vor dem der Kommentar in karten.mjs warnt.
+  // Aufgefallen ist es erst, als der Abspann geaendert werden sollte: Die
+  // Charge-Reels haetten stumm den alten Goldbalken behalten.
+  await schuss(abspannHtml(), join(TMP, 'outro.png'));
 
   // Statusleiste des Handys: Uhrzeit links, Empfang/WLAN/Akku rechts, unten
   // der Home-Indikator. Damit liest sich das Video als echte Aufnahme vom
