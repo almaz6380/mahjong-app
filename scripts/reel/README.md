@@ -208,7 +208,22 @@ Risiko ohne Gewinn. Wer die Karte anfasst, fasst sie in `karten.mjs` an.
 Aus demselben Grund gibt es **kein Vorschau-Skript** für Abspann-Varianten
 mehr: Es trug die Anordnung ein zweites Mal und wäre nach der ersten Änderung
 an der echten Karte veraltet gewesen — also wieder genau der Fehler, den dieser
-Abschnitt beschreibt. Für einen künftigen Vergleich baut man es in Minuten neu.
+Abschnitt beschreibt. Varianten sind stattdessen **Parameter** von
+`abspannHtml()` (siehe `SPRACH_ZEILE`); eine Vorschau ruft dieselbe Funktion
+mehrfach mit verschiedenen Werten auf und rendert damit immer die echte Karte.
+
+Unter den Badges steht seit 21.08.2026 „Playable in 7 languages" samt Kürzeln.
+⚠ **Die Sprachliste wird aus `src/i18n.ts` GELESEN, nicht abgeschrieben**
+(`sprachen()` in `karten.mjs`, gleiches Muster wie `fakten()` in
+`formate.mjs`) — und sie **wirft**, wenn `LANGS` dort nicht mehr zu finden ist.
+Eine Kopie wäre nach der achten Sprache stillschweigend falsch, und im Abspann
+fällt das niemandem auf. Die Zahl im Text kommt aus `LANGS.length` und steht
+nirgends als Ziffer im Code. Die Kürzel sind großgeschrieben wie in der App
+selbst (`l.toUpperCase()` in `src/ui/Screens.tsx`).
+
+Die Zeile muss **untergeordnet** bleiben (klein, gedämpft): Die Karte trägt mit
+Name, Modus-Zeile, Spruch und Badges schon vier Blöcke — ein fünfter auf
+gleicher Lautstärke nimmt dem Spruch die Wirkung.
 
 Nebenbei behoben: `logo.png` ist zu 100 % deckend und bringt seinen eigenen
 Grünton mit (#164D3C), während der Kartenverlauf dunkler ist — hinter dem Logo

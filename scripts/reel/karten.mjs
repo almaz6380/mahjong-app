@@ -24,7 +24,9 @@ import { browserPfad } from './browser.mjs';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright-core');
-const ASSETS = join(dirname(fileURLToPath(import.meta.url)), 'assets');
+const HIER = dirname(fileURLToPath(import.meta.url));
+const ASSETS = join(HIER, 'assets');
+const WURZEL = join(HIER, '..', '..');
 
 export const B = 1080, H = 1920;
 
@@ -33,6 +35,39 @@ export const ABSPANN = {
   sub: 'Solitaire · Connect · Riichi · 4 Players',
   claim: "The coolest mahjong app you've ever played — let's give it a try.",
 };
+
+// Was unter den Badges steht. Die eine Stelle, an der es umgestellt wird —
+// alle fuenf Bauskripte holen die Karte ueber `abspannHtml()`.
+//
+// `label` statt `kuerzel`, weil die nackten Kuerzel zwar huebsch aussehen, das
+// VERKAUFSARGUMENT aber nicht aussprechen: „sieben Sprachen" versteht jeder
+// sofort, „PT · JA" muss man sich erst zusammenreimen. Die Kuerzel bleiben als
+// Beleg darunter stehen.
+export const SPRACH_ZEILE = 'label';   // 'kuerzel' | 'label' | null
+
+// --- Sprachen ---------------------------------------------------------------
+/**
+ * Die Sprachkuerzel fuer den Abspann — gelesen aus `src/i18n.ts`.
+ *
+ * ⚠ NICHT ABSCHREIBEN. `LANGS` in der App ist die Wahrheit; eine Kopie hier
+ * waere nach der achten Sprache stillschweigend falsch, und im Abspann faellt
+ * das niemandem auf. Dasselbe Muster nutzt `fakten()` in formate.mjs fuer die
+ * Infokarten, und aus demselben Grund WIRFT es, statt eine leere Liste
+ * zurueckzugeben: Ein Leser, der bei geaenderter Schreibweise stumm nichts
+ * findet, ist schlimmer als gar keiner.
+ *
+ * Grossbuchstaben, weil die App ihre Sprachauswahl genauso beschriftet
+ * (`l.toUpperCase()` in src/ui/Screens.tsx) — Reel und Einstellungen zeigen
+ * damit dieselben Kuerzel.
+ */
+export function sprachen() {
+  const roh = readFileSync(join(WURZEL, 'src/i18n.ts'), 'utf8');
+  const zeile = roh.match(/export const LANGS:\s*Lang\[\]\s*=\s*\[([^\]]+)\]/);
+  if (!zeile) throw new Error('LANGS nicht in src/i18n.ts gefunden — Format geaendert?');
+  const codes = [...zeile[1].matchAll(/'([a-z]{2})'/g)].map((m) => m[1].toUpperCase());
+  if (codes.length < 2) throw new Error(`nur ${codes.length} Sprachen gelesen — Format geaendert?`);
+  return codes;
+}
 
 // --- Store-Badges -----------------------------------------------------------
 // ⚠ NICHT NACHZEICHNEN. Apple untersagt in den Marketing-Richtlinien
@@ -82,6 +117,24 @@ const ikone = (groesse, links, oben) =>
                border-radius:${Math.round(groesse * 0.225)}px;
                box-shadow:0 18px 44px rgba(0,0,0,.45)">`;
 
+// ⚠ Die Sprachzeile muss UNTERGEORDNET bleiben — klein und gedaempft. Die
+// Karte traegt mit Name, Modus-Zeile, Spruch und Badges schon vier Bloecke;
+// ein fuenfter auf gleicher Lautstaerke nimmt dem Spruch die Wirkung. Er ist
+// die Botschaft, die Kuerzel sind eine Fussnote.
+function sprachZeile(art) {
+  if (!art) return '';
+  const codes = sprachen();
+  const liste = `<div class="mitte" style="top:1610px;font-size:30px;font-weight:600;
+                   letter-spacing:.10em;opacity:.55">${codes.join(' · ')}</div>`;
+  if (art === 'kuerzel') return liste;
+  if (art === 'label') {
+    // ⚠ Die Zahl kommt aus der Liste, sie steht nirgends als Ziffer im Code.
+    return `<div class="mitte" style="top:1560px;font-size:28px;font-weight:500;opacity:.45">
+              Playable in ${codes.length} languages</div>${liste}`;
+  }
+  throw new Error(`unbekannte Sprachzeile: ${art}`);
+}
+
 /**
  * Das Markup der Abspannkarte — die eine Quelle fuer alle Bauskripte.
  *
@@ -89,8 +142,14 @@ const ikone = (groesse, links, oben) =>
  * → Spruch → beide Store-Badges. Die Schriftgroessen sind gegenueber der alten
  * Karte kleiner, weil mit Spruch UND Modus-Zeile zwei Textbloecke mehr auf
  * derselben Flaeche stehen.
+ *
+ * `sprachen`: 'kuerzel' | 'label' | null — was unter den Badges steht.
+ * ⚠ Ein PARAMETER und kein zweites Skript. Fuer die Abspann-Varianten hatte
+ * ich zuvor eine eigene Vorschaudatei mit eigenem Markup gebaut — genau die
+ * Doppelung, die im selben Zug aus make-reel.mjs entfernt wurde, und deshalb
+ * ist sie wieder geflogen. So rendert eine Vorschau immer die ECHTE Karte.
  */
-export function abspannHtml() {
+export function abspannHtml({ sprachen: sprachArt = SPRACH_ZEILE } = {}) {
   return `<div style="position:absolute;inset:0;
             background:linear-gradient(160deg,#123f2e,#0b2a1e 60%,#06201a)"></div>
     ${ikone(270, 405, 420)}
@@ -100,7 +159,8 @@ export function abspannHtml() {
       ${ABSPANN.sub}</div>
     <div class="mitte" style="top:1090px;font-size:40px;font-weight:600;line-height:1.3;opacity:.92">
       ${ABSPANN.claim}</div>
-    ${badges(104, 1400)}`;
+    ${badges(104, 1400)}
+    ${sprachZeile(sprachArt)}`;
 }
 
 const css = () => {
