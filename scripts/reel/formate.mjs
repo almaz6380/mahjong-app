@@ -123,6 +123,19 @@ export const FORMATE = {
       + `This is real gameplay, just reversed. Level ${o.level}, ${o.paare} pairs flying home.`,
   },
 
+  // Das Figuren-Reel (reel-figuren.mjs): 29 Bretter im Takt, die Silhouette
+  // wechselt und waechst. Kein KI-Material — reine Bildschirmaufnahme.
+  // ⚠ Die Zahl im Text ist die GERECHNETE aus figures.ts (o.level), keine
+  // getippte: Sie ist eine Behauptung ueber das Produkt und stuende sonst in
+  // Karte, Schlussbild und Caption dreimal getrennt falsch.
+  figuren: {
+    hookSek: null, hook: null, hookSub: null,
+    hashtags: ['mahjong', 'mahjongsolitaire', 'oddlysatisfying', 'puzzlegame', 'leveldesign'],
+    koerper: (o) => `${o.level} levels. ${o.level} different boards. 🀄\n\n`
+      + `Not one of them repeats — every board is built to be solvable.\n\n`
+      + `How far do you think you'd get? 👇`,
+  },
+
   // Der Domino-Spot (spot-domino.mjs): eine Kettenreaktion aus echten Steinen
   // muendet in die Schlussrampe des Spiels. Gleiche Regeln wie beim `spot`:
   // kein Gameplay-Reel, keine Hook-Karte, KI-Hinweis nur im Text — und der

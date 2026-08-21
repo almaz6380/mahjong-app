@@ -117,6 +117,8 @@ plan.mjs               welches Reel welches Format, Level und welchen Vorspann h
 charge.mjs             fährt den Plan ab
 assets/vorspann/       die kie.ai-Clips samt Prompt daneben
 
+record-figuren.mjs     greift je Level ein Standbild des frischen Bretts ab
+reel-figuren.mjs       montiert sie zum „370 levels"-Reel
 record-modi.mjs        fährt jeden Spielmodus an und nimmt ihn bewegt auf
 reel-modi.mjs          schneidet die Modi zum „sechs Spiele"-Reel zusammen
 effekte.mjs            die Effekte auf den Schnitten samt Blitz-Obergrenzen
@@ -190,6 +192,31 @@ ihn. Blind zu tippen ergab bei Connect zwei gültige Züge in neun Sekunden.
 6. **Der Erfolgs-Hinweis der App** (`.ach-toast`) hängt an
    `env(safe-area-inset-top)`, das im Browser 0 ist — ohne Korrektur klebt er
    auf der eingeblendeten Statusleiste.
+
+### Das Figuren-Reel
+
+„370 levels. No two boards alike." — der Kanal zeigt Runden, nie den **Umfang**.
+Der Generator kennt 1392 Figuren, 370 davon werden zu Leveln, und jedes Level
+trägt eine **andere**. Das lässt sich nicht behaupten, das muss man sehen.
+
+⚠ **Das ist mit Absicht eine Diashow, und nicht derselbe Fehler wie bei
+Match-3.** Dort war die Standbildfolge ein Versehen — der Modus animiert nicht,
+also sprang das Bild je Zug und wirkte kaputt. Hier ist der Takt die *Form*:
+Man vergleicht Silhouetten, und dafür braucht es ruhige Bilder und **harte
+Schnitte**. Eine Überblendung würde zwei Formen ineinanderwaschen und genau die
+Aussage zerstören, die das Reel aufstellt.
+
+⚠ **Die Levelzahl wird gerechnet, nicht getippt.** `reel-figuren.mjs` holt sie
+über `tsx` aus `levelFigures()` in `figures.ts` und bricht ab, wenn das nicht
+geht. Sie steht in Hook-Karte, Schlusskarte und Caption — eine getippte 370
+wäre nach der nächsten Änderung an `LEVEL_MIN_TILES` oder `LEVEL_STEP` an drei
+Stellen gleichzeitig still falsch.
+
+Die Levelauswahl ist **dichter am Anfang** (zwischen 1 und 50 ändert sich die
+Form in jedem Schritt sichtbar, zwischen 300 und 370 kaum noch), und der
+Aufnehmer wirft doppelte Figuren raus — er vergleicht die tatsächliche
+Steinbelegung, nicht die Levelnummer. Ein Reel, das zweimal dasselbe Brett
+zeigt, widerlegt sich selbst.
 
 ### KI-Kennzeichnung: das Bauskript sagt es, nicht der Formatname
 
