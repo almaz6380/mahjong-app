@@ -191,10 +191,16 @@ export const PLATTFORMEN = {
   },
   facebook: {
     name: 'Facebook',
+    // ⚠ NUR HIER die getaggte Adresse. Facebook ist die einzige der drei
+    // Plattformen, auf der der Link ANGEKLICKT wird — auf Instagram und TikTok
+    // steht er zum Ablesen, und `?r=…&p=…` tippt niemand ab. Eine Kennung, die
+    // niemand aufruft, misst nichts und macht die Zeile nur unleserlich.
+    // Fuer Bio-Link und bezahlte Anzeigen wird die Adresse von Hand gebaut,
+    // siehe store/kampagnen-links.md.
     text: (f, o) => `${f.koerper(o)}\n\n`
       + `Mahjong Royale is free on iOS and Android — Solitaire, Connect, Riichi and `
       + `4-player mahjong. 370 levels, ${SPRACHZAHL} languages, no account needed.`
-      + `\n\n👉 ${LINK}`,
+      + `\n\n👉 ${LINK}?r=${o.format}&p=fb`,
     tags: (f) => f.hashtags.slice(0, 2),
   },
 };
@@ -223,10 +229,13 @@ export function captionText(format, o) {
     throw new Error(`captionText('${format}'): \`ki\` fehlt — das Bauskript muss `
       + `angeben, ob KI-Material im Video steckt (true/false).`);
   }
+  // Der Formatname wandert mit — die Facebook-Fassung baut daraus die
+  // Kampagnen-Kennung (`?r=<format>`), und `o` allein kennt ihn nicht.
+  const daten = { ...o, format };
   const abschnitt = (p) => [
     `## ${p.name}`,
     '',
-    p.text(f, o),
+    p.text(f, daten),
     '',
     p.tags(f).map((h) => `#${h}`).join(' '),
     '',

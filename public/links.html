@@ -131,6 +131,56 @@
   </div>
 
   <script>
+    // --- Kampagnen-Kennung -------------------------------------------------
+    // Beide Stores koennen OHNE SDK sagen, woher eine Installation kam: Play
+    // ueber einen `referrer` mit UTM-Feldern, Apple ueber Kampagnen-Tokens in
+    // App Analytics. Diese Seite haengt sie an, gelesen aus der eigenen
+    // Adresse:  links.html?r=<reel>&p=<plattform>
+    //
+    // ⚠ NUR wo der Link auch angeklickt wird. Auf Instagram und TikTok steht
+    // die Adresse in der Beschreibung zum ABLESEN — dort bleibt sie sauber,
+    // eine URL mit Parametern tippt niemand ab. Gemessen werden also der
+    // Facebook-Text, der Link in der Bio und das Ziel einer bezahlten Anzeige.
+    //
+    // ⚠ `pt` ist Apples Provider-Token und steht in App Store Connect unter
+    // Analytics → Campaigns. Ich kann ihn nicht erfinden. Solange er LEER ist,
+    // bleibt der Apple-Link unveraendert — lieber keine Messung als ein
+    // kaputter Store-Link.
+    var APPLE_PT = '';
+
+    (function () {
+      // ⚠ `r` und `p` kommen aus der Adresszeile, also aus fremder Hand, und
+      // werden in eine ANDERE Adresse eingesetzt. Ungefiltert liesse sich
+      // damit ein zusaetzlicher Parameter einschmuggeln oder die Store-URL
+      // zerlegen. Deshalb: nur Kleinbuchstaben, Ziffern, Strich, Unterstrich,
+      // und hart gekappt.
+      function sauber(wert, ersatz) {
+        var v = String(wert || '').toLowerCase().replace(/[^a-z0-9_-]/g, '');
+        return v ? v.slice(0, 24) : ersatz;
+      }
+
+      var q = new URLSearchParams(location.search);
+      var reel = sauber(q.get('r'), 'organic');
+      var quelle = sauber(q.get('p'), 'direct');
+
+      var ios = document.getElementById('ios');
+      var apk = document.getElementById('android');
+
+      // Play: die UTM-Felder stecken KODIERT im `referrer`-Parameter — das ist
+      // das Format, das Play erwartet und in den Akquisitionsberichten
+      // auswertet. Ein zweites `?` gaebe es nicht, die Adresse hat schon eins.
+      var referrer = 'utm_source=' + quelle + '&utm_medium=reel&utm_campaign=' + reel;
+      apk.href += '&referrer=' + encodeURIComponent(referrer);
+
+      // Apple: `ct` ist frei (max. 40 Zeichen), `pt` identifiziert den
+      // Entwickler, `mt=8` steht fuer App.
+      if (APPLE_PT) {
+        var ct = (quelle + '-' + reel).slice(0, 40);
+        ios.href += '?pt=' + encodeURIComponent(APPLE_PT)
+                  + '&ct=' + encodeURIComponent(ct) + '&mt=8';
+      }
+    })();
+
     // Den Knopf der erkannten Plattform nach oben und golden hervorheben.
     // Bewusst nur eine Hervorhebung, KEINE Weiterleitung: Ein automatischer
     // Sprung in den Store wirkt wie eine Falle und kostet auf TikTok/Instagram
