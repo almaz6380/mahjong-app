@@ -473,9 +473,16 @@ läuft `setze_texte()` in `play-upload.py` über **alle sieben Sprachen** aus
 `store/store-texte.json`; `--lang` gilt nur für BILDER (Screenshots, Icon,
 Vorstellungsgrafik), nicht für `--texte`. Der alte Satz stammt aus der Zeit vor
 dem 11.08., als die Store-Texte auf eine Quelle vereinheitlicht wurden.
-**Den Live-Stand nie raten, sondern nachsehen:** Workflow „Store-Texte" mit
-`ziel: nur-play`, `schreiben: false` — der Trockenlauf sendet nichts und druckt
-je Sprache `unveraendert` oder den Unterschied.
+**Belegt, nicht vermutet:** Das Protokoll des erfolgreichen Laufs vom 11.08.
+(Actions-Run 31532280863) zeigt „committet — im Play-Eintrag jetzt sichtbar"
+je Sprache, und der Grafik-Schritt zaehlt die Sprachfassungen auf, die Play
+selbst meldet: **de-DE, es-ES, pt-BR, fr-FR, it-IT, ja-JP, en-US**. Alle
+sieben sind live.
+**Den Live-Stand trotzdem nie raten, sondern nachsehen:** Workflow
+„Store-Texte" mit `ziel: nur-play`, `schreiben: false` — der Trockenlauf
+sendet nichts und druckt je Sprache `unveraendert` oder den Unterschied.
+Genauso gut: das Protokoll eines frueheren Laufs lesen, das kostet keine
+Actions-Minuten.
 Wenn 403 „PERMISSION_DENIED": SA hat für die App
 noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail einladen) Admin-Recht geben.
 
