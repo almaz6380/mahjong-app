@@ -191,6 +191,32 @@ ihn. Blind zu tippen ergab bei Connect zwei gültige Züge in neun Sekunden.
    `env(safe-area-inset-top)`, das im Browser 0 ist — ohne Korrektur klebt er
    auf der eingeblendeten Statusleiste.
 
+### Der Tempel-Vorspann des Modi-Reels
+
+Seit 21.08.2026 beginnt das Modi-Reel mit dem Jungen vor dem Tempeltor
+(`tempel-tor.mp4`), dann einer Nahaufnahme der Steine, dann erst der App.
+
+⚠ **Die mittlere Szene ist kein Schmuck, sie ist der Grund, warum es trägt.**
+Der erste Anlauf mit den Tempel-Szenen ist genau daran gescheitert, dass Film
+und flache App-Oberfläche **kein gemeinsames Motiv** haben: Ein Junge vor einem
+Tor und ein Spielbrett teilen sich kein einziges Element, und eine längere
+Blende verlangsamt denselben Bruch nur. Die Stein-Nahaufnahme dazwischen ist
+die Brücke — der Film endet formatfüllend auf Steinen, das Brett fängt mit
+Steinen an. Wer sie herausnimmt, holt sich den alten Bruch zurück.
+
+⚠ **Nicht in die Tempelszene hineinzoomen**, obwohl dort Steine auf dem Tisch
+liegen: Die Quelle ist 720×1280, der Steinstapel darin keine 400 px hoch.
+Formatfüllend hieße fast dreifach hochskalieren — matt und weich genau in dem
+Bild, das die Schärfe der App verkaufen soll. `steine-legen` liegt in voller
+Auflösung bereit und hat einen gemessenen Schnittpunkt.
+
+Die Kette rechnet seitdem über eine **Teileliste** (`TEILE`/`UEBERGAENGE`)
+statt über „Hook + Segmente + Abspann". Sonst müsste jede Zeitrechnung den Film
+als Sonderfall kennen, und genau so entstehen zwei Rechenwege, die
+auseinanderlaufen. Ein Riegel prüft, dass es zu *n* Teilen *n−1* Übergänge gibt.
+Auf den Filmschnitten liegt **kein** Steinklang (dort klickt nichts), wohl aber
+ein Whoosh in die Hook-Karte.
+
 ### Der Abspann
 
 Die Abspannkarte ist die **Marke** und steht genau einmal, als `abspannHtml()`

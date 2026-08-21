@@ -20,6 +20,7 @@ import {
   EFFEKTE, UEBERGROESSE, MIN_BLITZ_ABSTAND, MAX_BLITZ_ALPHA,
   pruefeAmplituden, ruckelAusdruck, grafikHtml, grafikBahn,
 } from './effekte.mjs';
+import { VORSPAENNE } from './vorspaenne.mjs';
 
 const HIER = dirname(fileURLToPath(import.meta.url));
 const WURZEL = join(HIER, '..', '..');
@@ -75,10 +76,43 @@ const SEGMENTE = [
 // ⚠ Die Blende steht jetzt AM EFFEKT, nicht mehr global: Unter einer
 // deckenden Grafik ist eine Ueberblendung nur Matsch. `BLENDE` gilt nur noch
 // fuer den Einstieg aus der Hook-Karte, wo kein Effekt liegt.
+// --- Vorspann ---------------------------------------------------------------
+// Der Junge vor dem Tempeltor, dann eine Nahaufnahme der Steine, dann die App.
+//
+// ⚠ DIE MITTLERE SZENE IST NICHT SCHMUCK, SIE IST DER GRUND, WARUM ES TRAEGT.
+// Der erste Anlauf mit den Tempel-Szenen ist genau daran gescheitert, dass
+// Film und flache App-Oberflaeche KEIN GEMEINSAMES MOTIV haben: Ein Junge vor
+// einem Tor und ein Spielbrett teilen sich kein einziges Element, und eine
+// laengere Blende verlangsamt denselben Bruch nur. Die Stein-Nahaufnahme
+// dazwischen ist die Bruecke — der Film endet formatfuellend auf Steinen, das
+// Brett faengt mit Steinen an. Das ist der Match-Cut, der die sieben anderen
+// Vorspaenne traegt.
+//
+// ⚠ Und deshalb wird NICHT in die Tempelszene hineingezoomt, obwohl dort
+// Steine auf dem Tisch liegen: Die Quelle ist 720×1280, der Steinstapel darin
+// keine 400 px hoch. Formatfuellend hiesse fast dreifach hochskalieren — matt
+// und weich genau in dem Bild, das die Schaerfe der App verkaufen soll.
+// `steine-legen` liegt in voller Aufloesung bereit und ist gemessen.
+const VORSPANN = [
+  { datei: 'tempel-tor.mp4', ab: 0.6, sek: 2.8, blende: 'fade', blendeSek: 0.5 },
+  // Schnittpunkt aus der gemessenen Tabelle, nicht geraten (messe-vorspann.mjs).
+  { datei: 'steine-legen.mp4', ab: VORSPAENNE['steine-legen'].ab, sek: 2.4,
+    blende: 'fade', blendeSek: 0.45 },
+];
+
 const BLENDE = 0.28;
 const HOOK_SEK = 1.6;
 const ABSPANN_SEK = 3.0;
 const BLENDE_ENDE = 0.5;
+
+// Vorspann-Szenen pruefen, bevor ffmpeg mit einer unverstaendlichen Meldung
+// aussteigt — eine fehlende Datei ist der wahrscheinlichste Fehler hier.
+const fehlenderFilm = VORSPANN.filter((v) => !existsSync(join(ASSETS, 'vorspann', v.datei)));
+if (fehlenderFilm.length) {
+  console.error(`✗ Vorspann-Szenen fehlen: ${fehlenderFilm.map((v) => v.datei).join(', ')}`);
+  console.error(`  Erwartet unter ${join(ASSETS, 'vorspann')}`);
+  process.exit(1);
+}
 
 const fehlend = SEGMENTE.filter((s) => !existsSync(join(QUELLE, s.datei)));
 if (fehlend.length) {
@@ -156,6 +190,19 @@ for (const [i, s] of SEGMENTE.entries()) {
   ]);
 }
 
+// Vorspann-Szenen auf Reelformat bringen. `-an`: Der Ton der Filmszenen
+// bleibt draussen — der Reel-Ton ist durchkomponiert (Teppich, Whoosh,
+// Aufprall), und eine mitgelieferte KI-Tonspur laeuft dagegen.
+for (const [i, v] of VORSPANN.entries()) {
+  await lauf([
+    '-y', '-ss', String(v.ab), '-t', String(v.sek),
+    '-i', join(ASSETS, 'vorspann', v.datei),
+    '-vf', `scale=${B}:${H}:force_original_aspect_ratio=increase,crop=${B}:${H},fps=${FPS}`,
+    '-an', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19',
+    join(TMP, `f${i}.mp4`),
+  ]);
+}
+
 await lauf(['-y', '-loop', '1', '-t', String(HOOK_SEK), '-i', join(TMP, 'hook.png'),
   '-vf', `fps=${FPS},format=yuv420p`, '-c:v', 'libx264', '-preset', 'medium', '-crf', '19',
   join(TMP, 'hook.mp4')]);
@@ -168,47 +215,66 @@ await lauf(['-y', '-loop', '1', '-t', String(ABSPANN_SEK), '-i', join(TMP, 'absp
 // Zeitbasen mit, und xfade lehnt das mit „do not match … Failed to configure
 // output pad" ab — eine Meldung, die den Filter nennt, nicht die Ursache.
 console.log('Zusammensetzen …');
-const eingaben = ['-i', join(TMP, 'hook.mp4')];
-SEGMENTE.forEach((_, i) => eingaben.push('-i', join(TMP, `s${i}.mp4`)));
-eingaben.push('-i', join(TMP, 'abspann.mp4'));
 
-const ketten = [];
-const n = SEGMENTE.length + 2;                     // Hook + Segmente + Abspann
-for (let i = 0; i < n; i++) ketten.push(`[${i}:v]settb=AVTB[k${i}]`);
+// Alle Teile in Reihenfolge, mit ihrer Laenge. Frueher stand hier fest
+// „Hook + Segmente + Abspann"; seit der Vorspann davorliegt, ist es eine
+// LISTE — sonst muesste jede Zeitrechnung den Film als Sonderfall kennen,
+// und genau so entstehen zwei Rechenwege, die auseinanderlaufen.
+const TEILE = [
+  ...VORSPANN.map((v, i) => ({ datei: join(TMP, `f${i}.mp4`), sek: v.sek })),
+  { datei: join(TMP, 'hook.mp4'), sek: HOOK_SEK },
+  ...SEGMENTE.map((s, i) => ({ datei: join(TMP, `s${i}.mp4`), sek: s.sek })),
+  { datei: join(TMP, 'abspann.mp4'), sek: ABSPANN_SEK },
+];
 
-// Die Uebergaenge zuerst als Liste — jeder bringt seine EIGENE Dauer mit,
-// weil unter einem deckenden Effekt ein harter Schnitt sitzt und unter der
-// Hook-Karte eine weiche Blende.
+// Ein Uebergang je Luecke — jeder mit seiner EIGENEN Dauer, weil unter einem
+// deckenden Effekt ein harter Schnitt sitzt, unter der Hook-Karte eine weiche
+// Blende und zwischen zwei Filmszenen eine lange.
+//
+// `ton`: ob auf dem Schnitt ein Steinklang liegt. Auf den FILMSCHNITTEN nicht —
+// dort klickt nichts, ein Steinklang ueber einer Kamerafahrt klingt nach
+// Tonfehler.
 //
 // ⚠ Die Rechnung braucht die Dauer des NAECHSTEN Uebergangs, nicht des
 // eigenen: Ein xfade muss so weit vor dem Ende des laufenden Materials
 // beginnen, dass er genau mit ihm fertig wird. Solange alle Blenden gleich
 // lang waren, fiel der Unterschied nicht auf — mit gemischten Dauern schoebe
 // die alte Formel jeden Schnitt um die Differenz.
-const UEBERGAENGE = [{ blende: 'fade', sek: BLENDE, effekt: null }];
+const UEBERGAENGE = [
+  ...VORSPANN.map((v) => ({ blende: v.blende, sek: v.blendeSek, effekt: null, ton: false })),
+  { blende: 'fade', sek: BLENDE, effekt: null, ton: true },        // Hook → erstes Segment
+];
 for (let i = 1; i < SEGMENTE.length; i++) {
   const e = EFFEKTE[SEGMENTE[i - 1].effekt];
   if (!e) throw new Error(`Segment ${i - 1} (${SEGMENTE[i - 1].titel}) ohne Effekt`);
-  UEBERGAENGE.push({ blende: e.blende, sek: e.blendeSek, effekt: e });
+  UEBERGAENGE.push({ blende: e.blende, sek: e.blendeSek, effekt: e, ton: true });
 }
-UEBERGAENGE.push({ blende: 'fadeblack', sek: BLENDE_ENDE, effekt: null });
+UEBERGAENGE.push({ blende: 'fadeblack', sek: BLENDE_ENDE, effekt: null, ton: false });
+
+if (UEBERGAENGE.length !== TEILE.length - 1) {
+  throw new Error(`${TEILE.length} Teile brauchen ${TEILE.length - 1} Uebergaenge, `
+    + `es sind ${UEBERGAENGE.length}`);
+}
+
+const eingaben = TEILE.flatMap((t) => ['-i', t.datei]);
+const ketten = TEILE.map((_, i) => `[${i}:v]settb=AVTB[k${i}]`);
 
 const schnitte = [];
 let vorn = '[k0]';
-let versatz = HOOK_SEK - UEBERGAENGE[0].sek;
-for (let i = 0; i < SEGMENTE.length; i++) {
+let versatz = TEILE[0].sek - UEBERGAENGE[0].sek;
+let abspannAb = 0;
+for (let i = 0; i < UEBERGAENGE.length; i++) {
   const u = UEBERGAENGE[i];
-  schnitte.push({ ab: versatz, sek: u.sek, effekt: u.effekt });
-  const aus = i === SEGMENTE.length - 1 ? 'vv' : `c${i}`;
+  const letzter = i === UEBERGAENGE.length - 1;
+  if (letzter) abspannAb = versatz;
+  schnitte.push({ ab: versatz, sek: u.sek, effekt: u.effekt, ton: u.ton });
+  const aus = letzter ? 'vv' : `c${i}`;
   ketten.push(`${vorn}[k${i + 1}]xfade=transition=${u.blende}:duration=${u.sek}`
     + `:offset=${versatz.toFixed(3)}[${aus}]`);
   vorn = `[${aus}]`;
-  versatz += SEGMENTE[i].sek - UEBERGAENGE[i + 1].sek;
+  if (!letzter) versatz += TEILE[i + 1].sek - UEBERGAENGE[i + 1].sek;
 }
-const abspannAb = versatz;
-const letzte = UEBERGAENGE[UEBERGAENGE.length - 1];
-ketten.push(`${vorn}[k${n - 1}]xfade=transition=${letzte.blende}`
-  + `:duration=${letzte.sek}:offset=${abspannAb.toFixed(3)},fps=${FPS},format=yuv420p[v]`);
+ketten.push(`[vv]fps=${FPS},format=yuv420p[v]`);
 const dauer = abspannAb + ABSPANN_SEK;
 
 await lauf(['-y', ...eingaben, '-filter_complex', ketten.join(';'),
@@ -308,7 +374,7 @@ const AUFPRALL = [
   [136, 0.11, 'triangle', 0.22, 0],
   [41, 0.26, 'sine', 0.30, 0.01],
 ];
-const takt = schnitte.map((c) => ({ t: c.ab + c.sek / 2, klang: 'match' }))
+const takt = schnitte.filter((c) => c.ton).map((c) => ({ t: c.ab + c.sek / 2, klang: 'match' }))
   .concat(fenster.map((f) => ({ t: f.mitte, stimme: AUFPRALL })))
   .concat([{ t: abspannAb + BLENDE_ENDE / 2, klang: 'win', vol: 1.15 }]);
 const taktSpur = join(TMP, 'takt.wav');
@@ -325,10 +391,16 @@ const tonKetten = [
   `[2:a]volume=1.1[takt]`,
 ];
 const tonNamen = ['[bed]', '[o]', '[takt]'];
-fenster.forEach((f, i) => {
+// Whoosh auf jedem Effektschnitt — und einmal auf dem Uebergang vom Film in
+// die Hook-Karte, damit der Einstieg Schwung bekommt statt nur zu verblassen.
+const whooshZeiten = [
+  ...(VORSPANN.length ? [schnitte[VORSPANN.length - 1].ab + schnitte[VORSPANN.length - 1].sek / 2] : []),
+  ...fenster.map((f) => f.mitte),
+];
+whooshZeiten.forEach((mitte, i) => {
   const nr = tonEin.length / 2;
   tonEin.push('-i', sfx('whoosh'));
-  const t = Math.max(0, f.mitte - WHOOSH_VOR);
+  const t = Math.max(0, mitte - WHOOSH_VOR);
   tonKetten.push(`[${nr}:a]adelay=${ms(t)}|${ms(t)},volume=0.55[w${i}]`);
   tonNamen.push(`[w${i}]`);
 });
