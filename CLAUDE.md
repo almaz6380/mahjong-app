@@ -464,7 +464,19 @@ SA-JWT RS256 → `oauth2.googleapis.com/token` (scope androidpublisher) → Bear
 Edit-Transaktion: `POST /upload/androidpublisher/v3/applications/{pkg}/edits/{eid}/bundles?uploadType=media`
 (AAB → versionCode) → Bilder `DELETE` + `POST /upload/.../listings/de-DE/{phoneScreenshots|sevenInchScreenshots|icon}?uploadType=media`
 → `PUT /edits/{eid}/tracks/production` {release name, versionCodes, status:"completed", releaseNotes}
-→ `:validate` → `:commit`. **Play-Listing nur de-DE.** Wenn 403 „PERMISSION_DENIED": SA hat für die App
+→ `:validate` → `:commit`.
+⚠ **Der Play-Eintrag ist SIEBENSPRACHIG, nicht nur de-DE** — hier stand bis zum
+21.08.2026 das Gegenteil, und der Satz hat einmal fast zu einer überflüssigen
+Änderung an einem Live-Store geführt: Aus „nur de-DE" plus der Beobachtung, dass
+die meisten Nutzer in den USA sitzen, wird schnell ein Fehlschluss. Tatsächlich
+läuft `setze_texte()` in `play-upload.py` über **alle sieben Sprachen** aus
+`store/store-texte.json`; `--lang` gilt nur für BILDER (Screenshots, Icon,
+Vorstellungsgrafik), nicht für `--texte`. Der alte Satz stammt aus der Zeit vor
+dem 11.08., als die Store-Texte auf eine Quelle vereinheitlicht wurden.
+**Den Live-Stand nie raten, sondern nachsehen:** Workflow „Store-Texte" mit
+`ziel: nur-play`, `schreiben: false` — der Trockenlauf sendet nichts und druckt
+je Sprache `unveraendert` oder den Unterschied.
+Wenn 403 „PERMISSION_DENIED": SA hat für die App
 noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail einladen) Admin-Recht geben.
 
 ## Store-Koordinaten
