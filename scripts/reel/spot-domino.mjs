@@ -230,6 +230,7 @@ rmSync(TMP, { recursive: true, force: true });
 const echt = await dauerVon(ziel);
 
 writeFileSync(join(OUT, `${NAME}.txt`), captionText('domino', {
+  ki: true,                     // die Kettenreaktion ist erzeugt
   datei: `${NAME}.mp4`, level: beiblatt.level ?? '-', paare: beiblatt.paare ?? '-',
   spielSek: spielSek.toFixed(0), gesamtSek: echt.toFixed(0), fakt: null,
 }));

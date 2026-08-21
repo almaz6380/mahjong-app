@@ -423,6 +423,7 @@ rmSync(TMP, { recursive: true, force: true });
 const echt = await dauerVon(ziel);
 
 writeFileSync(join(OUT, `${NAME}.txt`), captionText('modi', {
+  ki: VORSPANN.length > 0,      // Tempel-Vorspann
   datei: `${NAME}.mp4`, level: '-', paare: '-',
   spielSek: SEGMENTE.reduce((a, s) => a + s.sek, 0).toFixed(0),
   gesamtSek: echt.toFixed(0), fakt: null,

@@ -176,6 +176,7 @@ rmSync(TMP, { recursive: true, force: true });
 const echt = await dauerVon(ziel);
 
 writeFileSync(join(OUT, `${NAME}.txt`), captionText('rueckwaerts', {
+  ki: false,                    // reine, umgekehrte Bildschirmaufnahme
   datei: `${NAME}.mp4`, level: beiblatt.level, paare: beiblatt.paare,
   spielSek: spielLang.toFixed(0), gesamtSek: echt.toFixed(0), fakt: null,
 }));

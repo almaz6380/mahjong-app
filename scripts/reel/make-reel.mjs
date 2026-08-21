@@ -521,6 +521,8 @@ await lauf([
 // Caption + Hashtags daneben. Auf dem Handy gibt es keinen Dateimanager und
 // keine Lust, sich Text auszudenken — die Datei ist zum Kopieren gedacht.
 writeFileSync(join(OUT, `${basis}.txt`), captionText(FORMAT, {
+  // Der Vorspann ist kie.ai-Material — ohne ihn steckt keins im Video.
+  ki: !!VORSPANN,
   datei: `${basis}.mp4`,
   level: beiblatt.level ?? '?',
   paare: beiblatt.paare ?? '?',

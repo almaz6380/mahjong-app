@@ -191,6 +191,28 @@ ihn. Blind zu tippen ergab bei Connect zwei gültige Züge in neun Sekunden.
    `env(safe-area-inset-top)`, das im Browser 0 ist — ohne Korrektur klebt er
    auf der eingeblendeten Statusleiste.
 
+### KI-Kennzeichnung: das Bauskript sagt es, nicht der Formatname
+
+⚠ **Hier war einmal eine Regel still falsch, und das war schädlicher als gar
+keine.** Der Hochlade-Hinweis auf den plattformeigenen KI-Schalter hing am
+Formatnamen (`format === 'spot'`) und begründete das mit „die Gameplay-Reels
+enthalten kein KI-Material". Das stimmte, als es geschrieben wurde. Seit dem
+17.08.2026 trägt aber **jedes** Charge-Reel einen kie.ai-Vorspann
+(`vorspannFuer()` in `plan.mjs`) und seit dem 21.08. das Modi-Reel den
+Tempel-Vorspann — die Datei riet also aktiv davon ab, vorhandenes KI-Material
+zu kennzeichnen, zwei Zeilen unter ihrer eigenen Begründung, warum das schlecht
+ausgeht („sieht es nach Vertuschen aus").
+
+Seitdem übergibt **das Bauskript** `ki: true|false` an `captionText()` — nur es
+weiß, ob ein Vorspann mitgeschnitten wurde. Fehlt die Angabe, **wirft** es.
+`check-captions.mjs` prüft alle drei Fälle, damit die Regel nicht ein zweites
+Mal unbemerkt veraltet.
+
+Der Kennzeichnungssatz im *Beschreibungstext* bleibt dagegen bei `spot` und
+`domino`, wo KI-Material die Geschichte trägt. Ein 2,8-s-Vorspann in einem
+25-s-Reel rechtfertigt keinen eigenen Absatz — dafür ist der Plattform-Schalter
+das stärkere Mittel.
+
 ### Der Tempel-Vorspann des Modi-Reels
 
 Seit 21.08.2026 beginnt das Modi-Reel mit dem Jungen vor dem Tempeltor

@@ -276,6 +276,7 @@ const echt = await dauerVon(ziel);
 
 // Beschreibung daneben — wie beim Reel, mit den drei Plattform-Fassungen.
 writeFileSync(join(OUT, `${NAME}.txt`), captionText('spot', {
+  ki: true,                     // die Tempelszenen sind erzeugt
   datei: `${NAME}.mp4`, level: '-', paare: '-',
   spielSek: BRETT_SEK.toFixed(0), gesamtSek: echt.toFixed(0), fakt: null,
 }));

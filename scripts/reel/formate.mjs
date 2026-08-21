@@ -14,6 +14,7 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { sprachen } from './karten.mjs';
 
 const HIER = dirname(fileURLToPath(import.meta.url));
 const WURZEL = join(HIER, '..', '..');
@@ -91,8 +92,13 @@ export const FORMATE = {
       + `The gameplay is real footage from the app.`,
   },
 
-  // Das Modi-Reel (reel-modi.mjs): sechs Spiele hintereinander. Kein
-  // KI-Hinweis — alles echte Bildschirmaufnahme.
+  // Das Modi-Reel (reel-modi.mjs): sechs Spiele hintereinander.
+  // ⚠ Kein KI-Satz im Text, obwohl seit 21.08.2026 ein KI-Vorspann davorliegt:
+  // Ein 2,8-s-Vorspann in einem 25-s-Reel rechtfertigt keinen eigenen Absatz.
+  // Die Kennzeichnung traegt hier der PLATTFORM-SCHALTER (`ki: true` beim
+  // Bauen), und der zaehlt ohnehin mehr als eine Zeile Beschreibungstext.
+  // Bei `spot` und `domino` ist es umgekehrt — dort traegt KI-Material die
+  // Geschichte, deshalb steht der Satz zusaetzlich im Koerper.
   // ⚠ Der Text muss das Versprechen des Bildes einloesen und die Frage am
   // Ende STELLEN: „welches wuerdest du spielen" ist der Kommentar-Koeder,
   // und Kommentare sind das Einzige, was die Auslieferung wirklich treibt.
@@ -148,26 +154,34 @@ export const FORMATE = {
 // deshalb in voller Form mit `https://` hinein.
 export const LINK = 'https://mahjong-app-plum.vercel.app/links.html';
 
+// ⚠ Die Zahl wird GELESEN, nicht getippt: `sprachen()` holt `LANGS` aus
+// src/i18n.ts und wirft, wenn es dort nicht mehr steht. Eine getippte Sieben
+// waere nach der achten Sprache still falsch — in zwanzig Captions gleichzeitig.
+// Steht seit 21.08.2026 auch im Abspann; hier erreicht es zusaetzlich die
+// Leute, die das Video stumm wegwischen.
+const SPRACHZAHL = sprachen().length;
+
 export const PLATTFORMEN = {
   instagram: {
     name: 'Instagram',
-    text: (f, o) => `${f.koerper(o)}\n\nMahjong Royale — free on iOS & Android\n`
-      + `${LINK.replace('https://', '')}`,
+    text: (f, o) => `${f.koerper(o)}\n\nMahjong Royale — free on iOS & Android`
+      + ` · ${SPRACHZAHL} languages\n${LINK.replace('https://', '')}`,
     tags: (f) => f.hashtags,
   },
   tiktok: {
     name: 'TikTok',
     // Einfache statt doppelter Umbrueche: Im TikTok-Feld ist wenig Platz, und
     // die ersten Zeilen entscheiden, ob jemand „mehr“ antippt.
-    text: (f, o) => `${f.koerper(o).replace(/\n\n/g, '\n')}\nFree on iOS & Android\n`
-      + `${LINK.replace('https://', '')}`,
+    text: (f, o) => `${f.koerper(o).replace(/\n\n/g, '\n')}`
+      + `\nFree on iOS & Android · ${SPRACHZAHL} languages\n${LINK.replace('https://', '')}`,
     tags: (f) => f.hashtags,
   },
   facebook: {
     name: 'Facebook',
     text: (f, o) => `${f.koerper(o)}\n\n`
       + `Mahjong Royale is free on iOS and Android — Solitaire, Connect, Riichi and `
-      + `4-player mahjong. 370 levels, no account needed.\n\n👉 ${LINK}`,
+      + `4-player mahjong. 370 levels, ${SPRACHZAHL} languages, no account needed.`
+      + `\n\n👉 ${LINK}`,
     tags: (f) => f.hashtags.slice(0, 2),
   },
 };
@@ -175,8 +189,27 @@ export const PLATTFORMEN = {
 // --- Caption-Datei ----------------------------------------------------------
 // Neben jedes Video eine .txt: Caption zum Kopieren, Hashtags, und die
 // Hinweise, die man beim Hochladen sonst vergisst.
+/**
+ * @param o.ki  Ob im fertigen Video KI-Material steckt. Das BAUSKRIPT sagt es,
+ *              nicht diese Datei — nur es weiss, ob ein Vorspann oder eine
+ *              Filmszene mitgeschnitten wurde.
+ *
+ * ⚠ HIER STAND EINE FALSCHE REGEL, und sie war schaedlicher als gar keine.
+ * Der Hinweis hing am Formatnamen (`format === 'spot'`) und begruendete das
+ * mit „die Gameplay-Reels enthalten kein KI-Material". Das stimmte, als es
+ * geschrieben wurde — seit dem 17.08.2026 traegt aber JEDES Charge-Reel einen
+ * kie.ai-Vorspann (`vorspannFuer()` in plan.mjs) und seit dem 21.08. das
+ * Modi-Reel den Tempel-Vorspann. Die Datei riet also aktiv davon ab,
+ * vorhandenes KI-Material zu kennzeichnen — und begruendete zwei Zeilen
+ * darueber selbst, warum das schlecht ausgeht.
+ * Deshalb wird die Frage jetzt nicht mehr geraten, sondern uebergeben.
+ */
 export function captionText(format, o) {
   const f = FORMATE[format];
+  if (o.ki === undefined) {
+    throw new Error(`captionText('${format}'): \`ki\` fehlt — das Bauskript muss `
+      + `angeben, ob KI-Material im Video steckt (true/false).`);
+  }
   const abschnitt = (p) => [
     `## ${p.name}`,
     '',
@@ -203,14 +236,13 @@ export function captionText(format, o) {
     '  Website-Feld. Instagram als Creator-Konto — dort ist der Link ohnehin frei.',
     '- Auf Instagram den Haken für Facebook mitnehmen. Die Zielgruppe für',
     '  Mahjong ist dort älter und der Wettbewerb geringer.',
-    ...(format === 'spot' ? [
-      '- ⚠ NUR beim Spot: in der App den Schalter für KI-GENERIERTE INHALTE',
-      '  setzen. Instagram und TikTok haben dafür ein eigenes Feld beim',
-      '  Hochladen, und diese plattformeigene Kennzeichnung zählt mehr als',
-      '  eine Zeile im Beschreibungstext. Erkennt die Plattform es selbst und',
-      '  hängt ihr Label nachträglich an, sieht es nach Vertuschen aus.',
-      '  Die Gameplay-Reels bekommen den Schalter NICHT — sie enthalten kein',
-      '  KI-Material, und eine falsche Kennzeichnung schadet wie eine fehlende.',
+    ...(o.ki ? [
+      '- ⚠ DIESES VIDEO ENTHÄLT KI-MATERIAL: in der App den Schalter für',
+      '  KI-GENERIERTE INHALTE setzen. Instagram und TikTok haben dafür ein',
+      '  eigenes Feld beim Hochladen, und diese plattformeigene Kennzeichnung',
+      '  zählt mehr als eine Zeile im Beschreibungstext. Erkennt die Plattform',
+      '  es selbst und hängt ihr Label nachträglich an, sieht es nach',
+      '  Vertuschen aus.',
     ] : []),
     '',
     '## Inhalt',

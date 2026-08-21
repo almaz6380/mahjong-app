@@ -57,6 +57,10 @@ for (const j of PLAN) {
   if (gesamt == null) { console.log(`— ${name}: Laenge nicht lesbar`); fehlend++; continue; }
 
   writeFileSync(join(OUT, `${name}.txt`), captionText(j.format, {
+    // ⚠ Jedes Charge-Reel traegt einen kie.ai-Vorspann (`vorspannFuer()` in
+    // plan.mjs) — der Plan vergibt keinen Eintrag ohne. Waere das je optional,
+    // muesste hier der Eintrag des Jobs gelesen werden statt eines festen true.
+    ki: true,
     datei: `${name}.mp4`,
     level: bb.level ?? j.level,
     paare: bb.paare ?? '?',
