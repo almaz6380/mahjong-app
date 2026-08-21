@@ -9,13 +9,17 @@
 // kein Zuschauer. Dieses Reel ist das erste, das etwas ueber das PRODUKT
 // erzaehlt statt eine weitere Runde zu zeigen.
 
-import { mkdirSync, rmSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdirSync, rmSync, readdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { lauf, dauerVon } from './ffmpeg.mjs';
 import { mitBrowser, abspannKarte, B, H } from './karten.mjs';
 import { spurRendern } from './synth.mjs';
 import { captionText } from './formate.mjs';
+import {
+  EFFEKTE, UEBERGROESSE, MIN_BLITZ_ABSTAND, MAX_BLITZ_ALPHA,
+  pruefeAmplituden, ruckelAusdruck, grafikHtml, grafikBahn,
+} from './effekte.mjs';
 
 const HIER = dirname(fileURLToPath(import.meta.url));
 const WURZEL = join(HIER, '..', '..');
@@ -61,14 +65,17 @@ const TMP = join(OUT, '.modi');
 // den Zustand zu wechseln. So etwas gehoert dorthin, wo die Aufmerksamkeit
 // sonst nachliesse, nicht an den Anfang.
 const SEGMENTE = [
-  { datei: 'solitaire.mp4', titel: 'Solitaire', ab: 0.2, sek: 3.4, blende: 'smoothup' },
-  { datei: 'memory.mp4', titel: 'Memory', ab: 1.9, sek: 3.0, blende: 'smoothright' },
-  { datei: 'connect.mp4', titel: 'Connect', ab: 3.3, sek: 2.8, blende: 'circleopen' },
-  { datei: 'dimensions.mp4', titel: '3D Dimensions', ab: 0.5, sek: 2.6, blende: 'smoothleft' },
-  { datei: 'riichi.mp4', titel: 'Riichi', ab: 1.2, sek: 2.4, blende: 'slideleft' },
-  { datei: 'blitz.mp4', titel: 'Time Blitz', ab: 2.0, sek: 2.2, blende: 'fadeblack' },
+  { datei: 'solitaire.mp4', titel: 'Solitaire', ab: 0.2, sek: 3.6, effekt: 'steinwand' },
+  { datei: 'memory.mp4', titel: 'Memory', ab: 1.9, sek: 3.2, effekt: 'glitch' },
+  { datei: 'connect.mp4', titel: 'Connect', ab: 3.3, sek: 3.0, effekt: 'zoompunch' },
+  { datei: 'dimensions.mp4', titel: '3D Dimensions', ab: 0.5, sek: 2.8, effekt: 'whip' },
+  { datei: 'riichi.mp4', titel: 'Riichi', ab: 1.2, sek: 2.6, effekt: 'blitzschlag' },
+  { datei: 'blitz.mp4', titel: 'Time Blitz', ab: 2.0, sek: 2.4, effekt: null },
 ];
-const BLENDE = 0.28;          // kurz — das Format lebt vom Tempo
+// ⚠ Die Blende steht jetzt AM EFFEKT, nicht mehr global: Unter einer
+// deckenden Grafik ist eine Ueberblendung nur Matsch. `BLENDE` gilt nur noch
+// fuer den Einstieg aus der Hook-Karte, wo kein Effekt liegt.
+const BLENDE = 0.28;
 const HOOK_SEK = 1.6;
 const ABSPANN_SEK = 3.0;
 const BLENDE_ENDE = 0.5;
@@ -117,6 +124,17 @@ await mitBrowser(async (schuss) => {
        </div>`,
       join(TMP, `t-${s.titel.replace(/\W/g, '')}.png`), { width: B, height: H });
   }
+
+  // Effektgrafiken. Die Steinwand nimmt die ECHTEN Steinbilder der App
+  // (`src/assets/tiles`) — eine nachgemalte Wand waere an genau der Stelle
+  // sichtbar, an der das Reel behauptet, das Produkt zu zeigen.
+  const tiles = join(WURZEL, 'src/assets/tiles');
+  const motive = Object.fromEntries(readdirSync(tiles)
+    .filter((f) => f.endsWith('.webp') && f !== 'face-marble.webp')
+    .map((f) => [f, readFileSync(join(tiles, f)).toString('base64')]));
+  for (const art of [...new Set(SEGMENTE.map((x) => EFFEKTE[x.effekt]?.grafik).filter(Boolean))]) {
+    await schuss(grafikHtml(art, B, H, motive), join(TMP, `fx-${art}.png`), { width: B, height: H });
+  }
 });
 
 // --- Segmente ---------------------------------------------------------------
@@ -158,27 +176,117 @@ const ketten = [];
 const n = SEGMENTE.length + 2;                     // Hook + Segmente + Abspann
 for (let i = 0; i < n; i++) ketten.push(`[${i}:v]settb=AVTB[k${i}]`);
 
-// Schnittzeiten mitschreiben — der Ton braucht sie fuer die Whooshes.
+// Die Uebergaenge zuerst als Liste — jeder bringt seine EIGENE Dauer mit,
+// weil unter einem deckenden Effekt ein harter Schnitt sitzt und unter der
+// Hook-Karte eine weiche Blende.
+//
+// ⚠ Die Rechnung braucht die Dauer des NAECHSTEN Uebergangs, nicht des
+// eigenen: Ein xfade muss so weit vor dem Ende des laufenden Materials
+// beginnen, dass er genau mit ihm fertig wird. Solange alle Blenden gleich
+// lang waren, fiel der Unterschied nicht auf — mit gemischten Dauern schoebe
+// die alte Formel jeden Schnitt um die Differenz.
+const UEBERGAENGE = [{ blende: 'fade', sek: BLENDE, effekt: null }];
+for (let i = 1; i < SEGMENTE.length; i++) {
+  const e = EFFEKTE[SEGMENTE[i - 1].effekt];
+  if (!e) throw new Error(`Segment ${i - 1} (${SEGMENTE[i - 1].titel}) ohne Effekt`);
+  UEBERGAENGE.push({ blende: e.blende, sek: e.blendeSek, effekt: e });
+}
+UEBERGAENGE.push({ blende: 'fadeblack', sek: BLENDE_ENDE, effekt: null });
+
 const schnitte = [];
 let vorn = '[k0]';
-let versatz = HOOK_SEK - BLENDE;
+let versatz = HOOK_SEK - UEBERGAENGE[0].sek;
 for (let i = 0; i < SEGMENTE.length; i++) {
-  schnitte.push(versatz);
+  const u = UEBERGAENGE[i];
+  schnitte.push({ ab: versatz, sek: u.sek, effekt: u.effekt });
   const aus = i === SEGMENTE.length - 1 ? 'vv' : `c${i}`;
-  const blende = i === 0 ? 'fade' : SEGMENTE[i - 1].blende;   // Uebergang GEHOERT zum Vorgaenger
-  ketten.push(`${vorn}[k${i + 1}]xfade=transition=${blende}:duration=${BLENDE}`
+  ketten.push(`${vorn}[k${i + 1}]xfade=transition=${u.blende}:duration=${u.sek}`
     + `:offset=${versatz.toFixed(3)}[${aus}]`);
   vorn = `[${aus}]`;
-  versatz += SEGMENTE[i].sek - BLENDE;
+  versatz += SEGMENTE[i].sek - UEBERGAENGE[i + 1].sek;
 }
 const abspannAb = versatz;
-ketten.push(`${vorn}[k${n - 1}]xfade=transition=${SEGMENTE[SEGMENTE.length - 1].blende}`
-  + `:duration=${BLENDE_ENDE}:offset=${abspannAb.toFixed(3)},fps=${FPS},format=yuv420p[v]`);
+const letzte = UEBERGAENGE[UEBERGAENGE.length - 1];
+ketten.push(`${vorn}[k${n - 1}]xfade=transition=${letzte.blende}`
+  + `:duration=${letzte.sek}:offset=${abspannAb.toFixed(3)},fps=${FPS},format=yuv420p[v]`);
 const dauer = abspannAb + ABSPANN_SEK;
 
 await lauf(['-y', ...eingaben, '-filter_complex', ketten.join(';'),
   '-map', '[v]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19',
   join(TMP, 'stumm.mp4')]);
+
+// --- Effektpass -------------------------------------------------------------
+// ⚠ Bewusst ein ZWEITER Durchgang ueber das fertige Bild, kein Umbau der
+// xfade-Kette. Die Kette und die davon abgeleitete Tonlage sind verifiziert;
+// die Effekte brauchen davon nur die Schnittzeiten. So kann ein misslungener
+// Effekt nie den Schnitt beschaedigen — man dreht den Pass ab und hat wieder
+// das gepruefte Reel.
+console.log('Effekte legen …');
+const { randX, randY } = pruefeAmplituden(EFFEKTE, B, H);
+const fenster = schnitte.filter((c) => c.effekt)
+  .map((c) => ({ ruckeln: c.effekt.ruckeln, sek: c.effekt.sek, eff: c.effekt,
+                 mitte: c.ab + c.sek / 2,
+                 ab: c.ab + c.sek / 2 - c.effekt.sek / 2 }));
+
+// Blitze zaehlen, bevor sie gebaut werden — die Grenze ist eine
+// Gesundheitsfrage, keine Geschmacksfrage (siehe effekte.mjs).
+const blitze = fenster.filter((f) => f.eff.flash).map((f) => f.mitte).sort((a, b) => a - b);
+for (let i = 1; i < blitze.length; i++) {
+  const luecke = blitze[i] - blitze[i - 1];
+  if (luecke < MIN_BLITZ_ABSTAND) {
+    throw new Error(`Blitze zu dicht: ${luecke.toFixed(2)} s < ${MIN_BLITZ_ABSTAND} s `
+      + `(Photosensitivitaet — hoechstens 3 pro Sekunde)`);
+  }
+}
+for (const f of fenster) {
+  if (f.eff.flash && f.eff.flash.staerke > MAX_BLITZ_ALPHA) {
+    throw new Error(`Blitz zu hell: ${f.eff.flash.staerke} > ${MAX_BLITZ_ALPHA}`);
+  }
+}
+
+const fxEin = ['-i', join(TMP, 'stumm.mp4')];
+const fxKetten = [];
+// Das Bild groesser skalieren und mittig legen, damit der Stoss keine
+// schwarze Kante zeigt.
+const grossB = Math.round(B * UEBERGROESSE), grossH = Math.round(H * UEBERGROESSE);
+fxKetten.push(`color=black:s=${B}x${H}:d=${dauer.toFixed(2)}:r=${FPS}[bg]`);
+fxKetten.push(`[0:v]scale=${grossB}:${grossH}[gross]`);
+fxKetten.push(`[bg][gross]overlay=x='${-randX}+(${ruckelAusdruck(fenster, 'x')})'`
+  + `:y='${-randY}+(${ruckelAusdruck(fenster, 'y')})'[stoss]`);
+
+let letzterAusgang = '[stoss]';
+let fxNr = 1;
+for (const [i, f] of fenster.entries()) {
+  // Grafik zuerst, Blitz darueber — der Blitz soll auch die Grafik ueberstrahlen.
+  if (f.eff.grafik) {
+    const bahn = grafikBahn(f.eff.grafik, f.mitte, f.eff.sek, B, H);
+    fxEin.push('-loop', '1', '-t', dauer.toFixed(2), '-i', join(TMP, `fx-${f.eff.grafik}.png`));
+    fxKetten.push(`[${fxNr}:v]format=rgba,setpts=PTS-STARTPTS[g${i}]`);
+    fxKetten.push(`${letzterAusgang}[g${i}]overlay=x='${bahn.x}':y='${bahn.y}'`
+      + `:enable='${bahn.an}'[fg${i}]`);
+    letzterAusgang = `[fg${i}]`;
+    fxNr++;
+  }
+  if (f.eff.flash) {
+    const fl = f.eff.flash;
+    // Der Blitz sitzt auf der Schnittmitte: erst auf, kurz halten, dann ab.
+    const auf = f.mitte - fl.auf - fl.halt / 2;
+    const zu = f.mitte + fl.halt / 2;
+    fxEin.push('-f', 'lavfi', '-i', `color=c=${fl.farbe}:s=${B}x${H}:d=${dauer.toFixed(2)}:r=${FPS}`);
+    fxKetten.push(`[${fxNr}:v]format=rgba,`
+      + `fade=t=in:st=${auf.toFixed(3)}:d=${fl.auf}:alpha=1,`
+      + `fade=t=out:st=${zu.toFixed(3)}:d=${fl.zu}:alpha=1,`
+      + `colorchannelmixer=aa=${fl.staerke}[b${i}]`);
+    fxKetten.push(`${letzterAusgang}[b${i}]overlay=0:0[fb${i}]`);
+    letzterAusgang = `[fb${i}]`;
+    fxNr++;
+  }
+}
+fxKetten.push(`${letzterAusgang}fps=${FPS},format=yuv420p[fx]`);
+
+await lauf(['-y', ...fxEin, '-filter_complex', fxKetten.join(';'),
+  '-map', '[fx]', '-t', dauer.toFixed(2),
+  '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', join(TMP, 'bild.mp4')]);
 
 // --- Ton --------------------------------------------------------------------
 // ⚠ KEINE nachgebauten Spielklaenge. Fuenf der sechs Modi haben keinen
@@ -190,19 +298,46 @@ console.log('Ton mischen …');
 const sfx = (n2) => join(ASSETS, 'sfx', `${n2}.aac`);
 const ms = (s) => Math.round(Math.max(0, s) * 1000);
 
-const takt = schnitte.map((t) => ({ t: t + BLENDE / 2, klang: 'match' }))
+// ⚠ Bis hierhin lag GENAU EIN Whoosh im ganzen Reel — bei t=0,1 s, trotz des
+// Kommentars oben. Das war die groesste ungenutzte Wirkung im Stueck: Ein
+// Effekt ohne Ton liest sich als Stoerung, derselbe Effekt mit Ton als
+// Absicht. Jeder Schnitt bekommt jetzt Whoosh (zieht hin) und Aufprall
+// (schlaegt zu).
+const AUFPRALL = [
+  [68, 0.20, 'sine', 0.55, 0],
+  [136, 0.11, 'triangle', 0.22, 0],
+  [41, 0.26, 'sine', 0.30, 0.01],
+];
+const takt = schnitte.map((c) => ({ t: c.ab + c.sek / 2, klang: 'match' }))
+  .concat(fenster.map((f) => ({ t: f.mitte, stimme: AUFPRALL })))
   .concat([{ t: abspannAb + BLENDE_ENDE / 2, klang: 'win', vol: 1.15 }]);
 const taktSpur = join(TMP, 'takt.wav');
 spurRendern(takt, dauer + 1, taktSpur);
 
+// Der Whoosh laeuft dem Schlag VORAUS — er zieht ins Bild hinein. Sitzt er
+// auf dem Schnitt, hoert man zwei Geraeusche uebereinander statt einer
+// Bewegung.
+const WHOOSH_VOR = 0.18;
+const tonEin = ['-i', sfx('bett'), '-i', sfx('outro'), '-i', taktSpur];
+const tonKetten = [
+  `[0:a]atrim=0:${dauer.toFixed(2)},volume=0.34,afade=t=in:st=0:d=0.8[bed]`,
+  `[1:a]adelay=${ms(abspannAb)}|${ms(abspannAb)},volume=0.7[o]`,
+  `[2:a]volume=1.1[takt]`,
+];
+const tonNamen = ['[bed]', '[o]', '[takt]'];
+fenster.forEach((f, i) => {
+  const nr = tonEin.length / 2;
+  tonEin.push('-i', sfx('whoosh'));
+  const t = Math.max(0, f.mitte - WHOOSH_VOR);
+  tonKetten.push(`[${nr}:a]adelay=${ms(t)}|${ms(t)},volume=0.55[w${i}]`);
+  tonNamen.push(`[w${i}]`);
+});
+
 await lauf([
-  '-y', '-i', sfx('bett'), '-i', sfx('whoosh'), '-i', sfx('outro'), '-i', taktSpur,
+  '-y', ...tonEin,
   '-filter_complex',
-  `[0:a]atrim=0:${dauer.toFixed(2)},volume=0.34,afade=t=in:st=0:d=0.8[bed];`
-  + `[1:a]adelay=100|100,volume=0.5[w];`
-  + `[2:a]adelay=${ms(abspannAb)}|${ms(abspannAb)},volume=0.7[o];`
-  + `[3:a]volume=1.1[takt];`
-  + `[bed][w][o][takt]amix=inputs=4:normalize=0:dropout_transition=0,`
+  tonKetten.join(';') + ';'
+  + `${tonNamen.join('')}amix=inputs=${tonNamen.length}:normalize=0:dropout_transition=0,`
   + `alimiter=limit=0.89:level=disabled,`
   + `afade=t=out:st=${Math.max(0, dauer - 1.4).toFixed(2)}:d=1.4[a]`,
   '-map', '[a]', '-t', dauer.toFixed(2), '-c:a', 'aac', '-b:a', '160k', '-ar', '48000',
@@ -210,7 +345,7 @@ await lauf([
 ]);
 
 const ziel = join(OUT, `${NAME}.mp4`);
-await lauf(['-y', '-i', join(TMP, 'stumm.mp4'), '-i', join(TMP, 'ton.m4a'),
+await lauf(['-y', '-i', join(TMP, 'bild.mp4'), '-i', join(TMP, 'ton.m4a'),
   '-c:v', 'copy', '-c:a', 'copy', '-shortest', '-movflags', '+faststart', ziel]);
 rmSync(TMP, { recursive: true, force: true });
 const echt = await dauerVon(ziel);
@@ -224,3 +359,4 @@ writeFileSync(join(OUT, `${NAME}.txt`), captionText('modi', {
 console.log(`\n✓ ${ziel}  (${echt.toFixed(1)} s)`);
 console.log(`✓ ${join(OUT, `${NAME}.txt`)}`);
 console.log('  ' + SEGMENTE.map((s) => `${s.titel} ${s.sek}s`).join(' → '));
+console.log('  Effekte: ' + SEGMENTE.filter((s) => s.effekt).map((s) => s.effekt).join(', '));

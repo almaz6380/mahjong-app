@@ -119,6 +119,7 @@ assets/vorspann/       die kie.ai-Clips samt Prompt daneben
 
 record-modi.mjs        fährt jeden Spielmodus an und nimmt ihn bewegt auf
 reel-modi.mjs          schneidet die Modi zum „sechs Spiele"-Reel zusammen
+effekte.mjs            die Effekte auf den Schnitten samt Blitz-Obergrenzen
 spot-domino.mjs        der Domino-Spot (kie.ai-Kettenreaktion + Endrampe)
 ```
 
@@ -189,6 +190,43 @@ ihn. Blind zu tippen ergab bei Connect zwei gültige Züge in neun Sekunden.
 6. **Der Erfolgs-Hinweis der App** (`.ach-toast`) hängt an
    `env(safe-area-inset-top)`, das im Browser 0 ist — ohne Korrektur klebt er
    auf der eingeblendeten Statusleiste.
+
+### Effekte zwischen den Modi
+
+Seit 21.08.2026 liegt auf jedem Schnitt ein Effekt — auf Josefs ausdrücklichen
+Wunsch im TikTok-Stil (`effekte.mjs`, fünf Stück, jeder anders: Steinwand,
+Glitch, Zoom-Punch, Whip, Blitzschlag).
+
+Die Regel, an der alles hängt:
+
+> **Ein Effekt liest sich als gewollt, wenn er kurz ist, eine erkennbare Form
+> hat und auf einem Klang sitzt. Er liest sich als Fehler, wenn er weich,
+> ganzflächig und lautlos ist.**
+
+Genau daran waren `zoomin` und `hblur` als nackte Übergänge gescheitert —
+ganzflächige Schlieren, die wie ein Defekt aussahen. `zoomin` ist jetzt wieder
+drin und funktioniert, weil ein Blitz auf seiner hässlichsten Stelle sitzt.
+Wer den Blitz herausnimmt, holt sich den Defekt zurück.
+
+Drei Dinge, die man dabei nicht einzeln zurückdrehen darf:
+
+- **Harter Schnitt + Effekt gehören zusammen.** Unter einer deckenden Grafik
+  ist eine Überblendung nur Matsch, deshalb 0,08 s. Ohne den Effekt wäre das
+  zu hart — der Blitz gibt dem Auge das Ereignis, das einer nackten
+  Schnittkante fehlt.
+- **Das Bild wird für den Ruckler um 4 % größer skaliert.** Ohne diesen Rand
+  blitzt bei jedem Stoß die schwarze Unterlage an der Kante auf.
+  `pruefeAmplituden()` setzt die Grenze durch.
+- **Jeder Schnitt hat Whoosh (zieht hin) und Aufprall (schlägt zu).** Vorher
+  lag genau *ein* Whoosh im ganzen Reel, bei t=0,1 s — trotz gegenteiligem
+  Kommentar. Ein Effekt ohne Ton liest sich als Störung.
+
+⚠ **Blitze sind gedeckelt, und das ist keine Geschmacksfrage.** Vollflächige
+Blitze in schneller Folge können bei photosensitiver Epilepsie Anfälle
+auslösen; der Richtwert ist höchstens **drei pro Sekunde**. Das Reel liegt bei
+0,14/s und einer Spitze von 85 % (nie reines Weiß). `reel-modi.mjs` bricht ab,
+wenn zwei Blitze näher als 0,4 s liegen oder einer heller als 0,9 wird —
+gemessen wird mit `signalstats`, nicht geschätzt.
 
 ### Playwright: „ist da" heißt nicht „ist sichtbar"
 
