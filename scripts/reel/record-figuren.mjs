@@ -27,6 +27,9 @@ const WURZEL = join(HIER, '..', '..');
 const arg = (n, s) => { const i = process.argv.indexOf(`--${n}`); return i === -1 ? s : process.argv[i + 1]; };
 const SERVER = arg('server', 'http://127.0.0.1:5199');
 const OUT = join(WURZEL, arg('out', 'out/reels/figuren'));
+// ⚠ Die Sprache der Oberflaeche gehoert zum Material, nicht zum Zufall: Fuer
+// eine Kampagne in DE/AT ist eine englische Bedienleiste im Bild ein Bruch.
+const LANG = arg('lang', 'en');
 const BREITE = 360, HOEHE = 640, DSF = 3;
 
 // Die Levelauswahl. ⚠ Dichter am Anfang als am Ende: Zwischen Level 1 und 50
@@ -62,11 +65,11 @@ try {
     // Durchgang neu — `addInitScript` gilt pro Kontext, nicht pro Navigation,
     // deshalb wird der Wert hier direkt geschrieben und dann neu geladen.
     await page.goto(SERVER, { waitUntil: 'domcontentloaded' });
-    await page.evaluate((l) => {
+    await page.evaluate(([l, sp]) => {
       localStorage.setItem('CapacitorStorage.mahjong.progress.v1', JSON.stringify({
-        level: l, coins: 500, lang: 'en', showFacts: false, sound: false,
+        level: l, coins: 500, lang: sp, showFacts: false, sound: false,
       }));
-    }, level);
+    }, [level, LANG]);
     await page.reload({ waitUntil: 'networkidle' });
     await page.waitForTimeout(900);
 

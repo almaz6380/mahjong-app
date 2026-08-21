@@ -136,6 +136,20 @@ export const FORMATE = {
       + `How far do you think you'd get? 👇`,
   },
 
+  // Die Werbeschnitte (reel-ad.mjs) fuer die Google-App-Kampagne.
+  // ⚠ Eine Anzeige braucht KEINE Caption — die Kampagne liefert eigene
+  // Anzeigentitel und Beschreibungen. Dieser Eintrag existiert nur, damit die
+  // .txt neben dem Video dokumentiert, was drinsteckt: Laenge, Quelle,
+  // Sprache des Materials und die KI-Frage (hier: kein KI-Material).
+  ad: {
+    hookSek: null, hook: null, hookSub: null,
+    hashtags: ['mahjong', 'mahjongsolitaire'],
+    koerper: (o) => `Werbeschnitt fuer die Google-App-Kampagne (Android).\n\n`
+      + `Quelle: Level ${o.level}, ${o.paare} Paare, deutsche Oberflaeche.\n`
+      + `Spiel ${o.spielSek} s + Abspann, gesamt ${o.gesamtSek} s.\n`
+      + `Reine Bildschirmaufnahme, kein KI-Material.`,
+  },
+
   // Der Domino-Spot (spot-domino.mjs): eine Kettenreaktion aus echten Steinen
   // muendet in die Schlussrampe des Spiels. Gleiche Regeln wie beim `spot`:
   // kein Gameplay-Reel, keine Hook-Karte, KI-Hinweis nur im Text — und der
