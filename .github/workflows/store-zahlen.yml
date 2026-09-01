@@ -1,0 +1,100 @@
+name: Store-Zahlen
+
+# Holt Installationen, Downloads und den Akquise-Trichter aus beiden Stores.
+#
+# REIN LESEND — dieser Workflow veroeffentlicht nichts und aendert nichts.
+# Er existiert, weil die Schluessel nur hier liegen: PLAY_SERVICE_ACCOUNT_JSON
+# und ASC_KEY_P8_BASE64 sind Repo-Secrets und sollen es bleiben. So kann auch
+# eine Cloud-Sitzung die Zahlen lesen, ohne dass ein Schluessel das Repo
+# verlaesst.
+#
+# Ergebnis steht im Protokoll dieses Laufs und zusaetzlich als Artefakt
+# `store-zahlen` (30 Tage Aufbewahrung), damit man es weiterreichen kann.
+#
+# ⚠ Vor dem ersten Lauf muss die Repo-Variable PLAY_REPORTS_BUCKET gesetzt
+# sein (Settings -> Secrets and variables -> Actions -> Variables):
+# Play Console -> Downloadberichte -> Statistiken -> „Cloud Storage-URI
+# kopieren", davon der Teil zwischen gs:// und dem ersten Schraegstrich.
+# Ohne die Variable ueberspringt das Skript den Android-Teil mit Hinweis.
+on:
+  workflow_dispatch:
+    inputs:
+      tage:
+        description: 'Zeitraum in Tagen'
+        type: choice
+        options: ['7', '30', '90']
+        default: '30'
+      bereich:
+        description: 'Was abfragen?'
+        type: choice
+        options: ['alle', 'play', 'ios']
+        default: 'alle'
+      ios_analytics_anfordern:
+        description: 'Apple-Analytics anfordern (einmalig noetig, dauert 1-2 Tage)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  zahlen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Abhaengigkeiten
+        run: pip3 install --quiet pyjwt cryptography
+
+      - name: Zahlen holen
+        env:
+          PLAY_KEY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          PLAY_REPORTS_BUCKET: ${{ vars.PLAY_REPORTS_BUCKET }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          ASC_VENDOR_NUMBER: ${{ vars.ASC_VENDOR_NUMBER }}
+          TAGE: ${{ inputs.tage }}
+          BEREICH: ${{ inputs.bereich }}
+          ANALYTICS: ${{ inputs.ios_analytics_anfordern }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "${PLAY_KEY_JSON:-}" ]; then
+            mkdir -p ~/.config/play-publisher
+            printf '%s' "$PLAY_KEY_JSON" > ~/.config/play-publisher/key.json
+          else
+            echo "::warning::Secret PLAY_SERVICE_ACCOUNT_JSON fehlt — Android wird uebersprungen."
+          fi
+
+          # asc.py und store-zahlen.py erwarten den p8-Inhalt, nicht base64.
+          if [ -n "${ASC_KEY_P8_BASE64:-}" ]; then
+            ASC_KEY_P8=$(printf '%s' "$ASC_KEY_P8_BASE64" | base64 -d)
+            export ASC_KEY_P8
+          else
+            echo "::warning::Secret ASC_KEY_P8_BASE64 fehlt — iOS wird uebersprungen."
+          fi
+
+          if [ -z "${PLAY_REPORTS_BUCKET:-}" ]; then
+            echo "::notice::Repo-Variable PLAY_REPORTS_BUCKET ist nicht gesetzt; ohne sie gibt es keine Play-Statistik."
+          fi
+
+          ARGS=(--tage "$TAGE")
+          case "$BEREICH" in
+            play) ARGS+=(--play) ;;
+            ios)  ARGS+=(--ios) ;;
+          esac
+          if [ "$ANALYTICS" = "true" ]; then
+            ARGS+=(--ios-analytics)
+          fi
+
+          python3 scripts/store-zahlen.py "${ARGS[@]}" | tee store-zahlen.txt
+
+      - name: Ergebnis als Artefakt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: store-zahlen
+          path: store-zahlen.txt
+          retention-days: 30
+          if-no-files-found: warn

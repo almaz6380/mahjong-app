@@ -447,6 +447,48 @@ Die App ist eine Single-Page-Anwendung ohne Router, es gibt also **einen Seitena
 gut für „wie viele und wann", aber es sagt nichts darüber, welche Spielmodi benutzt werden. Dafür
 bräuchte es eigene Ereignisse (`track()`), das ist bewusst nicht eingebaut.
 
+## Store-Zahlen lesen (Workflow „Store-Zahlen", seit 1.9.2026)
+
+`.github/workflows/store-zahlen.yml` + `scripts/store-zahlen.py` holen
+Installationen, Downloads und den Akquise-Trichter — **rein lesend**, es wird
+nichts veroeffentlicht. Der Sinn: Die Schluessel bleiben Repo-Secrets, und
+trotzdem kann eine Cloud-Sitzung die Zahlen sehen (Josef loest den Lauf aus,
+Claude liest das Protokoll). Ergebnis steht im Lauf-Protokoll und als Artefakt
+`store-zahlen`.
+
+⚠ **Die Publishing-APIs kennen keine Statistiken.** Weder androidpublisher noch
+die Play Developer **Reporting** API liefern Installationen oder Akquise — die
+Reporting-API hat nur Abstuerze, ANRs und Startzeiten. Wer dort sucht, sucht
+falsch. Die Zahlen liegen woanders:
+
+| Zahl | Quelle |
+|---|---|
+| Installationen Android | CSV-Export im GCS-Eimer `pubsite_prod_*`, `stats/installs/` |
+| Impressionen → Besucher → Akquise (Android) | derselbe Eimer, `stats/store_performance/` |
+| Downloads iOS | ASC `salesReports` (taeglich, ab Folgetag) |
+| Impressionen/Bindung iOS | ASC Analytics-Reports — **einmal anfordern**, Apple braucht 1–2 Tage |
+| **Bindungsrate Android** | **nur die Play Console**, kein Export |
+
+⚠ **Zwei Werte muessen von Hand hinterlegt werden**, sonst ueberspringt das
+Skript den jeweiligen Teil (mit Hinweis, es bricht nicht ab). Beide als
+Repo-*Variables* (nicht Secrets, sie sind nicht geheim):
+`PLAY_REPORTS_BUCKET` (Play Console → Downloadberichte → Statistiken →
+„Cloud Storage-URI kopieren", davon der Teil zwischen `gs://` und dem ersten
+Schraegstrich) und `ASC_VENDOR_NUMBER` (App Store Connect → Zahlungen und
+Finanzberichte; das Skript versucht sie sonst aus Apples Fehlermeldung zu
+lesen, was klappen kann, aber nicht muss).
+
+⚠ **Das Dienstkonto braucht fuer den Eimer ein eigenes Leserecht** — die
+Admin-Rechte fuers Veroeffentlichen genuegen nicht. Kommt HTTP 403, sagt das
+Skript genau das; das Recht wird in der Play Console unter Nutzer und
+Berechtigungen gegeben.
+
+**Noch nie gegen die echten APIs gelaufen** (Stand 1.9.2026): In der
+Cloud-Umgebung liegen keine Store-Schluessel, gepruft sind nur Syntax, der
+UTF-16-CSV-Pfad und das Verhalten ohne Zugangsdaten. Der erste echte Lauf
+braucht wahrscheinlich noch eine Runde Nachbesserung — vor allem die
+Spaltennamen der Play-Berichte und die Produkttyp-Filterung bei Apple.
+
 ## Builds ohne eigenen Mac (GitHub Actions)
 
 `.github/workflows/android-release.yml` + `ios-release.yml` bauen, signieren und laden auf GitHubs
