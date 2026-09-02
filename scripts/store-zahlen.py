@@ -317,32 +317,32 @@ def vendor_nummer(tok):
     """Die Verkaeufernummer haengt am Konto, nicht an der App."""
     if ASC_VENDOR:
         return ASC_VENDOR
-    code, leib = hol(f'{ASC_API}/salesReports?filter[frequency]=DAILY',
-                     {'Authorization': f'Bearer {tok}',
-                      'Accept': 'application/a-gzip'})
+    # Apple prueft die Parameter erst, wenn ALLE Pflichtfelder da sind. Deshalb
+    # eine vollstaendige Anfrage mit absichtlich falscher Verkaeufernummer:
+    # In der Fehlermeldung nennt Apple dann die gueltigen Werte.
+    tag = (date.today() - timedelta(days=2)).strftime('%Y-%m-%d')
+    url = (f'{ASC_API}/salesReports?filter[frequency]=DAILY'
+           f'&filter[reportType]=SALES&filter[reportSubType]=SUMMARY'
+           f'&filter[vendorNumber]=00000000&filter[reportDate]={tag}')
+    code, leib = hol(url, {'Authorization': f'Bearer {tok}',
+                           'Accept': 'application/a-gzip'})
     try:
         d = json.loads(leib)
     except ValueError:
         d = {}
     fehler = '; '.join(str(e.get('detail') or e.get('title'))
-                       for e in d.get('errors', []))[:400]
+                       for e in d.get('errors', []))
     print(f'   Probeabfrage salesReports -> HTTP {code}'
-          + (f': {fehler}' if fehler else ''))
+          + (f': {fehler[:400]}' if fehler
+             else f' (Antwort: {leib[:200].decode("utf-8", "replace")})'))
     if code in (401, 403):
         rollen_hinweis()
         return ''
-    # Apple nennt die gueltigen Werte in der Fehlermeldung mit, etwa
-    # "The following values are valid: 12345678". Nur daraus lesen — irgendeine
-    # Ziffernfolge aus dem Text zu greifen waere geraten.
     import re as _re
-    for e in d.get('errors', []):
-        text = str(e.get('detail', ''))
-        if 'valid' not in text.lower():
-            continue
-        treffer = _re.findall(r'\b(\d{7,12})\b', text.split('valid', 1)[-1])
-        if treffer:
-            print(f'   Verkaeufernummer aus Apples Antwort gelesen: {treffer[0]}')
-            return treffer[0]
+    treffer = _re.findall(r'\b(\d{7,12})\b', fehler)
+    if treffer:
+        print(f'   Verkaeufernummer aus Apples Antwort gelesen: {treffer[0]}')
+        return treffer[0]
     return ''
 
 
