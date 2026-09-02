@@ -488,6 +488,15 @@ Workflow bevorzugt `ASC_READ_KEY_ID` + `ASC_READ_KEY_P8_BASE64` und faellt nur
 zur Diagnose auf die Upload-Secrets zurueck. Die Issuer-ID ist kontoweit
 dieselbe, die braucht es kein zweites Mal.
 
+⚠ **Verkauf und Analytics verlangen VERSCHIEDENE Rollen** (am 2.9.2026
+gemessen, nicht geraten): Derselbe Schluessel mit Rolle **Finanzen** darf
+`salesReports` lesen und vorhandene `analyticsReportRequests` ansehen — aber
+eine Analytics-Anforderung ANZULEGEN quittiert Apple mit demselben 403
+„The API key in use does not allow this request". Dafuer braucht es **ADMIN**.
+Praktische Folge: Downloads pro Tag gehen mit dem Finanzen-Schluessel;
+Impressionen und Bindungsrate fuer iOS bleiben ohne Admin-Schluessel
+Handarbeit in App Store Connect.
+
 ⚠ **`salesReports` verlangt `Accept: application/a-gzip`.** Ohne den Header
 antwortet Apple **406**, bevor es die Parameter prueft — dann nennt es auch die
 gueltigen Verkaeufernummern nicht, und es sieht nach einem Rechteproblem aus.

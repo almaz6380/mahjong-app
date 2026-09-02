@@ -302,15 +302,19 @@ def asc_probe(tok):
     return False
 
 
-def rollen_hinweis():
-    print('   Wahrscheinliche Ursache: Der API-Schluessel wurde zum Hochladen von')
-    print('   Builds angelegt und hat die Rolle „App Manager" o. ae. Verkaufs- und')
-    print('   Analytics-Berichte verlangen ADMIN, FINANCE oder SALES.')
-    print('   Abhilfe: App Store Connect -> Nutzer und Zugriff -> Integrationen ->')
-    print('   App Store Connect API -> neuen Schluessel mit Rolle „Finance" oder')
-    print('   „Admin" erzeugen und ASC_KEY_ID/ASC_ISSUER_ID/ASC_KEY_P8_BASE64')
-    print('   in den Repo-Secrets darauf umstellen. Der alte Schluessel kann fuers')
-    print('   Hochladen bleiben — dann braucht es ein zweites Paar Secrets.')
+def rollen_hinweis(was='berichte'):
+    """Apple verlangt fuer die beiden Berichtsarten UNTERSCHIEDLICHE Rollen —
+    am 2.9.2026 gemessen: derselbe Finanzen-Schluessel darf salesReports lesen,
+    aber keine analyticsReportRequests anlegen."""
+    if was == 'analytics':
+        print('   Analytics-Berichte ANZULEGEN verlangt die Rolle ADMIN; die Rolle')
+        print('   Finanzen genuegt dafuer nicht (Lesen der vorhandenen Anforderungen')
+        print('   geht damit sehr wohl). Entweder einen Admin-Schluessel anlegen —')
+        print('   oder darauf verzichten: Impressionen und Bindung fuer iOS gaebe es')
+        print('   dann weiter nur in App Store Connect von Hand.')
+        return
+    print('   Verkaufsberichte verlangen ADMIN, FINANCE oder SALES. Der Schluessel')
+    print('   in ASC_READ_KEY_ID hat offenbar keine davon.')
 
 
 def vendor_nummer(tok):
@@ -408,7 +412,7 @@ def ios_analytics(nur_status=False):
         print(f'   Abfrage fehlgeschlagen (HTTP {code})'
               + (f': {fehler}' if fehler else '.'))
         if code in (401, 403):
-            rollen_hinweis()
+            rollen_hinweis('analytics')
         return
     vorhanden = d.get('data', [])
     laufend = [r for r in vorhanden
@@ -428,8 +432,9 @@ def ios_analytics(nur_status=False):
             print('   das dauert ueblicherweise ein bis zwei Tage. Danach liefert')
             print('   dieser Aufruf Impressionen, Produktseitenaufrufe und Bindung.')
         else:
-            print(f'   Anforderung abgelehnt (HTTP {code}): '
-                  f'{json.dumps(neu)[:300]}')
+            print(f'   Anforderung abgelehnt (HTTP {code}).')
+            if code in (401, 403):
+                rollen_hinweis('analytics')
         return
 
     rid = laufend[0]['id']
@@ -459,7 +464,9 @@ def main():
     p.add_argument('--ios-analytics', action='store_true',
                    help='Apple-Analytics anfordern bzw. Stand anzeigen')
     a = p.parse_args()
-    alles = not (a.play or a.ios or a.ios_analytics)
+    # --ios-analytics ist ein Zusatz, kein Ersatz: sonst schaltet der Haken
+    # im Workflow die Downloads und Android stillschweigend ab.
+    alles = not (a.play or a.ios)
 
     print(f'Store-Zahlen fuer {PKG} — Zeitraum {a.tage} Tage, '
           f'Stand {datetime.now(timezone.utc):%Y-%m-%d %H:%M} UTC')
