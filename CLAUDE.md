@@ -887,6 +887,35 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   auch gut gemacht nur ~30 % nach Tag 1), aber es ist der billigste bekannte
   Hebel. Versionshinweise `store/whatsnew-1.1.2.json`.
 
+  **Auslieferung am 2.9.2026 abends — zwei Fallen, beide nicht im Code:**
+
+  | | Stand |
+  |---|---|
+  | iOS | **Build 24 als 1.1.2 eingereicht**, reviewSubmission `35114726-…` |
+  | Android | vc25 — Stand siehe Nachtrag unten |
+
+  ⚠ **Google Play verlangt seit 31.8.2026 targetSdk 36 (Android 16).** Der erste
+  Upload von vc25 endete mit 403 *„Target SDK of artifact is too low: 25"* — die
+  Zahl im Text ist der versionCode, nicht das SDK, das liest sich irreführend.
+  vc24 war am 11.8. noch durchgegangen; die Frist ist dazwischen abgelaufen.
+  API 36 braucht **AGP ≥ 8.9.1 und Gradle ≥ 8.11.1**, deshalb `android/build.gradle`
+  8.2.1 → 8.9.1 und `gradle-wrapper.properties` → 8.11.1 (`variables.gradle`:
+  compileSdk/targetSdk 36, JDK 17 bleibt). Capacitor 6 und alle Plugins bauen
+  damit unverändert — geprüft mit einem Lauf `upload=false` (6 min), erst dann
+  der echte. Ein fehlgeschlagener Upload veröffentlicht nichts: Der Fehler kommt
+  bei `:validate`, vor dem `:commit`.
+
+  ⚠ **Apple 500 beim allerletzten Einreich-Schritt.** `asc-submit.py` legt den
+  Einreichungs-Entwurf an (POST reviewSubmissions), hängt die Version an
+  (reviewSubmissionItems) und bestätigt (PATCH `{submitted: true}`). Der PATCH kam
+  mit **500 UNEXPECTED_ERROR** zurück — Entwurf und Eintrag waren da, die Version
+  stand auf `READY_FOR_REVIEW`, abgeschickt war nichts. Ein zweiter Lauf hätte
+  einen zweiten Entwurf angelegt (geht nicht) bzw. mit „nicht editierbar"
+  abgebrochen. Das Skript erkennt diesen Zustand jetzt und holt **nur die
+  Bestätigung** nach; `--vorbereiten` meldet dann „nichts zu tun". Erkennen:
+  `nur_status` zeigt unter „Offene Prüfungen" `READY_FOR_REVIEW eingereicht None`
+  — „None" ist das Merkmal, eine abgeschickte Prüfung trägt ein Datum.
+
 ---
 
 ## Handy-Betrieb: Builds, Deploys und fal.ai auf Zuruf
