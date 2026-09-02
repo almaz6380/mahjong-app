@@ -157,15 +157,30 @@ def gcs_objekte(tok, prefix):
     url = f'{GCS}/b/{urllib.parse.quote(BUCKET)}/o?prefix={urllib.parse.quote(prefix)}'
     code, leib = hol(url, {'Authorization': f'Bearer {tok}'})
     if code == 403:
-        # Der Hinweis gilt fuer den ganzen Eimer — einmal sagen genuegt, sonst
-        # steht er sechsmal im Protokoll (einmal je gesuchtem Bericht).
+        # Einmal sagen genuegt — der Hinweis gilt fuer den ganzen Eimer.
+        # WICHTIG: Googles eigenen Text zeigen. Hinter einem 403 stecken zwei
+        # voellig verschiedene Ursachen, die sich nur so unterscheiden lassen:
+        #   „does not have storage.objects.list access"  -> Recht am Eimer fehlt
+        #   „has not been used in project ... or disabled" -> Cloud Storage API
+        #      im Projekt des Dienstkontos gar nicht eingeschaltet
         if '403' not in _gemeckert:
             _gemeckert.add('403')
-            print(f'   Kein Leserecht auf gs://{BUCKET}.')
-            print('   Das Dienstkonto play-upload@… darf bisher nur veroeffentlichen.')
-            print('   Play Console -> Nutzer und Berechtigungen -> das Dienstkonto')
-            print('   -> Kontoberechtigungen -> „Finanzdaten, Bestellungen und')
-            print('   Stornierungsraten ansehen" ankreuzen. Einmal setzen, dann laeuft es.')
+            text = leib.decode('utf-8', 'replace')
+            try:
+                grund = json.loads(text)['error']['message']
+            except Exception:                            # noqa: BLE001
+                grund = text[:400]
+            print(f'   Kein Zugriff auf gs://{BUCKET} (HTTP 403).')
+            print(f'   Google sagt: {grund}')
+            if 'has not been used in project' in grund or 'disabled' in grund:
+                print('   -> Die Cloud Storage API ist im Google-Cloud-Projekt des')
+                print('      Dienstkontos nicht eingeschaltet. Das ist NICHT die')
+                print('      Play Console, sondern console.cloud.google.com.')
+            else:
+                print('   -> Das Dienstkonto darf den Berichts-Eimer nicht lesen.')
+                print('      Play Console -> Nutzer und Berechtigungen -> das')
+                print('      Dienstkonto -> Kontoberechtigungen -> „Finanzdaten,')
+                print('      Bestellungen und Stornierungsraten ansehen".')
         return []
     if code != 200:
         print(f'   Eimer nicht lesbar (HTTP {code}): {leib[:200].decode("utf-8", "replace")}')
