@@ -288,11 +288,43 @@ def asc(tok, pfad, method='GET', body=None):
             return e.code, {}
 
 
+def asc_probe(tok):
+    """Trennt die zwei Faelle, die beide als 403 daherkommen: Schluessel kaputt
+    oder Schluessel gueltig, aber ohne die noetige Rolle."""
+    code, d = asc(tok, f'apps/{ASC_APP_ID}')
+    if code == 200:
+        name = d.get('data', {}).get('attributes', {}).get('name', '?')
+        print(f'   Schluessel gueltig (App „{name}" lesbar).')
+        return True
+    fehler = '; '.join(str(e.get('detail') or e.get('title'))
+                       for e in d.get('errors', []))[:300]
+    print(f'   Schluessel kommt nicht einmal an die App-Daten (HTTP {code}). {fehler}')
+    return False
+
+
+def rollen_hinweis():
+    print('   Wahrscheinliche Ursache: Der API-Schluessel wurde zum Hochladen von')
+    print('   Builds angelegt und hat die Rolle „App Manager" o. ae. Verkaufs- und')
+    print('   Analytics-Berichte verlangen ADMIN, FINANCE oder SALES.')
+    print('   Abhilfe: App Store Connect -> Nutzer und Zugriff -> Integrationen ->')
+    print('   App Store Connect API -> neuen Schluessel mit Rolle „Finance" oder')
+    print('   „Admin" erzeugen und ASC_KEY_ID/ASC_ISSUER_ID/ASC_KEY_P8_BASE64')
+    print('   in den Repo-Secrets darauf umstellen. Der alte Schluessel kann fuers')
+    print('   Hochladen bleiben — dann braucht es ein zweites Paar Secrets.')
+
+
 def vendor_nummer(tok):
     """Die Verkaeufernummer haengt am Konto, nicht an der App."""
     if ASC_VENDOR:
         return ASC_VENDOR
     code, d = asc(tok, 'salesReports?filter[frequency]=DAILY')
+    fehler = '; '.join(str(e.get('detail') or e.get('title'))
+                       for e in d.get('errors', []))[:400]
+    print(f'   Probeabfrage salesReports -> HTTP {code}'
+          + (f': {fehler}' if fehler else ''))
+    if code in (401, 403):
+        rollen_hinweis()
+        return ''
     # Apple nennt die gueltigen Werte in der Fehlermeldung mit, etwa
     # "The following values are valid: 12345678". Nur daraus lesen — irgendeine
     # Ziffernfolge aus dem Text zu greifen waere geraten.
@@ -314,6 +346,8 @@ def ios_downloads(tage):
         print(f'   Uebersprungen, es fehlen: {", ".join(asc_fehlt())}')
         return
     tok = asc_token()
+    if not asc_probe(tok):
+        return
     vn = vendor_nummer(tok)
     if not vn:
         print('  Verkaeufernummer nicht ermittelbar. Sie steht in App Store Connect')
@@ -363,7 +397,12 @@ def ios_analytics(nur_status=False):
     tok = asc_token()
     code, d = asc(tok, f'apps/{ASC_APP_ID}/analyticsReportRequests?limit=50')
     if code != 200:
-        print(f'   Abfrage fehlgeschlagen (HTTP {code}).')
+        fehler = '; '.join(str(e.get('detail') or e.get('title'))
+                           for e in d.get('errors', []))[:400]
+        print(f'   Abfrage fehlgeschlagen (HTTP {code})'
+              + (f': {fehler}' if fehler else '.'))
+        if code in (401, 403):
+            rollen_hinweis()
         return
     vorhanden = d.get('data', [])
     laufend = [r for r in vorhanden
