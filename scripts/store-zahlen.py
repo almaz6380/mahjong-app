@@ -150,14 +150,22 @@ def csv_lesen(rohdaten):
     return []
 
 
+_gemeckert = set()
+
+
 def gcs_objekte(tok, prefix):
     url = f'{GCS}/b/{urllib.parse.quote(BUCKET)}/o?prefix={urllib.parse.quote(prefix)}'
     code, leib = hol(url, {'Authorization': f'Bearer {tok}'})
     if code == 403:
-        print(f'   Kein Leserecht auf gs://{BUCKET}. Das Dienstkonto braucht in der')
-        print('   Play Console unter Nutzer und Berechtigungen zusaetzlich')
-        print('   „Finanzdaten, Bestellungen und Umfragen ansehen" bzw. Leserecht')
-        print('   auf den Berichts-Eimer. Einmal setzen, dann laeuft es.')
+        # Der Hinweis gilt fuer den ganzen Eimer — einmal sagen genuegt, sonst
+        # steht er sechsmal im Protokoll (einmal je gesuchtem Bericht).
+        if '403' not in _gemeckert:
+            _gemeckert.add('403')
+            print(f'   Kein Leserecht auf gs://{BUCKET}.')
+            print('   Das Dienstkonto play-upload@… darf bisher nur veroeffentlichen.')
+            print('   Play Console -> Nutzer und Berechtigungen -> das Dienstkonto')
+            print('   -> Kontoberechtigungen -> „Finanzdaten, Bestellungen und')
+            print('   Stornierungsraten ansehen" ankreuzen. Einmal setzen, dann laeuft es.')
         return []
     if code != 200:
         print(f'   Eimer nicht lesbar (HTTP {code}): {leib[:200].decode("utf-8", "replace")}')
