@@ -57,6 +57,9 @@ jobs:
           # genommen; sonst faellt es auf den Upload-Schluessel zurueck, damit
           # der Lauf wenigstens sagt, was fehlt.
           ASC_READ_KEY_ID: ${{ secrets.ASC_READ_KEY_ID }}
+          # Zwei Schreibweisen erlaubt: der rohe .p8-Inhalt (einfach die Datei
+          # oeffnen und alles hineinkopieren, auch ohne Terminal) oder base64.
+          ASC_READ_KEY_P8: ${{ secrets.ASC_READ_KEY_P8 }}
           ASC_READ_KEY_P8_BASE64: ${{ secrets.ASC_READ_KEY_P8_BASE64 }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
@@ -77,9 +80,14 @@ jobs:
 
           # Lese-Schluessel bevorzugen; das Skript erwartet den p8-Inhalt,
           # nicht base64. Die Issuer-ID ist bei beiden dieselbe (kontoweit).
-          if [ -n "${ASC_READ_KEY_P8_BASE64:-}" ] && [ -n "${ASC_READ_KEY_ID:-}" ]; then
+          if [ -n "${ASC_READ_KEY_ID:-}" ] && \
+             { [ -n "${ASC_READ_KEY_P8:-}" ] || [ -n "${ASC_READ_KEY_P8_BASE64:-}" ]; }; then
             ASC_KEY_ID="$ASC_READ_KEY_ID"
-            ASC_KEY_P8=$(printf '%s' "$ASC_READ_KEY_P8_BASE64" | base64 -d)
+            if [ -n "${ASC_READ_KEY_P8:-}" ]; then
+              ASC_KEY_P8="$ASC_READ_KEY_P8"
+            else
+              ASC_KEY_P8=$(printf '%s' "$ASC_READ_KEY_P8_BASE64" | base64 -d)
+            fi
             export ASC_KEY_ID ASC_KEY_P8
             echo "::notice::Lese-Schluessel (Rolle Finanzen) wird benutzt."
           elif [ -n "${ASC_KEY_P8_BASE64:-}" ]; then
