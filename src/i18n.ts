@@ -222,6 +222,12 @@ const D: Record<string, Entry> = {
   'set.sound': { de: 'Sound', en: 'Sound' },
   'set.vibrate': { de: 'Vibration', en: 'Vibration' },
   'set.notify': { de: 'Tägliche Erinnerung', en: 'Daily reminder' },
+  // Karte nach dem ersten gewonnenen Level — erst dann fragt die App nach der
+  // Mitteilungs-Erlaubnis (1.1.2).
+  'remind.title': { de: 'Morgen weiterspielen?', en: 'Play again tomorrow?' },
+  'remind.body': { de: 'Eine kurze Erinnerung am Abend – jeden Tag wartet ein neues Brett.', en: 'A short reminder in the evening – a new board is waiting every day.' },
+  'remind.yes': { de: 'Ja, erinnern', en: 'Yes, remind me' },
+  'remind.later': { de: 'Jetzt nicht', en: 'Not now' },
   'set.facts': { de: 'Infokarten zwischen Runden', en: 'Info cards between rounds' },
   'fact.cat.culture': { de: 'Wusstest du?', en: 'Did you know?' },
   'fact.cat.mind': { de: 'Gut für dich', en: 'Good for you' },

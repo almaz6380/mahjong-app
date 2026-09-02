@@ -31,6 +31,12 @@ export interface Progress {
   lang: import('../i18n').Lang | ''; // '' = automatisch (Systemsprache)
   seenM4Tutorial: boolean;
   notify: boolean; // tägliche Erinnerung an
+  // Ob die Mitteilungs-Erlaubnis schon einmal erfragt wurde. Bis 1.1.1 fragte
+  // die App beim ALLERERSTEN Start danach — bevor der Spieler einen Stein
+  // gesehen hatte. iOS stellt diese Frage genau einmal; wer da „Nein“ tippt,
+  // ist für die Tageserinnerung verloren. Seit 1.1.2 kommt die Frage erst
+  // nach dem ersten gewonnenen Level, mit eigener Karte davor (App.tsx).
+  notifyAsked: boolean;
   showFacts: boolean; // „Wusstest du?“-Karten zwischen den Runden
   lastEvent: string; // 'YYYY-M-D' des zuletzt eingelösten Tages-Events
   tileSkin: string; // gewähltes Stein-Design
@@ -74,6 +80,7 @@ const DEFAULT: Progress = {
   lang: '',
   seenM4Tutorial: false,
   notify: true,
+  notifyAsked: false,
   showFacts: true,
   lastEvent: '',
   tileSkin: 'ivory',
@@ -130,6 +137,10 @@ export function useProgress() {
           loaded = { ...DEFAULT, ...parsed, stats: { ...DEFAULT.stats, ...(parsed.stats ?? {}) } };
           // Migration: früher markierte erst das Abholen den Tag (lastPlayedDate).
           if (parsed.lastRewardClaim === undefined) loaded.lastRewardClaim = loaded.lastPlayedDate;
+          // Migration 1.1.2: Alte Staende wurden beim ersten Start bereits nach der
+          // Mitteilungs-Erlaubnis gefragt — die neue Karte darf dort nicht noch
+          // einmal erscheinen (auf iOS gaebe es ohnehin keinen zweiten Dialog).
+          if (parsed.notifyAsked === undefined) loaded.notifyAsked = true;
           // Migration: Zeit-Blitz spielt jetzt auf 52 statt 144 Steinen – alte
           // Bestwerte sind damit nicht mehr vergleichbar, einmalig leeren.
           if (!parsed.blitzReset) {
@@ -272,7 +283,8 @@ export function useProgress() {
     (on: boolean) => {
       const s = stateRef.current;
       if (!s) return;
-      persist({ ...s, notify: on });
+      // Jede bewusste Entscheidung (Karte oder Einstellungen) zaehlt als „gefragt“.
+      persist({ ...s, notify: on, notifyAsked: true });
     },
     [persist],
   );

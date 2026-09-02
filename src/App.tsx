@@ -35,6 +35,7 @@ import { setSoundEnabled, setHapticsEnabled } from './audio/sound';
 import { setLanguage, detectLang, t } from './i18n';
 import { setAdsRemoved } from './ads/admob';
 import { setupDailyReminder } from './notify';
+import { Capacitor } from '@capacitor/core';
 import { setFactsEnabled } from './ui/FactHost';
 import gameSolitaire from './assets/game-solitaire.webp';
 import gameConnect from './assets/game-connect.webp';
@@ -93,9 +94,13 @@ export default function App() {
   useEffect(() => {
     if (progress) setAdsRemoved(progress.removeAds);
   }, [progress?.removeAds]);
+  // Die System-Erlaubnis fuer Mitteilungen wird beim Start NUR erfragt, wenn
+  // der Spieler schon einmal entschieden hat (notifyAsked). Neue Spieler sehen
+  // stattdessen nach dem ersten gewonnenen Level die Karte unten auf der
+  // Startseite — vorher hatte der allererste Start zwei Bettel-Dialoge.
   useEffect(() => {
-    if (progress) setupDailyReminder(progress.notify, progress.lang || detectLang());
-  }, [progress?.notify]);
+    if (progress) setupDailyReminder(progress.notify, progress.lang || detectLang(), progress.notifyAsked);
+  }, [progress?.notify, progress?.notifyAsked]);
   useEffect(() => {
     if (progress) setFactsEnabled(progress.showFacts);
   }, [progress?.showFacts]);
@@ -402,6 +407,21 @@ export default function App() {
               }}
             >
               {t('daily.claim')}
+            </button>
+          </div>
+        </div>
+      )}
+      {Capacitor.isNativePlatform() && progress.totalWins >= 1 && !progress.notifyAsked && (
+        <div className="overlay">
+          <div className="card" onClick={(e) => e.stopPropagation()}>
+            <div className="logo">🔔</div>
+            <h2>{t('remind.title')}</h2>
+            <p>{t('remind.body')}</p>
+            <button className="big-btn" onClick={() => p.setNotify(true)}>
+              {t('remind.yes')}
+            </button>
+            <button className="text-btn" onClick={() => p.setNotify(false)}>
+              {t('remind.later')}
             </button>
           </div>
         </div>

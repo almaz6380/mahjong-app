@@ -862,6 +862,31 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   IMMER `nur_status` laufen lassen: Er zeigt Build-Zustand, Versionen und die offene
   Einreichung in einem Aufruf und kostet 15 Sekunden.
 
+- **2.9.2026 — v1.1.2 (Android vc25 / iOS Build 24): ruhigerer erster Start.**
+  Anlass waren die ersten echten Store-Zahlen (Workflow „Store-Zahlen"): ~75 neue
+  Nutzer im Monat, davon auf Android nur 16 mit installierter App — drei von vier
+  gehen wieder. Im Code fand sich dazu: **Der allererste Start zeigte zwei
+  Systemdialoge, bevor der Spieler einen Stein gesehen hatte** — auf iOS die
+  Tracking-Abfrage (ATT, aus `initAds()`) und auf beiden Plattformen die
+  Mitteilungs-Erlaubnis (`notify` steht standardmäßig auf `true`, der
+  `useEffect` in App.tsx fragte sofort). iOS stellt die Mitteilungs-Frage genau
+  einmal; wer da „Nein" tippt, ist für die Tageserinnerung — das einzige
+  Rückhol-Werkzeug — dauerhaft verloren.
+  Geändert: (1) neues Feld `progress.notifyAsked`; beim Start fragt
+  `setupDailyReminder(…, askPermission)` nur noch, wenn schon einmal entschieden
+  wurde. Neue Spieler sehen nach dem ersten gewonnenen Level eine Karte auf der
+  Startseite („Morgen weiterspielen?", i18n `remind.*`); Ja/Nein läuft über
+  `setNotify`, das jetzt auch `notifyAsked` setzt. Migration: alte Stände
+  bekommen `notifyAsked = true`, die wurden schon gefragt. (2) ATT nicht mehr in
+  `runConsentFlow()`, sondern `ensureTrackingAuthorization()` unmittelbar vor der
+  ersten Anzeige (Interstitial nach Level 3 bzw. Rewarded) — Apple erlaubt das,
+  bis dahin laufen Anzeigen ohne Personalisierung. Der UMP-Consent (DSGVO, nur
+  EU) bleibt beim Start, das ist rechtlich Pflicht.
+  Bewusst NICHT gemacht: ein Erst-Hinweis auf Level 1 — optional, nicht bestellt.
+  Erwartung ehrlich: Das erklärt die Abgänge nicht allein (Mahjong-Apps halten
+  auch gut gemacht nur ~30 % nach Tag 1), aber es ist der billigste bekannte
+  Hebel. Versionshinweise `store/whatsnew-1.1.2.json`.
+
 ---
 
 ## Handy-Betrieb: Builds, Deploys und fal.ai auf Zuruf
