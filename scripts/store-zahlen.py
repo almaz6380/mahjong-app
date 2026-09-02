@@ -318,35 +318,21 @@ def rollen_hinweis(was='berichte'):
 
 
 def vendor_nummer(tok):
-    """Die Verkaeufernummer haengt am Konto, nicht an der App."""
+    """Die Verkaeufernummer haengt am Konto, nicht an der App.
+
+    Automatisch ermitteln laesst sie sich NICHT: Eine Probeanfrage mit
+    absichtlich falscher Nummer beantwortet Apple mit HTTP 500 statt mit einer
+    Liste gueltiger Werte (am 2.9.2026 gemessen). Also einmal von Hand
+    hinterlegen — geheim ist sie nicht, eine Repo-Variable genuegt.
+    """
     if ASC_VENDOR:
         return ASC_VENDOR
-    # Apple prueft die Parameter erst, wenn ALLE Pflichtfelder da sind. Deshalb
-    # eine vollstaendige Anfrage mit absichtlich falscher Verkaeufernummer:
-    # In der Fehlermeldung nennt Apple dann die gueltigen Werte.
-    tag = (date.today() - timedelta(days=2)).strftime('%Y-%m-%d')
-    url = (f'{ASC_API}/salesReports?filter[frequency]=DAILY'
-           f'&filter[reportType]=SALES&filter[reportSubType]=SUMMARY'
-           f'&filter[vendorNumber]=00000000&filter[reportDate]={tag}')
-    code, leib = hol(url, {'Authorization': f'Bearer {tok}',
-                           'Accept': 'application/a-gzip'})
-    try:
-        d = json.loads(leib)
-    except ValueError:
-        d = {}
-    fehler = '; '.join(str(e.get('detail') or e.get('title'))
-                       for e in d.get('errors', []))
-    print(f'   Probeabfrage salesReports -> HTTP {code}'
-          + (f': {fehler[:400]}' if fehler
-             else f' (Antwort: {leib[:200].decode("utf-8", "replace")})'))
-    if code in (401, 403):
-        rollen_hinweis()
-        return ''
-    import re as _re
-    treffer = _re.findall(r'\b(\d{7,12})\b', fehler)
-    if treffer:
-        print(f'   Verkaeufernummer aus Apples Antwort gelesen: {treffer[0]}')
-        return treffer[0]
+    print('   Verkaeufernummer fehlt. Sie steht in App Store Connect unter')
+    print('   „Zahlungen und Finanzberichte" (achtstellige Zahl) und gehoert als')
+    print('   Repo-Variable ASC_VENDOR_NUMBER hinterlegt:')
+    print('   Settings -> Secrets and variables -> Actions -> Variables.')
+    print('   Automatisch geht es nicht: Apple antwortet auf eine Probeanfrage')
+    print('   mit falscher Nummer mit HTTP 500 statt mit den gueltigen Werten.')
     return ''
 
 
