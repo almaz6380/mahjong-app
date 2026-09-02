@@ -892,7 +892,7 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   | | Stand |
   |---|---|
   | iOS | **Build 24 als 1.1.2 eingereicht**, reviewSubmission `35114726-…` |
-  | Android | vc25 — Stand siehe Nachtrag unten |
+  | Android | **vc25 in Produktion, an alle Nutzer** (19:36 UTC, mit targetSdk 36) |
 
   ⚠ **Google Play verlangt seit 31.8.2026 targetSdk 36 (Android 16).** Der erste
   Upload von vc25 endete mit 403 *„Target SDK of artifact is too low: 25"* — die
