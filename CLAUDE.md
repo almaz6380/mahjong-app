@@ -478,6 +478,21 @@ Schraegstrich) und `ASC_VENDOR_NUMBER` (App Store Connect → Zahlungen und
 Finanzberichte; das Skript versucht sie sonst aus Apples Fehlermeldung zu
 lesen, was klappen kann, aber nicht muss).
 
+⚠ **Apple braucht ZWEI Schluessel.** Der vorhandene Upload-Schluessel
+(`VGHCB8Z8Q2`, Rolle App-Manager) darf keine Verkaufs- oder Analytics-Berichte
+lesen — Apple antwortet mit **403 „The API key in use does not allow this
+request"**. Das liest sich wie ein kaputter Schluessel und ist keiner: Die
+Zugangsprobe im Skript zeigt, dass derselbe Schluessel die App-Daten sehr wohl
+liest. Berichte verlangen die Rolle **Finanzen** (oder Admin). Deshalb nimmt der
+Workflow bevorzugt `ASC_READ_KEY_ID` + `ASC_READ_KEY_P8_BASE64` und faellt nur
+zur Diagnose auf die Upload-Secrets zurueck. Die Issuer-ID ist kontoweit
+dieselbe, die braucht es kein zweites Mal.
+
+⚠ **`salesReports` verlangt `Accept: application/a-gzip`.** Ohne den Header
+antwortet Apple **406**, bevor es die Parameter prueft — dann nennt es auch die
+gueltigen Verkaeufernummern nicht, und es sieht nach einem Rechteproblem aus.
+Am 2.9.2026 genau so reingefallen.
+
 ⚠ **Das Dienstkonto braucht fuer den Eimer ein eigenes Leserecht** — die
 Admin-Rechte fuers Veroeffentlichen genuegen nicht. Kommt HTTP 403, sagt das
 Skript genau das; das Recht wird in der Play Console unter Nutzer und

@@ -50,6 +50,14 @@ jobs:
         env:
           PLAY_KEY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           PLAY_REPORTS_BUCKET: ${{ vars.PLAY_REPORTS_BUCKET }}
+          # Zwei Schluesselpaare mit Absicht: Der Upload-Schluessel hat die
+          # Rolle App-Manager und darf KEINE Verkaufs- oder Analytics-Berichte
+          # lesen (Apple: 403 "The API key in use does not allow this request").
+          # Steht ein Lese-Schluessel mit Rolle Finanzen bereit, wird der
+          # genommen; sonst faellt es auf den Upload-Schluessel zurueck, damit
+          # der Lauf wenigstens sagt, was fehlt.
+          ASC_READ_KEY_ID: ${{ secrets.ASC_READ_KEY_ID }}
+          ASC_READ_KEY_P8_BASE64: ${{ secrets.ASC_READ_KEY_P8_BASE64 }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
@@ -67,12 +75,19 @@ jobs:
             echo "::warning::Secret PLAY_SERVICE_ACCOUNT_JSON fehlt — Android wird uebersprungen."
           fi
 
-          # asc.py und store-zahlen.py erwarten den p8-Inhalt, nicht base64.
-          if [ -n "${ASC_KEY_P8_BASE64:-}" ]; then
+          # Lese-Schluessel bevorzugen; das Skript erwartet den p8-Inhalt,
+          # nicht base64. Die Issuer-ID ist bei beiden dieselbe (kontoweit).
+          if [ -n "${ASC_READ_KEY_P8_BASE64:-}" ] && [ -n "${ASC_READ_KEY_ID:-}" ]; then
+            ASC_KEY_ID="$ASC_READ_KEY_ID"
+            ASC_KEY_P8=$(printf '%s' "$ASC_READ_KEY_P8_BASE64" | base64 -d)
+            export ASC_KEY_ID ASC_KEY_P8
+            echo "::notice::Lese-Schluessel (Rolle Finanzen) wird benutzt."
+          elif [ -n "${ASC_KEY_P8_BASE64:-}" ]; then
             ASC_KEY_P8=$(printf '%s' "$ASC_KEY_P8_BASE64" | base64 -d)
             export ASC_KEY_P8
+            echo "::warning::Nur der Upload-Schluessel vorhanden — Berichte werden 403 liefern. Secrets ASC_READ_KEY_ID und ASC_READ_KEY_P8_BASE64 anlegen."
           else
-            echo "::warning::Secret ASC_KEY_P8_BASE64 fehlt — iOS wird uebersprungen."
+            echo "::warning::Kein Apple-Schluessel vorhanden — iOS wird uebersprungen."
           fi
 
           if [ -z "${PLAY_REPORTS_BUCKET:-}" ]; then
