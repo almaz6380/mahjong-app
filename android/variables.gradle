@@ -1,7 +1,12 @@
 ext {
     minSdkVersion = 23
-    compileSdkVersion = 35
-    targetSdkVersion = 35
+    // 36 seit 2.9.2026: Google Play nimmt seit dem 31.8.2026 keine Updates
+    // mehr an, die unter Android 16 (API 36) zielen — der Upload endet mit
+    // 403 "Target SDK of artifact is too low" (die Zahl in der Meldung ist
+    // irrefuehrend, sie entspricht nicht dem targetSdk). API 36 verlangt
+    // AGP >= 8.9.1 und Gradle >= 8.11.1 (build.gradle, gradle-wrapper).
+    compileSdkVersion = 36
+    targetSdkVersion = 36
     androidxActivityVersion = '1.8.0'
     androidxAppCompatVersion = '1.6.1'
     androidxCoordinatorLayoutVersion = '1.2.0'
