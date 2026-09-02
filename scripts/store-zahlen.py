@@ -317,7 +317,13 @@ def vendor_nummer(tok):
     """Die Verkaeufernummer haengt am Konto, nicht an der App."""
     if ASC_VENDOR:
         return ASC_VENDOR
-    code, d = asc(tok, 'salesReports?filter[frequency]=DAILY')
+    code, leib = hol(f'{ASC_API}/salesReports?filter[frequency]=DAILY',
+                     {'Authorization': f'Bearer {tok}',
+                      'Accept': 'application/a-gzip'})
+    try:
+        d = json.loads(leib)
+    except ValueError:
+        d = {}
     fehler = '; '.join(str(e.get('detail') or e.get('title'))
                        for e in d.get('errors', []))[:400]
     print(f'   Probeabfrage salesReports -> HTTP {code}'
