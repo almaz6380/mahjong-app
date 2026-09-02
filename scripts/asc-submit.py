@@ -68,6 +68,20 @@ def call(tok, method, path, body=None):
         sys.exit(f'FEHLER {e.code} bei {method} {path}\n{e.read().decode(errors="replace")}')
 
 
+def offener_entwurf(tok):
+    """Einreichungs-Entwurf, der angelegt, aber nie abgeschickt wurde."""
+    subs = call(tok, 'GET', f'/v1/reviewSubmissions?filter[app]={APP_ID}&limit=5')['data']
+    return next((s for s in subs if s['attributes'].get('state') == 'READY_FOR_REVIEW'), None)
+
+
+def abschicken(tok, sub_id):
+    call(tok, 'PATCH', f'/v1/reviewSubmissions/{sub_id}', {
+        'data': {'type': 'reviewSubmissions', 'id': sub_id,
+                 'attributes': {'submitted': True}},
+    })
+    print(f'✅ eingereicht (reviewSubmission {sub_id})')
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--version', required=True, help='z. B. 1.0.2')
@@ -130,6 +144,24 @@ def main():
     if ver:
         st = ver['attributes']['appStoreState']
         print(f'Version {args.version} existiert bereits: {st}')
+        # READY_FOR_REVIEW heisst: Die Version haengt schon an einem
+        # Einreichungs-ENTWURF, der nie abgeschickt wurde. Genau so sah es am
+        # 2.9.2026 aus, als Apple beim letzten PATCH {submitted: true} mit 500
+        # antwortete — Entwurf und Eintrag waren da, nur die Bestaetigung
+        # fehlte. Ein zweiter Entwurf liesse sich nicht anlegen; darum hier
+        # den vorhandenen suchen und nur die Bestaetigung nachholen.
+        if st == 'READY_FOR_REVIEW':
+            entwurf = offener_entwurf(tok)
+            if not entwurf:
+                sys.exit('Version ist READY_FOR_REVIEW, aber kein Einreichungs-Entwurf '
+                         'gefunden — in App Store Connect nachsehen.')
+            print(f'Einreichungs-Entwurf {entwurf["id"]} vorhanden (nie abgeschickt).')
+            if args.vorbereiten:
+                return print('Nichts zu tun — Entwurf steht, nur --submit fehlt noch.')
+            print('Entwurf abschicken …' + tag)
+            if write:
+                abschicken(tok, entwurf['id'])
+            return
         if st not in EDITABLE:
             sys.exit(f'Version ist {st} und nicht editierbar.')
     else:
@@ -183,11 +215,7 @@ def main():
                          'reviewSubmission': {'data': {'type': 'reviewSubmissions', 'id': sub['id']}},
                          'appStoreVersion': {'data': {'type': 'appStoreVersions', 'id': vid}}}},
         })
-        call(tok, 'PATCH', f'/v1/reviewSubmissions/{sub["id"]}', {
-            'data': {'type': 'reviewSubmissions', 'id': sub['id'],
-                     'attributes': {'submitted': True}},
-        })
-        print(f'✅ eingereicht (reviewSubmission {sub["id"]})')
+        abschicken(tok, sub['id'])
 
 
 if __name__ == '__main__':
