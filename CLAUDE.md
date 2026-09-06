@@ -863,7 +863,10 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   Einreichung in einem Aufruf und kostet 15 Sekunden.
 
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
-  Kompilierlauf `iOS Release` #8 (upload=false) grün in 1:12 inkl. Archiv und Export.
+  **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
+  Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in
+  allen sieben Sprachen gesetzt. Ablauf komplett über `iOS Release` #9 (upload=true, 5:30 min)
+  und `asc-submit.yml` #17. Kompilierlauf davor: `iOS Release` #8 (upload=false), grün.
   Versionshinweise `store/whatsnew-1.1.3.json`. Android bleibt auf vc25 — die Änderung
   betrifft nur iOS, `ensureTrackingAuthorization` steigt auf Android sofort aus.
   Anlass war der Vergleich Mahjong iOS 3,68 € gegen Android 21,23 € eCPM (7 Tage,
