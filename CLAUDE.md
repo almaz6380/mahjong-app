@@ -884,6 +884,9 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
      nicht attribuieren und bieten nicht. Jetzt 59: Googles aktuelle Liste
      (developers.google.com/admob/ios/ios14, 50 IDs) plus neun ältere aus Swaply.
      Bei jedem Plugin-Update gegen Googles Liste abgleichen.
+  **Apple hat 1.1.2 (Build 24) am 06.09. freigegeben** (Josefs Meldung, nicht per
+  `nur_status` gemessen). Build 25 kann damit als neue Version (1.1.3) direkt zugewiesen
+  werden — kein Rückzug, keine Umbenennung nötig.
   ⚠ **Swift nicht kompiliert** (kein Xcode in der Cloud) — vor dem Release einen
   Lauf mit `upload=false`. Erwartung: iOS-Interstitial von ~3,7 € auf 6 bis 8 €;
   bei 17 Impressionen pro Woche sind das Cents. Der Hebel bleibt die Nutzerzahl.
