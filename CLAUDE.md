@@ -862,7 +862,10 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   IMMER `nur_status` laufen lassen: Er zeigt Build-Zustand, Versionen und die offene
   Einreichung in einem Aufruf und kostet 15 Sekunden.
 
-- **6.9.2026 — iOS Build 25 (noch nicht gebaut): ATT nativ + volle SKAdNetwork-Liste.**
+- **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
+  Kompilierlauf `iOS Release` #8 (upload=false) grün in 1:12 inkl. Archiv und Export.
+  Versionshinweise `store/whatsnew-1.1.3.json`. Android bleibt auf vc25 — die Änderung
+  betrifft nur iOS, `ensureTrackingAuthorization` steigt auf Android sofort aus.
   Anlass war der Vergleich Mahjong iOS 3,68 € gegen Android 21,23 € eCPM (7 Tage,
   17 bzw. 30 Impressionen). Android zeigt Rewarded-Videos, iOS fast nur
   Interstitials ohne Personalisierung — beides normale Preise, kein Fehler.
@@ -887,8 +890,7 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   **Apple hat 1.1.2 (Build 24) am 06.09. freigegeben** (Josefs Meldung, nicht per
   `nur_status` gemessen). Build 25 kann damit als neue Version (1.1.3) direkt zugewiesen
   werden — kein Rückzug, keine Umbenennung nötig.
-  ⚠ **Swift nicht kompiliert** (kein Xcode in der Cloud) — vor dem Release einen
-  Lauf mit `upload=false`. Erwartung: iOS-Interstitial von ~3,7 € auf 6 bis 8 €;
+  Erwartung: iOS-Interstitial von ~3,7 € auf 6 bis 8 €;
   bei 17 Impressionen pro Woche sind das Cents. Der Hebel bleibt die Nutzerzahl.
 - **2.9.2026 — v1.1.2 (Android vc25 / iOS Build 24): ruhigerer erster Start.**
   Anlass waren die ersten echten Store-Zahlen (Workflow „Store-Zahlen"): ~75 neue
