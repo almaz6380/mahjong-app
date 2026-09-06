@@ -862,6 +862,39 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   IMMER `nur_status` laufen lassen: Er zeigt Build-Zustand, Versionen und die offene
   Einreichung in einem Aufruf und kostet 15 Sekunden.
 
+- **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
+  **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
+  Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in
+  allen sieben Sprachen gesetzt. Ablauf komplett über `iOS Release` #9 (upload=true, 5:30 min)
+  und `asc-submit.yml` #17. Kompilierlauf davor: `iOS Release` #8 (upload=false), grün.
+  Versionshinweise `store/whatsnew-1.1.3.json`. Android bleibt auf vc25 — die Änderung
+  betrifft nur iOS, `ensureTrackingAuthorization` steigt auf Android sofort aus.
+  Anlass war der Vergleich Mahjong iOS 3,68 € gegen Android 21,23 € eCPM (7 Tage,
+  17 bzw. 30 Impressionen). Android zeigt Rewarded-Videos, iOS fast nur
+  Interstitials ohne Personalisierung — beides normale Preise, kein Fehler.
+  Zwei Dinge waren trotzdem strukturell falsch:
+  1. **ATT lief über die Plugin-Brücke** (`AdMob.requestTrackingAuthorization()`),
+     und das Plugin ruft `ATTrackingManager` auf Capacitors Hintergrund-
+     Warteschlange auf — dort erscheint der Dialog nicht (Apple-Ablehnung bei
+     Anigosha, 12.08.). Ohne ATT keine IDFA, jede iOS-Anzeige nicht-personalisiert.
+     **Der Zeitpunkt aus 1.1.2 bleibt** (erst vor der ersten Anzeige, nicht beim
+     Start). Deshalb kein fester Aufruf im AppDelegate, sondern ein Auslöser:
+     `ensureTrackingAuthorization()` in `admob.ts` setzt per `@capacitor/preferences`
+     den Schlüssel `att.anfrage`; der landet als `CapacitorStorage.att.anfrage` in
+     `UserDefaults.standard`, der `AppDelegate` hört auf `UserDefaults.didChangeNotification`,
+     fragt auf dem Hauptthread und löscht den Schlüssel. `admob.ts` wartet bis 20 s
+     auf die Antwort, dann lädt die Anzeige. Rückfall: `applicationDidBecomeActive`
+     prüft den Schlüssel ebenfalls. ⚠ Schlüsselname steht an ZWEI Stellen
+     (`ATT_ANFRAGE_KEY` in admob.ts, `attAnfrageSchluessel` im AppDelegate).
+  2. **Nur 6 SKAdNetwork-IDs in der Info.plist.** Bieter ohne Eintrag können
+     nicht attribuieren und bieten nicht. Jetzt 59: Googles aktuelle Liste
+     (developers.google.com/admob/ios/ios14, 50 IDs) plus neun ältere aus Swaply.
+     Bei jedem Plugin-Update gegen Googles Liste abgleichen.
+  **Apple hat 1.1.2 (Build 24) am 06.09. freigegeben** (Josefs Meldung, nicht per
+  `nur_status` gemessen). Build 25 kann damit als neue Version (1.1.3) direkt zugewiesen
+  werden — kein Rückzug, keine Umbenennung nötig.
+  Erwartung: iOS-Interstitial von ~3,7 € auf 6 bis 8 €;
+  bei 17 Impressionen pro Woche sind das Cents. Der Hebel bleibt die Nutzerzahl.
 - **2.9.2026 — v1.1.2 (Android vc25 / iOS Build 24): ruhigerer erster Start.**
   Anlass waren die ersten echten Store-Zahlen (Workflow „Store-Zahlen"): ~75 neue
   Nutzer im Monat, davon auf Android nur 16 mit installierter App — drei von vier
