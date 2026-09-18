@@ -1,0 +1,9 @@
+{
+  "de-DE": "Technische Verbesserungen an der Werbeeinbindung auf iOS. Die Tracking-Abfrage erscheint jetzt zuverlässig, und zwar wie bisher erst kurz vor der ersten Werbung, nicht beim Start.",
+  "en-US": "Technical improvements to ad integration on iOS. The tracking prompt now appears reliably, and as before only right before the first ad, not at launch.",
+  "es-ES": "Mejoras técnicas en la integración de anuncios en iOS. La solicitud de seguimiento ahora aparece de forma fiable y, como antes, solo justo antes del primer anuncio, no al iniciar.",
+  "pt-BR": "Melhorias técnicas na integração de anúncios no iOS. A solicitação de rastreamento agora aparece de forma confiável e, como antes, só pouco antes do primeiro anúncio, não ao abrir.",
+  "fr-FR": "Améliorations techniques de l'intégration publicitaire sur iOS. La demande de suivi s'affiche désormais de manière fiable, et comme avant seulement juste avant la première publicité, pas au lancement.",
+  "it": "Miglioramenti tecnici all'integrazione pubblicitaria su iOS. La richiesta di tracciamento ora compare in modo affidabile e, come prima, solo poco prima della prima pubblicità, non all'avvio.",
+  "ja": "iOS の広告連携を技術的に改善しました。トラッキングの確認が確実に表示されるようになりました。従来どおり、起動時ではなく最初の広告の直前にお尋ねします。"
+}

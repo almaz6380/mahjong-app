@@ -447,6 +447,72 @@ Die App ist eine Single-Page-Anwendung ohne Router, es gibt also **einen Seitena
 gut für „wie viele und wann", aber es sagt nichts darüber, welche Spielmodi benutzt werden. Dafür
 bräuchte es eigene Ereignisse (`track()`), das ist bewusst nicht eingebaut.
 
+## Store-Zahlen lesen (Workflow „Store-Zahlen", seit 1.9.2026)
+
+`.github/workflows/store-zahlen.yml` + `scripts/store-zahlen.py` holen
+Installationen, Downloads und den Akquise-Trichter — **rein lesend**, es wird
+nichts veroeffentlicht. Der Sinn: Die Schluessel bleiben Repo-Secrets, und
+trotzdem kann eine Cloud-Sitzung die Zahlen sehen (Josef loest den Lauf aus,
+Claude liest das Protokoll). Ergebnis steht im Lauf-Protokoll und als Artefakt
+`store-zahlen`.
+
+⚠ **Die Publishing-APIs kennen keine Statistiken.** Weder androidpublisher noch
+die Play Developer **Reporting** API liefern Installationen oder Akquise — die
+Reporting-API hat nur Abstuerze, ANRs und Startzeiten. Wer dort sucht, sucht
+falsch. Die Zahlen liegen woanders:
+
+| Zahl | Quelle |
+|---|---|
+| Installationen Android | CSV-Export im GCS-Eimer `pubsite_prod_*`, `stats/installs/` |
+| Impressionen → Besucher → Akquise (Android) | derselbe Eimer, `stats/store_performance/` |
+| Downloads iOS | ASC `salesReports` (taeglich, ab Folgetag) |
+| Impressionen/Bindung iOS | ASC Analytics-Reports — **einmal anfordern**, Apple braucht 1–2 Tage |
+| **Bindungsrate Android** | **nur die Play Console**, kein Export |
+
+⚠ **Zwei Werte muessen von Hand hinterlegt werden**, sonst ueberspringt das
+Skript den jeweiligen Teil (mit Hinweis, es bricht nicht ab). Beide als
+Repo-*Variables* (nicht Secrets, sie sind nicht geheim):
+`PLAY_REPORTS_BUCKET` (Play Console → Downloadberichte → Statistiken →
+„Cloud Storage-URI kopieren", davon der Teil zwischen `gs://` und dem ersten
+Schraegstrich) und `ASC_VENDOR_NUMBER` (App Store Connect → Zahlungen und
+Finanzberichte; das Skript versucht sie sonst aus Apples Fehlermeldung zu
+lesen, was klappen kann, aber nicht muss).
+
+⚠ **Apple braucht ZWEI Schluessel.** Der vorhandene Upload-Schluessel
+(`VGHCB8Z8Q2`, Rolle App-Manager) darf keine Verkaufs- oder Analytics-Berichte
+lesen — Apple antwortet mit **403 „The API key in use does not allow this
+request"**. Das liest sich wie ein kaputter Schluessel und ist keiner: Die
+Zugangsprobe im Skript zeigt, dass derselbe Schluessel die App-Daten sehr wohl
+liest. Berichte verlangen die Rolle **Finanzen** (oder Admin). Deshalb nimmt der
+Workflow bevorzugt `ASC_READ_KEY_ID` + `ASC_READ_KEY_P8_BASE64` und faellt nur
+zur Diagnose auf die Upload-Secrets zurueck. Die Issuer-ID ist kontoweit
+dieselbe, die braucht es kein zweites Mal.
+
+⚠ **Verkauf und Analytics verlangen VERSCHIEDENE Rollen** (am 2.9.2026
+gemessen, nicht geraten): Derselbe Schluessel mit Rolle **Finanzen** darf
+`salesReports` lesen und vorhandene `analyticsReportRequests` ansehen — aber
+eine Analytics-Anforderung ANZULEGEN quittiert Apple mit demselben 403
+„The API key in use does not allow this request". Dafuer braucht es **ADMIN**.
+Praktische Folge: Downloads pro Tag gehen mit dem Finanzen-Schluessel;
+Impressionen und Bindungsrate fuer iOS bleiben ohne Admin-Schluessel
+Handarbeit in App Store Connect.
+
+⚠ **`salesReports` verlangt `Accept: application/a-gzip`.** Ohne den Header
+antwortet Apple **406**, bevor es die Parameter prueft — dann nennt es auch die
+gueltigen Verkaeufernummern nicht, und es sieht nach einem Rechteproblem aus.
+Am 2.9.2026 genau so reingefallen.
+
+⚠ **Das Dienstkonto braucht fuer den Eimer ein eigenes Leserecht** — die
+Admin-Rechte fuers Veroeffentlichen genuegen nicht. Kommt HTTP 403, sagt das
+Skript genau das; das Recht wird in der Play Console unter Nutzer und
+Berechtigungen gegeben.
+
+**Noch nie gegen die echten APIs gelaufen** (Stand 1.9.2026): In der
+Cloud-Umgebung liegen keine Store-Schluessel, gepruft sind nur Syntax, der
+UTF-16-CSV-Pfad und das Verhalten ohne Zugangsdaten. Der erste echte Lauf
+braucht wahrscheinlich noch eine Runde Nachbesserung — vor allem die
+Spaltennamen der Play-Berichte und die Produkttyp-Filterung bei Apple.
+
 ## Builds ohne eigenen Mac (GitHub Actions)
 
 `.github/workflows/android-release.yml` + `ios-release.yml` bauen, signieren und laden auf GitHubs
@@ -795,6 +861,93 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   Build nach 20 Minuten schon auf `VALID`. Vor dem Abbrechen der laufenden Prüfung
   IMMER `nur_status` laufen lassen: Er zeigt Build-Zustand, Versionen und die offene
   Einreichung in einem Aufruf und kostet 15 Sekunden.
+
+- **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
+  **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
+  Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in
+  allen sieben Sprachen gesetzt. Ablauf komplett über `iOS Release` #9 (upload=true, 5:30 min)
+  und `asc-submit.yml` #17. Kompilierlauf davor: `iOS Release` #8 (upload=false), grün.
+  Versionshinweise `store/whatsnew-1.1.3.json`. Android bleibt auf vc25 — die Änderung
+  betrifft nur iOS, `ensureTrackingAuthorization` steigt auf Android sofort aus.
+  Anlass war der Vergleich Mahjong iOS 3,68 € gegen Android 21,23 € eCPM (7 Tage,
+  17 bzw. 30 Impressionen). Android zeigt Rewarded-Videos, iOS fast nur
+  Interstitials ohne Personalisierung — beides normale Preise, kein Fehler.
+  Zwei Dinge waren trotzdem strukturell falsch:
+  1. **ATT lief über die Plugin-Brücke** (`AdMob.requestTrackingAuthorization()`),
+     und das Plugin ruft `ATTrackingManager` auf Capacitors Hintergrund-
+     Warteschlange auf — dort erscheint der Dialog nicht (Apple-Ablehnung bei
+     Anigosha, 12.08.). Ohne ATT keine IDFA, jede iOS-Anzeige nicht-personalisiert.
+     **Der Zeitpunkt aus 1.1.2 bleibt** (erst vor der ersten Anzeige, nicht beim
+     Start). Deshalb kein fester Aufruf im AppDelegate, sondern ein Auslöser:
+     `ensureTrackingAuthorization()` in `admob.ts` setzt per `@capacitor/preferences`
+     den Schlüssel `att.anfrage`; der landet als `CapacitorStorage.att.anfrage` in
+     `UserDefaults.standard`, der `AppDelegate` hört auf `UserDefaults.didChangeNotification`,
+     fragt auf dem Hauptthread und löscht den Schlüssel. `admob.ts` wartet bis 20 s
+     auf die Antwort, dann lädt die Anzeige. Rückfall: `applicationDidBecomeActive`
+     prüft den Schlüssel ebenfalls. ⚠ Schlüsselname steht an ZWEI Stellen
+     (`ATT_ANFRAGE_KEY` in admob.ts, `attAnfrageSchluessel` im AppDelegate).
+  2. **Nur 6 SKAdNetwork-IDs in der Info.plist.** Bieter ohne Eintrag können
+     nicht attribuieren und bieten nicht. Jetzt 59: Googles aktuelle Liste
+     (developers.google.com/admob/ios/ios14, 50 IDs) plus neun ältere aus Swaply.
+     Bei jedem Plugin-Update gegen Googles Liste abgleichen.
+  **Apple hat 1.1.2 (Build 24) am 06.09. freigegeben** (Josefs Meldung, nicht per
+  `nur_status` gemessen). Build 25 kann damit als neue Version (1.1.3) direkt zugewiesen
+  werden — kein Rückzug, keine Umbenennung nötig.
+  Erwartung: iOS-Interstitial von ~3,7 € auf 6 bis 8 €;
+  bei 17 Impressionen pro Woche sind das Cents. Der Hebel bleibt die Nutzerzahl.
+- **2.9.2026 — v1.1.2 (Android vc25 / iOS Build 24): ruhigerer erster Start.**
+  Anlass waren die ersten echten Store-Zahlen (Workflow „Store-Zahlen"): ~75 neue
+  Nutzer im Monat, davon auf Android nur 16 mit installierter App — drei von vier
+  gehen wieder. Im Code fand sich dazu: **Der allererste Start zeigte zwei
+  Systemdialoge, bevor der Spieler einen Stein gesehen hatte** — auf iOS die
+  Tracking-Abfrage (ATT, aus `initAds()`) und auf beiden Plattformen die
+  Mitteilungs-Erlaubnis (`notify` steht standardmäßig auf `true`, der
+  `useEffect` in App.tsx fragte sofort). iOS stellt die Mitteilungs-Frage genau
+  einmal; wer da „Nein" tippt, ist für die Tageserinnerung — das einzige
+  Rückhol-Werkzeug — dauerhaft verloren.
+  Geändert: (1) neues Feld `progress.notifyAsked`; beim Start fragt
+  `setupDailyReminder(…, askPermission)` nur noch, wenn schon einmal entschieden
+  wurde. Neue Spieler sehen nach dem ersten gewonnenen Level eine Karte auf der
+  Startseite („Morgen weiterspielen?", i18n `remind.*`); Ja/Nein läuft über
+  `setNotify`, das jetzt auch `notifyAsked` setzt. Migration: alte Stände
+  bekommen `notifyAsked = true`, die wurden schon gefragt. (2) ATT nicht mehr in
+  `runConsentFlow()`, sondern `ensureTrackingAuthorization()` unmittelbar vor der
+  ersten Anzeige (Interstitial nach Level 3 bzw. Rewarded) — Apple erlaubt das,
+  bis dahin laufen Anzeigen ohne Personalisierung. Der UMP-Consent (DSGVO, nur
+  EU) bleibt beim Start, das ist rechtlich Pflicht.
+  Bewusst NICHT gemacht: ein Erst-Hinweis auf Level 1 — optional, nicht bestellt.
+  Erwartung ehrlich: Das erklärt die Abgänge nicht allein (Mahjong-Apps halten
+  auch gut gemacht nur ~30 % nach Tag 1), aber es ist der billigste bekannte
+  Hebel. Versionshinweise `store/whatsnew-1.1.2.json`.
+
+  **Auslieferung am 2.9.2026 abends — zwei Fallen, beide nicht im Code:**
+
+  | | Stand |
+  |---|---|
+  | iOS | **Build 24 als 1.1.2 eingereicht**, reviewSubmission `35114726-…` |
+  | Android | **vc25 in Produktion, an alle Nutzer** (19:36 UTC, mit targetSdk 36) |
+
+  ⚠ **Google Play verlangt seit 31.8.2026 targetSdk 36 (Android 16).** Der erste
+  Upload von vc25 endete mit 403 *„Target SDK of artifact is too low: 25"* — die
+  Zahl im Text ist der versionCode, nicht das SDK, das liest sich irreführend.
+  vc24 war am 11.8. noch durchgegangen; die Frist ist dazwischen abgelaufen.
+  API 36 braucht **AGP ≥ 8.9.1 und Gradle ≥ 8.11.1**, deshalb `android/build.gradle`
+  8.2.1 → 8.9.1 und `gradle-wrapper.properties` → 8.11.1 (`variables.gradle`:
+  compileSdk/targetSdk 36, JDK 17 bleibt). Capacitor 6 und alle Plugins bauen
+  damit unverändert — geprüft mit einem Lauf `upload=false` (6 min), erst dann
+  der echte. Ein fehlgeschlagener Upload veröffentlicht nichts: Der Fehler kommt
+  bei `:validate`, vor dem `:commit`.
+
+  ⚠ **Apple 500 beim allerletzten Einreich-Schritt.** `asc-submit.py` legt den
+  Einreichungs-Entwurf an (POST reviewSubmissions), hängt die Version an
+  (reviewSubmissionItems) und bestätigt (PATCH `{submitted: true}`). Der PATCH kam
+  mit **500 UNEXPECTED_ERROR** zurück — Entwurf und Eintrag waren da, die Version
+  stand auf `READY_FOR_REVIEW`, abgeschickt war nichts. Ein zweiter Lauf hätte
+  einen zweiten Entwurf angelegt (geht nicht) bzw. mit „nicht editierbar"
+  abgebrochen. Das Skript erkennt diesen Zustand jetzt und holt **nur die
+  Bestätigung** nach; `--vorbereiten` meldet dann „nichts zu tun". Erkennen:
+  `nur_status` zeigt unter „Offene Prüfungen" `READY_FOR_REVIEW eingereicht None`
+  — „None" ist das Merkmal, eine abgeschickte Prüfung trägt ein Datum.
 
 ---
 

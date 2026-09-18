@@ -1,0 +1,9 @@
+{
+  "de-DE": "Ruhigerer Start: Die App fragt beim ersten Öffnen nicht mehr sofort nach Mitteilungen und Tracking. Die Frage nach der täglichen Erinnerung kommt erst nach dem ersten gewonnenen Level, die Tracking-Abfrage erst kurz vor der ersten Werbung.",
+  "en-US": "A calmer first start: the app no longer asks for notifications and tracking the moment you open it. The daily-reminder question now comes after your first won level, and the tracking prompt only right before the first ad.",
+  "es-ES": "Un inicio más tranquilo: la app ya no pide notificaciones ni seguimiento nada más abrirla. La pregunta sobre el recordatorio diario llega tras el primer nivel ganado, y la de seguimiento solo justo antes del primer anuncio.",
+  "pt-BR": "Um início mais tranquilo: o app não pede mais notificações e rastreamento logo ao abrir. A pergunta sobre o lembrete diário vem depois do primeiro nível vencido, e a de rastreamento só pouco antes do primeiro anúncio.",
+  "fr-FR": "Un premier démarrage plus calme : l'app ne demande plus les notifications ni le suivi dès l'ouverture. La question du rappel quotidien arrive après le premier niveau gagné, et celle du suivi juste avant la première publicité.",
+  "it": "Un avvio più tranquillo: l'app non chiede più notifiche e tracciamento appena la apri. La domanda sul promemoria giornaliero arriva dopo il primo livello vinto, quella sul tracciamento solo poco prima della prima pubblicità.",
+  "ja": "初回起動がより静かになりました。開いてすぐに通知やトラッキングの許可を求めなくなります。毎日のリマインダーは最初のレベルをクリアした後に、トラッキングの確認は最初の広告の直前にお尋ねします。"
+}

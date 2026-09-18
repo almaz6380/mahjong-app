@@ -1,13 +1,29 @@
 import UIKit
 import Capacitor
+import AppTrackingTransparency
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
 
+    /// Schluessel, ueber den src/ads/admob.ts die Tracking-Abfrage anstoesst.
+    /// @capacitor/preferences schreibt auf iOS in UserDefaults.standard, mit
+    /// dem Gruppennamen als Praefix (Preferences.swift im Plugin):
+    /// "CapacitorStorage." + Schluessel. Aendert sich der Schluessel in
+    /// admob.ts (`ATT_ANFRAGE_KEY`), muss er hier mitziehen.
+    private let attAnfrageSchluessel = "CapacitorStorage.att.anfrage"
+
+    /// Merker, damit zwei Ausloeser kurz hintereinander nicht zwei Dialoge
+    /// anfordern. Wird in der Rueckmeldung wieder geloescht.
+    private var trackingAbfrageLaeuft = false
+
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        // Sobald admob.ts den Schluessel setzt, meldet UserDefaults die
+        // Aenderung — auf dem Thread des Schreibers, deshalb unten der Sprung
+        // auf den Hauptthread.
+        NotificationCenter.default.addObserver(self, selector: #selector(userDefaultsGeaendert),
+                                               name: UserDefaults.didChangeNotification, object: nil)
         return true
     }
 
@@ -26,7 +42,54 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
-        // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+        // Rueckfallweg: Kam die Anfrage, waehrend die App nicht aktiv war,
+        // holt der naechste Vordergrund-Wechsel sie nach.
+        pruefeTrackingAnfrage()
+    }
+
+    // MARK: - App Tracking Transparency
+    //
+    //  Der ATT-Dialog wird NATIV angefordert, nicht mehr ueber das AdMob-Plugin.
+    //  `AdMob.requestTrackingAuthorization()` ruft `ATTrackingManager` direkt in
+    //  der Plugin-Methode auf, und Capacitor fuehrt Plugin-Aufrufe auf einer
+    //  eigenen Hintergrund-Warteschlange aus — ein UIKit-Dialog gehoert auf den
+    //  Hauptthread. Apple hat genau das bei Anigosha am 12.08.2026 beanstandet
+    //  (Richtlinie 2.1: Dialog nicht auffindbar). Ohne erteiltes ATT gibt es
+    //  keine IDFA, und jede iOS-Anzeige ist nicht-personalisiert — das ist der
+    //  Unterschied zwischen 3 € und 6 bis 8 € eCPM je Interstitial.
+    //
+    //  Der ZEITPUNKT bleibt, wie in 1.1.2 entschieden: nicht beim ersten Start
+    //  (dort standen schon zwei Systemdialoge), sondern unmittelbar vor der
+    //  ersten Anzeige. Deshalb kein fester Aufruf in didBecomeActive, sondern
+    //  ein Ausloeser: admob.ts setzt ueber @capacitor/preferences den Schluessel
+    //  `att.anfrage`, UserDefaults meldet die Aenderung, und hier wird auf dem
+    //  Hauptthread gefragt. admob.ts wartet danach auf die Antwort, bevor es
+    //  die Anzeige laedt.
+    @objc private func userDefaultsGeaendert() {
+        DispatchQueue.main.async { [weak self] in self?.pruefeTrackingAnfrage() }
+    }
+
+    private func pruefeTrackingAnfrage() {
+        let defaults = UserDefaults.standard
+        guard defaults.string(forKey: attAnfrageSchluessel) == "1" else { return }
+        // Nicht aktiv (z. B. Anfrage kam waehrend eines Wechsels): Schluessel
+        // stehen lassen, didBecomeActive kommt noch einmal vorbei.
+        guard UIApplication.shared.applicationState == .active else { return }
+        // Vor dem Fragen entfernen — das loest erneut didChangeNotification
+        // aus, aber ohne Schluessel endet der Durchlauf oben sofort.
+        defaults.removeObject(forKey: attAnfrageSchluessel)
+        frageNachTracking()
+    }
+
+    private func frageNachTracking() {
+        guard !trackingAbfrageLaeuft else { return }
+        // Schon beantwortet (auch „abgelehnt") — iOS zeigt den Dialog dann
+        // ohnehin kein zweites Mal, die Antwort aendert man in den Einstellungen.
+        guard ATTrackingManager.trackingAuthorizationStatus == .notDetermined else { return }
+        trackingAbfrageLaeuft = true
+        ATTrackingManager.requestTrackingAuthorization { [weak self] _ in
+            self?.trackingAbfrageLaeuft = false
+        }
     }
 
     func applicationWillTerminate(_ application: UIApplication) {

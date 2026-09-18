@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { Preferences } from '@capacitor/preferences';
 
 // ===========================================================================
 //  AdMob-Anbindung (Interstitial + Rewarded)
@@ -65,17 +66,10 @@ async function runConsentFlow(): Promise<void> {
   try {
     const info = await AdMob.requestConsentInfo();
 
-    // iOS ab 14: ATT-Dialog einmalig anzeigen (auf Android nicht vorhanden).
-    if (Capacitor.getPlatform() === 'ios') {
-      try {
-        const tracking = await AdMob.trackingAuthorizationStatus();
-        if (tracking.status === 'notDetermined') {
-          await AdMob.requestTrackingAuthorization();
-        }
-      } catch (e) {
-        console.warn('ATT-Abfrage fehlgeschlagen:', e);
-      }
-    }
+    // Der iOS-Tracking-Dialog (ATT) kommt seit 1.1.2 NICHT mehr hier beim Start,
+    // sondern erst unmittelbar vor der ersten Werbung — siehe
+    // ensureTrackingAuthorization(). Bis dahin laufen Anzeigen ohne
+    // Personalisierung; Apple erlaubt das ausdruecklich.
 
     if (info.isConsentFormAvailable && info.status === 'REQUIRED') {
       await AdMob.showConsentForm();
@@ -102,6 +96,45 @@ export async function changeAdConsent(): Promise<void> {
     }
   } catch (e) {
     console.warn('Consent-Änderung fehlgeschlagen:', e);
+  }
+}
+
+// iOS ab 14: Tracking-Erlaubnis (ATT) einmalig erfragen — aber erst, wenn
+// gleich wirklich eine Anzeige kommt. Bis 1.1.1 stand dieser Dialog beim
+// allerersten Start, VOR der Startseite, direkt neben der Mitteilungs-Frage:
+// zwei Bettel-Dialoge, bevor der Spieler einen Stein gesehen hatte. Ein
+// Spieler, der Level 3 erreicht hat, hat einen Grund, hier zuzustimmen.
+//
+// Gefragt wird seit Build 25 NATIV im AppDelegate, nicht mehr ueber
+// `AdMob.requestTrackingAuthorization()`: Das Plugin ruft ATTrackingManager
+// auf Capacitors Hintergrund-Warteschlange auf, und dort erscheint der
+// Dialog nicht (Apple-Ablehnung bei Anigosha, 12.08.2026). Ohne erteiltes ATT
+// keine IDFA, also jede iOS-Anzeige nicht-personalisiert.
+//
+// Der Ausloeser laeuft ueber @capacitor/preferences: Der Schluessel landet als
+// "CapacitorStorage.att.anfrage" in UserDefaults.standard, der AppDelegate
+// hoert auf die Aenderung, fragt auf dem Hauptthread und loescht den
+// Schluessel wieder. Hier wird nur noch auf die Antwort gewartet, damit die
+// erste Anzeige schon mit der Entscheidung laedt.
+const ATT_ANFRAGE_KEY = 'att.anfrage'; // muss zu attAnfrageSchluessel im AppDelegate passen
+const ATT_WARTEZEIT_MS = 20_000; // der Dialog blockiert die Oberflaeche ohnehin
+let attChecked = false;
+async function ensureTrackingAuthorization(): Promise<void> {
+  if (attChecked || Capacitor.getPlatform() !== 'ios') return;
+  attChecked = true;
+  try {
+    const { status } = await AdMob.trackingAuthorizationStatus();
+    if (status !== 'notDetermined') return;
+    await Preferences.set({ key: ATT_ANFRAGE_KEY, value: '1' });
+    const bis = Date.now() + ATT_WARTEZEIT_MS;
+    while (Date.now() < bis) {
+      await new Promise((r) => setTimeout(r, 250));
+      const jetzt = await AdMob.trackingAuthorizationStatus();
+      if (jetzt.status !== 'notDetermined') return;
+    }
+    console.warn('ATT blieb unbeantwortet — Anzeige laeuft ohne Personalisierung.');
+  } catch (e) {
+    console.warn('ATT-Abfrage fehlgeschlagen:', e);
   }
 }
 
@@ -141,6 +174,7 @@ export async function maybeShowInterstitial(level: number, totalWins: number): P
   if (!ready || adsRemoved) return;
   if (!shouldShowInterstitial(level, totalWins)) return;
   lastInterstitial = Date.now();
+  await ensureTrackingAuthorization();
   try {
     await AdMob.prepareInterstitial({ adId: ids().interstitial, isTesting: USE_TEST_ADS });
     await AdMob.showInterstitial();
@@ -154,6 +188,7 @@ export async function maybeShowInterstitialModes(): Promise<void> {
   if (!ready || adsRemoved) return;
   if (Date.now() - lastInterstitial < INTERSTITIAL_MIN_GAP_MS) return;
   lastInterstitial = Date.now();
+  await ensureTrackingAuthorization();
   try {
     await AdMob.prepareInterstitial({ adId: ids().interstitial, isTesting: USE_TEST_ADS });
     await AdMob.showInterstitial();
@@ -198,6 +233,7 @@ export async function requestReward(): Promise<RewardOutcome> {
     return 'unavailable';
   }
   rewardInFlight = true;
+  await ensureTrackingAuthorization();
 
   const handles: Array<{ remove: () => Promise<void> }> = [];
   let earned = false;

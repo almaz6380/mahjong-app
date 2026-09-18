@@ -4,7 +4,11 @@ import { notifyText, type Lang } from './i18n';
 
 const REMINDER_ID = 1001;
 
-export async function setupDailyReminder(enabled: boolean, lang: Lang = 'de'): Promise<void> {
+// `askPermission`: Darf die System-Erlaubnis JETZT erfragt werden? Beim App-
+// Start ist das seit 1.1.2 nur noch erlaubt, wenn der Spieler schon einmal
+// entschieden hat (progress.notifyAsked) — sonst waere der erste Eindruck der
+// App ein Bettel-Dialog, und iOS gibt keine zweite Chance.
+export async function setupDailyReminder(enabled: boolean, lang: Lang = 'de', askPermission = true): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
   try {
     const { LocalNotifications } = await import('@capacitor/local-notifications');
@@ -14,6 +18,7 @@ export async function setupDailyReminder(enabled: boolean, lang: Lang = 'de'): P
 
     const perm = await LocalNotifications.checkPermissions();
     let granted = perm.display === 'granted';
+    if (!granted && !askPermission) return;
     if (!granted) {
       const req = await LocalNotifications.requestPermissions();
       granted = req.display === 'granted';
