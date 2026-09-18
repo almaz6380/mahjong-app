@@ -53,23 +53,21 @@ const FORMATE = {
   'paar-standbild': {
     haken: 'Spot the pair',
     unter: 'Answer in the comments 👇',
-    hashtags: ['mahjong', 'mahjongsolitaire', 'puzzlegame', 'brainteaser', 'spotthedifference',
-      'puzzletok', 'mobilegame', 'freegame', 'tilematching', 'braintraining'],
+    hashtags: ['mahjong', 'mahjongsolitaire', 'puzzlegame', 'brainteaser', 'spotthedifference'],
     caption: (o) => `Two of these tiles are a pair. Can you find them? 👀\n\n`
       + `Careful — any flower matches any other flower, and any season any other `
       + `season. They do not have to look identical.\n\n`
       + `Level ${o.level}\n\n`
-      + `Mahjong Royale — free on iOS & Android. Link in bio.`,
+      + `Mahjong Royale — free on iOS & Android.`,
   },
   'figur-galerie': {
     haken: 'Every level is a shape',
     unter: '370 of them. None a reskin.',
-    hashtags: ['mahjong', 'mahjongsolitaire', 'leveldesign', 'puzzlegame', 'gamedesign',
-      'satisfying', 'mobilegame', 'freegame', 'tilematching', 'boardgames'],
+    hashtags: ['mahjong', 'mahjongsolitaire', 'leveldesign', 'puzzlegame', 'gamedesign'],
     caption: (o) => `Dragon, turtle, butterfly, lantern, crown, bridge — every one of `
       + `the 370 levels is an actual built figure, not a variation of the same board. 🀄\n\n`
       + `Shown: levels ${o.level}\n\n`
-      + `Mahjong Royale — free on iOS & Android. Link in bio.`,
+      + `Mahjong Royale — free on iOS & Android.`,
   },
 };
 

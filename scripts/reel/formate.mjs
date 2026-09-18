@@ -34,33 +34,30 @@ export const FORMATE = {
     hookSek: 1.9,
     hook: 'Can you spot\nthe pair?',
     hookSub: 'Most people need three tries',
-    hashtags: ['mahjong', 'mahjongsolitaire', 'puzzlegame', 'brainteaser', 'spotthedifference',
-      'satisfying', 'mobilegame', 'freegame', 'tilematching', 'puzzletok'],
+    hashtags: ['mahjong', 'mahjongsolitaire', 'puzzlegame', 'brainteaser', 'spotthedifference'],
     caption: (o) => `Can you spot the matching pair before I do? 👀\n\n`
       + `Level ${o.level} · ${o.paare} pairs · cleared in ${o.spielSek}s\n\n`
-      + `Mahjong Royale — free on iOS & Android. Link in bio.`,
+      + `Mahjong Royale — free on iOS & Android.`,
   },
 
   clear: {
     hookSek: 1.6,
     hook: 'Every single tile.\nGone.',
     hookSub: 'Sound on 🔊',
-    hashtags: ['mahjong', 'satisfying', 'oddlysatisfying', 'asmr', 'mahjongsolitaire',
-      'puzzlegame', 'relaxing', 'mobilegame', 'freegame', 'tilematching'],
+    hashtags: ['mahjong', 'satisfying', 'oddlysatisfying', 'asmr', 'mahjongsolitaire'],
     caption: (o) => `${o.paare} pairs, no mistakes. Sound on for the tiles. 🔊\n\n`
       + `Level ${o.level} · ${o.spielSek}s\n\n`
-      + `Mahjong Royale — free on iOS & Android. Link in bio.`,
+      + `Mahjong Royale — free on iOS & Android.`,
   },
 
   fakt: {
     hookSek: 3.6,          // ein Satz will gelesen werden
     hook: 'Did you know?',
     hookSub: null,         // kommt aus dem Fakt
-    hashtags: ['mahjong', 'didyouknow', 'mahjongsolitaire', 'history', 'funfacts',
-      'boardgames', 'puzzlegame', 'mobilegame', 'freegame', 'tilematching'],
+    hashtags: ['mahjong', 'didyouknow', 'mahjongsolitaire', 'history', 'funfacts'],
     caption: (o) => `${o.fakt}\n\n`
       + `Playing level ${o.level} while you read. 🀄\n\n`
-      + `Mahjong Royale — free on iOS & Android. Link in bio.`,
+      + `Mahjong Royale — free on iOS & Android.`,
   },
 
   // Der beste Aufhaenger, den dieses Spiel hat — und er ist keine Behauptung,
@@ -75,14 +72,13 @@ export const FORMATE = {
     hookSek: 2.4,
     hook: 'These two match.\nLook again.',
     hookSub: 'Every flower matches every flower',
-    hashtags: ['mahjong', 'mahjongsolitaire', 'puzzlegame', 'brainteaser', 'didyouknow',
-      'gamingtips', 'mobilegame', 'freegame', 'tilematching', 'puzzletok'],
+    hashtags: ['mahjong', 'mahjongsolitaire', 'puzzlegame', 'brainteaser', 'didyouknow'],
     caption: (o) => `Most people lose here. 🌸\n\n`
       + `In mahjong solitaire any flower matches any other flower — and any season `
       + `any other season. They do not have to be identical. Miss that and you stall `
       + `on boards you could have cleared.\n\n`
       + `Level ${o.level} · ${o.paare} pairs · ${o.spielSek}s\n\n`
-      + `Mahjong Royale — free on iOS & Android. Link in bio.`,
+      + `Mahjong Royale — free on iOS & Android.`,
   },
 
   // Die FORM ist der Aufhaenger, nicht das Spiel. 370 gebaute Figuren sind
@@ -92,13 +88,12 @@ export const FORMATE = {
     hookSek: 2.0,
     hook: (o) => `Today: the\n${o.figur ?? 'dragon'}.`,
     hookSub: 'One of 370 hand-built layouts',
-    hashtags: ['mahjong', 'mahjongsolitaire', 'satisfying', 'oddlysatisfying', 'puzzlegame',
-      'leveldesign', 'mobilegame', 'freegame', 'tilematching', 'relaxing'],
+    hashtags: ['mahjong', 'mahjongsolitaire', 'satisfying', 'oddlysatisfying', 'puzzlegame'],
     caption: (o) => `Every level is an actual shape. This one is the ${o.figur ?? 'dragon'}. 🀄\n\n`
       + `370 of them — turtle, butterfly, lantern, crown, bridge. None is a reskin `
       + `of the last.\n\n`
       + `Level ${o.level} · ${o.paare} pairs · ${o.spielSek}s\n\n`
-      + `Mahjong Royale — free on iOS & Android. Link in bio.`,
+      + `Mahjong Royale — free on iOS & Android.`,
   },
 };
 
