@@ -34,35 +34,75 @@ export const FORMATE = {
     hookSek: 1.9,
     hook: 'Can you spot\nthe pair?',
     hookSub: 'Most people need three tries',
-    hashtags: ['mahjong', 'mahjongsolitaire', 'puzzlegame', 'brainteaser', 'spotthedifference',
-      'satisfying', 'mobilegame', 'freegame', 'tilematching', 'puzzletok'],
+    hashtags: ['mahjong', 'mahjongsolitaire', 'puzzlegame', 'brainteaser', 'spotthedifference'],
     caption: (o) => `Can you spot the matching pair before I do? 👀\n\n`
       + `Level ${o.level} · ${o.paare} pairs · cleared in ${o.spielSek}s\n\n`
-      + `Mahjong Royale — free on iOS & Android. Link in bio.`,
+      + `Mahjong Royale — free on iOS & Android.`,
   },
 
   clear: {
     hookSek: 1.6,
     hook: 'Every single tile.\nGone.',
     hookSub: 'Sound on 🔊',
-    hashtags: ['mahjong', 'satisfying', 'oddlysatisfying', 'asmr', 'mahjongsolitaire',
-      'puzzlegame', 'relaxing', 'mobilegame', 'freegame', 'tilematching'],
+    hashtags: ['mahjong', 'satisfying', 'oddlysatisfying', 'asmr', 'mahjongsolitaire'],
     caption: (o) => `${o.paare} pairs, no mistakes. Sound on for the tiles. 🔊\n\n`
       + `Level ${o.level} · ${o.spielSek}s\n\n`
-      + `Mahjong Royale — free on iOS & Android. Link in bio.`,
+      + `Mahjong Royale — free on iOS & Android.`,
   },
 
   fakt: {
     hookSek: 3.6,          // ein Satz will gelesen werden
     hook: 'Did you know?',
     hookSub: null,         // kommt aus dem Fakt
-    hashtags: ['mahjong', 'didyouknow', 'mahjongsolitaire', 'history', 'funfacts',
-      'boardgames', 'puzzlegame', 'mobilegame', 'freegame', 'tilematching'],
+    hashtags: ['mahjong', 'didyouknow', 'mahjongsolitaire', 'history', 'funfacts'],
     caption: (o) => `${o.fakt}\n\n`
       + `Playing level ${o.level} while you read. 🀄\n\n`
-      + `Mahjong Royale — free on iOS & Android. Link in bio.`,
+      + `Mahjong Royale — free on iOS & Android.`,
+  },
+
+  // Der beste Aufhaenger, den dieses Spiel hat — und er ist keine Behauptung,
+  // sondern die echte Regel aus src/game/tiles.ts: alle Blumen teilen sich
+  // matchKey 'flower', alle Jahreszeiten 'season'. Wer nach dem IDENTISCHEN
+  // Stein sucht, sucht falsch. Eine echte Ueberraschung ist mehr wert als
+  // jede Aufforderung mitzuraten.
+  //
+  // ⚠ Nur mit Brettern ab 40 Steinen: erst dort mischt deckForCount ueberhaupt
+  // Blumen und Jahreszeiten ein. Darunter geht das Format ins Leere.
+  'blumen-falle': {
+    hookSek: 2.4,
+    hook: 'These two match.\nLook again.',
+    hookSub: 'Every flower matches every flower',
+    hashtags: ['mahjong', 'mahjongsolitaire', 'puzzlegame', 'brainteaser', 'didyouknow'],
+    caption: (o) => `Most people lose here. 🌸\n\n`
+      + `In mahjong solitaire any flower matches any other flower — and any season `
+      + `any other season. They do not have to be identical. Miss that and you stall `
+      + `on boards you could have cleared.\n\n`
+      + `Level ${o.level} · ${o.paare} pairs · ${o.spielSek}s\n\n`
+      + `Mahjong Royale — free on iOS & Android.`,
+  },
+
+  // Die FORM ist der Aufhaenger, nicht das Spiel. 370 gebaute Figuren sind
+  // zugleich die beste Antwort auf Apples 4.3(a)-Vorwurf ("Design: Spam") —
+  // sichtbar, dass hier keine Variante desselben Bretts vorliegt.
+  'figur-des-tages': {
+    hookSek: 2.0,
+    hook: (o) => `Today: the\n${o.figur ?? 'dragon'}.`,
+    hookSub: 'One of 370 hand-built layouts',
+    hashtags: ['mahjong', 'mahjongsolitaire', 'satisfying', 'oddlysatisfying', 'puzzlegame'],
+    caption: (o) => `Every level is an actual shape. This one is the ${o.figur ?? 'dragon'}. 🀄\n\n`
+      + `370 of them — turtle, butterfly, lantern, crown, bridge. None is a reskin `
+      + `of the last.\n\n`
+      + `Level ${o.level} · ${o.paare} pairs · ${o.spielSek}s\n\n`
+      + `Mahjong Royale — free on iOS & Android.`,
   },
 };
+
+/** Hook und Unterzeile duerfen Funktionen sein — `figur-des-tages` braucht den Namen. */
+export function hookTexte(format, o = {}) {
+  const f = FORMATE[format];
+  const loese = (x) => (typeof x === 'function' ? x(o) : x);
+  return { hook: loese(f.hook), hookSub: loese(f.hookSub) };
+}
 
 // --- Caption-Datei ----------------------------------------------------------
 // Neben jedes Video eine .txt: Caption zum Kopieren, Hashtags, und die

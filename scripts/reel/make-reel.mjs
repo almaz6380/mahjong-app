@@ -16,7 +16,7 @@ import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spurRendern } from './synth.mjs';
-import { FORMATE, fakten, captionText } from './formate.mjs';
+import { FORMATE, fakten, captionText, hookTexte } from './formate.mjs';
 import { browserPfad } from './browser.mjs';
 
 const require = createRequire(import.meta.url);
@@ -32,6 +32,7 @@ const CLIP = join(WURZEL, arg('clip', 'out/reels/mahjong-solitaire-lvl12-en.mp4'
 const FORMAT = arg('format', 'paar');
 const NAME = arg('name', null);            // Dateiname ohne Endung
 const FAKT_NR = Number(arg('fakt', 0));    // welcher Fakt beim Format `fakt`
+const FIGUR = arg('figur', null);          // Figurname beim Format `figur-des-tages`
 const OUT = join(WURZEL, arg('out', 'out/reels'));
 const TMP = join(OUT, '.bau');
 const B = 1080, H = 1920, FPS = 30;
@@ -54,9 +55,14 @@ const BLENDE_ABSPANN = 0.55;
 // hier schon geladen, er bestimmt den Text der Eingangskarte.
 const FAKT = FORMAT === 'fakt' ? fakten()[FAKT_NR % fakten().length] : null;
 
+// Hook und Unterzeile duerfen Funktionen sein: `figur-des-tages` setzt den
+// Figurnamen ein. Aufgeloest wird in formate.mjs, damit die Texte an einem Ort
+// bleiben und der Videobau davon nichts wissen muss.
+const HOOK = hookTexte(FORMAT, { figur: FIGUR });
+
 const TEXTE = {
-  hook: FORMATE[FORMAT].hook,
-  hookSub: FORMATE[FORMAT].hookSub ?? (FAKT ? FAKT.en : ''),
+  hook: HOOK.hook,
+  hookSub: HOOK.hookSub ?? (FAKT ? FAKT.en : ''),
   outroTitel: 'Mahjong\nRoyale',
   outroSub: 'Solitaire · Connect · Riichi · 4 Players',
   outroCta: 'Free on the App Store & Google Play',
@@ -329,6 +335,7 @@ writeFileSync(join(OUT, `${basis}.txt`), captionText(FORMAT, {
   spielSek: (beiblatt.dauer ?? 0).toFixed(0),
   gesamtSek: dauer.toFixed(0),
   fakt: FAKT ? FAKT.en : null,
+  figur: FIGUR,
 }));
 
 rmSync(TMP, { recursive: true, force: true });
