@@ -75,7 +75,10 @@ const BLENDE_ABSPANN = 0.55;
 // Wo ein Mensch zu sehen ist, sitzt das AI-Plaettchen im Bild (Josefs Regel
 // vom 29.08.2026); bei den Steinen nicht.
 const EIN_DIR = join(ASSETS, 'einblendungen');
-const EIN_REIHE = ['junge', 'opa', 'tempel', 'steine'];
+// Feste Reihenfolge — IMMER zuerst der Opa (Josef, 25.09.2026: „erste
+// sequenz soll der alte mann sein"). Danach erzaehlt es sich von selbst:
+// Grossvater, Enkel, sein Weg zum Tempel, die Steine.
+const EIN_REIHE = ['opa', 'junge', 'tempel', 'steine'];
 const EIN_MENSCHEN = new Set(['junge', 'opa', 'tempel']);
 const EIN_SEK = 1.4;
 // Beginn zu Beginn. Hoechstens 3,4 s, mindestens 2,6 s — bei kurzen
@@ -250,11 +253,8 @@ if (MIT_EINBLENDUNGEN) {
   const erste = HOOK_SEK + 0.9;
   const letzte = clipDauer - 2.2 - EIN_SEK;          // der Sieg bleibt frei
   const abstand = Math.min(EIN_ABSTAND_MAX, Math.max(EIN_ABSTAND_MIN, (letzte - erste) / (EIN_REIHE.length - 1)));
-  // Nicht jedes Reel beginnt mit dem Jungen: der Einstieg in die Reihe haengt
-  // am Dateinamen (der den Seed traegt) — derselbe Name, dieselbe Folge.
-  const start = [...(NAME ?? '')].reduce((s, c) => (s * 31 + c.charCodeAt(0)) >>> 0, 7) % EIN_REIHE.length;
   for (let t = erste, i = 0; t <= letzte + 1e-6 && i < EIN_REIHE.length; t += abstand, i++) {
-    const k = EIN_REIHE[(start + i) % EIN_REIHE.length];
+    const k = EIN_REIHE[i];
     const ziel = join(TMP, `ein-${k}.mp4`);
     const y = k === 'tempel' ? `(ih-ih/zoom)*(1-on/${n})` : 'ih/2-(ih/zoom/2)';
     const kette = [
