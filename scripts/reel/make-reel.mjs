@@ -42,6 +42,15 @@ if (!FORMATE[FORMAT]) {
   process.exit(1);
 }
 const HOOK_SEK = FORMATE[FORMAT].hookSek;
+// Farben je Format — Vorgabe ist das Jade-Grün der Marke. `mondfest` bringt
+// einen Nacht-Look mit (formate.mjs).
+const FARBEN = {
+  abdunkeln: 'rgba(6,32,26,.34)',
+  band: [6, 32, 26],
+  abspann: 'linear-gradient(160deg,#123f2e,#0b2a1e 60%,#06201a)',
+  ...(FORMATE[FORMAT].farben ?? {}),
+};
+const BAND = (a) => `rgba(${FARBEN.band.join(',')},${a})`;
 const OUTRO_SEK = 4.2;
 
 // Ueberblendzeit zum Abspann. Der Hartschnitt war der Grund, warum das Reel am
@@ -50,6 +59,31 @@ const OUTRO_SEK = 4.2;
 // (Die frueher hier stehende `BLENDE_SPIEL` ist mit dem Hook-Vorspann
 // entfallen — es gibt keinen Schnitt vom Hook ins Spiel mehr.)
 const BLENDE_ABSPANN = 0.55;
+
+// --- Einblendungen (Josef, 25.09.2026) ----------------------------------------
+// „Bei mahjong sollen die einblendungen von dem kleinen jungen, dem opa, wie
+// der junge den tempel raufgeht und die steine auch abwechselnd etc eingebaut
+// werden." Vier gemalte Standbilder (Tusche, Jade — derselbe Stil wie
+// home-temple.webp), erzeugt mit fal.ai, Herkunft in einblendungen/HERKUNFT.md.
+//
+// ⚠ BEWUSST STANDBILDER MIT EIGENER KAMERAFAHRT, kein KI-Video. KI-Video mit
+// Menschen hat bei WELLbooked! zweimal sichtbare Fehler gebracht (Jacke
+// verschwand, Lampe ging nicht aus). Ein Schwenk ueber ein Bild kann das nicht.
+//
+// Sie laufen NACH dem Hook, abwechselnd, je EIN_SEK lang, dazwischen das Spiel.
+// Die Steinklaenge laufen durch — das Spiel geht hinter der Einblendung weiter.
+// Wo ein Mensch zu sehen ist, sitzt das AI-Plaettchen im Bild (Josefs Regel
+// vom 29.08.2026); bei den Steinen nicht.
+const EIN_DIR = join(ASSETS, 'einblendungen');
+const EIN_REIHE = ['junge', 'opa', 'tempel', 'steine'];
+const EIN_MENSCHEN = new Set(['junge', 'opa', 'tempel']);
+const EIN_SEK = 1.4;
+// Beginn zu Beginn. Hoechstens 3,4 s, mindestens 2,6 s — bei kurzen
+// Aufnahmen (16 Paare ≈ 10 s) ruecken sie zusammen, damit trotzdem mehr als
+// eine abwechselnd kommt; zwischen zwei Einblendungen bleibt immer Spiel.
+const EIN_ABSTAND_MAX = 3.4, EIN_ABSTAND_MIN = 2.6;
+const MIT_EINBLENDUNGEN = !process.argv.includes('--ohne-einblendungen')
+  && EIN_REIHE.every((k) => existsSync(join(EIN_DIR, `${k}.jpg`)));
 
 // Beim Format `fakt` traegt die Unterzeile den Fakt selbst — deshalb wird er
 // hier schon geladen, er bestimmt den Text der Eingangskarte.
@@ -131,10 +165,10 @@ html,body{width:${B}px;height:${H}px;background:transparent;font-family:'Outfit'
     // eingefrorenen Standbild. Seit die Karte ueber dem LAUFENDEN Spiel liegt,
     // gehoert sie ins Bild — so verschwindet sie zusammen mit der Karte in
     // einer einzigen Blende, statt als zweite Ebene nachgezogen zu werden.
-    `<div style="position:absolute;inset:0;background:rgba(6,32,26,.34)"></div>
+    `<div style="position:absolute;inset:0;background:${FARBEN.abdunkeln}"></div>
      <div style="position:absolute;left:0;top:900px;width:${B}px;height:720px;
-                 background:linear-gradient(180deg,rgba(6,32,26,0),rgba(6,32,26,.82) 18%,
-                            rgba(6,32,26,.88) 50%,rgba(6,32,26,.82) 82%,rgba(6,32,26,0))"></div>
+                 background:linear-gradient(180deg,${BAND(0)},${BAND(.82)} 18%,
+                            ${BAND(.88)} 50%,${BAND(.82)} 82%,${BAND(0)})"></div>
      <div style="position:absolute;left:70px;top:900px;width:940px;height:720px;display:flex;
                  flex-direction:column;align-items:center;justify-content:center;
                  text-align:center;gap:38px">
@@ -147,7 +181,7 @@ html,body{width:${B}px;height:${H}px;background:transparent;font-family:'Outfit'
 
   // Der Abspann ist deckend — er soll das Brett ersetzen, nicht überlagern.
   await schuss(
-    `<div style="position:absolute;inset:0;background:linear-gradient(160deg,#123f2e,#0b2a1e 60%,#06201a)"></div>
+    `<div style="position:absolute;inset:0;background:${FARBEN.abspann}"></div>
      <img src="data:image/png;base64,${logo}" style="position:absolute;left:390px;top:545px;width:300px;height:300px">
      <div class="mitte" style="top:930px;font-size:104px;font-weight:800;line-height:1.05">
        ${TEXTE.outroTitel.split('\n').join('<br>')}</div>
@@ -182,6 +216,15 @@ html,body{width:${B}px;height:${H}px;background:transparent;font-family:'Outfit'
                  border-radius:999px;background:#fff;opacity:.92"></div>`,
     join(TMP, 'status.png'));
 
+  // AI-Plaettchen fuer die Einblendungen mit Menschen — dieselbe Form wie im
+  // WELLbooked!-Clip-Reel (wellapps-social/tools/social/reels-fremd/clip-reel-looks.mjs).
+  await schuss(
+    `<div style="position:absolute;right:48px;bottom:170px;width:64px;height:64px;border-radius:50%;
+                 display:flex;align-items:center;justify-content:center;font-size:25px;font-weight:800;
+                 letter-spacing:.04em;color:#fff;background:rgba(6,20,16,.62);
+                 border:2px solid rgba(255,255,255,.5)">AI</div>`,
+    join(TMP, 'ki.png'));
+
   await browser.close();
 }
 
@@ -195,6 +238,42 @@ await lauf([
   '-vf', `fps=${FPS},format=yuv420p`,
   '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', join(TMP, 'outro.mp4'),
 ]);
+
+// --- Einblendungen bauen ------------------------------------------------------
+// Je Bild ein kurzer Clip: erst Rand und untere Ecken abschneiden (dort setzt
+// das Modell gern kleine Siegelstempel), dann eine langsame Kamerafahrt. Der
+// Tempel faehrt nach OBEN, dem Jungen auf der Treppe hinterher.
+const einblendungen = [];
+if (MIT_EINBLENDUNGEN) {
+  const clipDauer = await dauerVon(CLIP);
+  const n = Math.round(EIN_SEK * FPS);
+  const erste = HOOK_SEK + 0.9;
+  const letzte = clipDauer - 2.2 - EIN_SEK;          // der Sieg bleibt frei
+  const abstand = Math.min(EIN_ABSTAND_MAX, Math.max(EIN_ABSTAND_MIN, (letzte - erste) / (EIN_REIHE.length - 1)));
+  // Nicht jedes Reel beginnt mit dem Jungen: der Einstieg in die Reihe haengt
+  // am Dateinamen (der den Seed traegt) — derselbe Name, dieselbe Folge.
+  const start = [...(NAME ?? '')].reduce((s, c) => (s * 31 + c.charCodeAt(0)) >>> 0, 7) % EIN_REIHE.length;
+  for (let t = erste, i = 0; t <= letzte + 1e-6 && i < EIN_REIHE.length; t += abstand, i++) {
+    const k = EIN_REIHE[(start + i) % EIN_REIHE.length];
+    const ziel = join(TMP, `ein-${k}.mp4`);
+    const y = k === 'tempel' ? `(ih-ih/zoom)*(1-on/${n})` : 'ih/2-(ih/zoom/2)';
+    const kette = [
+      'crop=iw*0.88:ih*0.88:iw*0.06:ih*0.03',
+      `scale=${B * 2}:${H * 2}`,
+      `zoompan=z='1.02+0.07*on/${n}':x='iw/2-(iw/zoom/2)':y='${y}':d=${n}:s=${B}x${H}:fps=${FPS}`,
+    ].join(',');
+    const mitKi = EIN_MENSCHEN.has(k);
+    await lauf([
+      '-y', '-i', join(EIN_DIR, `${k}.jpg`),
+      ...(mitKi ? ['-loop', '1', '-i', join(TMP, 'ki.png')] : []),
+      '-filter_complex', mitKi ? `[0:v]${kette}[b];[b][1:v]overlay=0:0:shortest=1,format=yuv420p[v]`
+        : `[0:v]${kette},format=yuv420p[v]`,
+      '-map', '[v]', '-frames:v', String(n), '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', ziel,
+    ]);
+    einblendungen.push({ k, t, datei: ziel });
+  }
+  console.log(`  ${einblendungen.length} Einblendungen: ${einblendungen.map((e) => `${e.k}@${e.t.toFixed(1)}s`).join(', ')}`);
+}
 
 // --- Gameplay + Hook als Overlay -------------------------------------------
 // ⚠ Hier steckt die wichtigste Lehre des Formats: Der Hook war bis zum
@@ -218,6 +297,7 @@ await lauf([
   '-y', '-i', CLIP,
   '-loop', '1', '-i', join(TMP, 'hook.png'),
   '-loop', '1', '-i', join(TMP, 'status.png'),
+  ...einblendungen.flatMap((e) => ['-i', e.datei]),
   '-filter_complex',
   `[0:v]scale=${B}:${H}[g];`
   // Der Alpha-Fade allein blendet die Karte aus; ein `enable`-Fenster braucht
@@ -226,8 +306,15 @@ await lauf([
   + `[1:v]format=rgba,fade=t=in:st=0.10:d=0.35:alpha=1,`
   + `fade=t=out:st=${HOOK_SEK.toFixed(2)}:d=0.45:alpha=1[k];`
   + `[g][k]overlay=0:0:shortest=1[gk];`
-  + `[gk][2:v]overlay=0:0:shortest=1,fps=${FPS}[v]`,
-  '-map', '[v]',
+  + `[gk][2:v]overlay=0:0:shortest=1,fps=${FPS}[v0]`
+  // Einblendungen ZULETZT: Sie ersetzen kurz das ganze Bild, auch die
+  // Statusleiste — eine Handy-Leiste ueber einer Tuschmalerei waere Unsinn.
+  // Vor ihrem Beginn und nach ihrem Ende laeuft das Spiel unveraendert durch.
+  + einblendungen.map((e, i) => `;[${3 + i}:v]format=rgba,`
+    + `fade=t=in:st=0:d=0.22:alpha=1,fade=t=out:st=${(EIN_SEK - 0.22).toFixed(2)}:d=0.22:alpha=1,`
+    + `setpts=PTS-STARTPTS+${e.t.toFixed(3)}/TB[e${i}];`
+    + `[v${i}][e${i}]overlay=0:0:eof_action=pass[v${i + 1}]`).join(''),
+  '-map', `[v${einblendungen.length}]`,
   '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', '-pix_fmt', 'yuv420p', '-an',
   join(TMP, 'spiel.mp4'),
 ]);
@@ -336,6 +423,8 @@ writeFileSync(join(OUT, `${basis}.txt`), captionText(FORMAT, {
   gesamtSek: dauer.toFixed(0),
   fakt: FAKT ? FAKT.en : null,
   figur: FIGUR,
+  einblendungen: einblendungen.map((e) => e.k),
+  kiMenschen: einblendungen.some((e) => EIN_MENSCHEN.has(e.k)),
 }));
 
 rmSync(TMP, { recursive: true, force: true });

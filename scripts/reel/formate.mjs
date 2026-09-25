@@ -95,6 +95,26 @@ export const FORMATE = {
       + `Level ${o.level} · ${o.paare} pairs · ${o.spielSek}s\n\n`
       + `Mahjong Royale — free on iOS & Android.`,
   },
+
+  // Saison-Fest (24.09.2026, Josef: „neue ideen/styles"). Aufgenommen wird
+  // das ECHTE Fest-Brett (record-solitaire.mjs --fest), nicht ein normales
+  // Level mit Fest-Überschrift. Eigener Nacht-Look statt Jade: dunkles
+  // Mondblau, das Gold bleibt. Nur im Zeitfenster eines Fests sinnvoll —
+  // der Recorder bricht außerhalb ab.
+  mondfest: {
+    hookSek: 2.2,
+    hook: 'Only during the\nMoon Festival 🌕',
+    hookSub: 'A ring-shaped board — until October 1',
+    farben: {
+      abdunkeln: 'rgba(8,12,34,.38)',
+      band: [8, 12, 34],
+      abspann: 'linear-gradient(160deg,#1c2552,#0e1433 60%,#070a1c)',
+    },
+    hashtags: ['mahjong', 'moonfestival', 'midautumnfestival', 'mahjongsolitaire', 'puzzlegame'],
+    caption: (o) => `The Moon Festival board is only here until October 1. 🌕\n\n`
+      + `A ring of ${o.paare} pairs, cleared in ${o.spielSek}s. First win of the day earns a festival bonus.\n\n`
+      + `Mahjong Royale — free on iOS & Android.`,
+  },
 };
 
 /** Hook und Unterzeile duerfen Funktionen sein — `figur-des-tages` braucht den Namen. */
@@ -139,5 +159,11 @@ export function captionText(format, o) {
     `- Level ${o.level}, ${o.paare} Paare, Spieldauer ${o.spielSek} s`,
     o.fakt ? `- Fakt: ${o.fakt}` : null,
     `- Gesamtlänge ${o.gesamtSek} s`,
+    o.einblendungen?.length ? `- Einblendungen: ${o.einblendungen.join(', ')}` : null,
+    // ⚠ Diese Zeile liest der Tageslauf (wellapps-social/tools/social/lauf.mjs)
+    // fuer die Leitplanke: KI-Menschen brauchen das AI-Plaettchen, und
+    // „Wasserzeichen gesetzt" sagt ihr, dass es im Bild sitzt.
+    o.kiMenschen ? '- Medienherkunft: ki-menschen (gemalte Einblendungen Junge/Opa/Tempel, '
+      + 'KI-Standbilder, Wasserzeichen gesetzt)' : null,
   ].filter((z) => z !== null).join('\n') + '\n';
 }

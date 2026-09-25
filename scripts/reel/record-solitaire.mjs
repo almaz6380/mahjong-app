@@ -51,6 +51,10 @@ const LANG = arg('lang', 'en');
 const PAARE = Number(arg('paare', 40));
 const SERVER = arg('server', 'http://localhost:5199');
 const NUR_BRETT = process.argv.includes('--nur-brett');
+// --fest: statt „Play" das laufende Saison-Fest öffnen (Banner im Menü,
+// src/game/festivals.ts). Nur innerhalb eines Fest-Zeitfensters sichtbar —
+// außerhalb bricht die Aufnahme ab, statt ein normales Level aufzunehmen.
+const FEST = process.argv.includes('--fest');
 const OUT = join(WURZEL, arg('out', 'out/reels'));
 const FPS = 30;
 
@@ -84,7 +88,13 @@ await page.addInitScript(([lvl, lang]) => {
 
 await page.goto(SERVER, { waitUntil: 'networkidle' });
 await page.waitForTimeout(2200);
-await page.click('.play-btn').catch(() => {});
+if (FEST) {
+  const banner = await page.$('.fest-banner');
+  if (!banner) throw new Error('--fest: kein Fest-Banner im Menü — heute läuft kein Fest.');
+  await banner.click();
+} else {
+  await page.click('.play-btn').catch(() => {});
+}
 await page.waitForSelector('.board .tile', { timeout: 15000 });
 
 // Platz fuer die Statusleiste des Handys reservieren. Ohne das saesse die
@@ -255,7 +265,7 @@ zeilen.push(`file '${bilder[bilder.length - 1].datei}'`);   // concat-Demuxer br
 const liste = join(TMP, 'liste.txt');
 writeFileSync(liste, zeilen.join('\n'));
 
-const ziel = join(OUT, `mahjong-solitaire-lvl${LEVEL}-${LANG}.mp4`);
+const ziel = join(OUT, FEST ? `mahjong-fest-${LANG}.mp4` : `mahjong-solitaire-lvl${LEVEL}-${LANG}.mp4`);
 await new Promise((res, rej) => {
   const p = spawn(FFMPEG, [
     '-y', '-f', 'concat', '-safe', '0', '-i', liste,
