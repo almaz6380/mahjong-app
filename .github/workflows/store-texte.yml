@@ -32,18 +32,28 @@ on:
         description: 'Wirklich schreiben? (aus = Trockenlauf, sendet nichts)'
         type: boolean
         default: false
+      laeufer:
+        description: 'Wo laufen? github = GitHub-Rechner (kostet Minuten), mac = eigener Mac (Self-hosted Runner)'
+        type: choice
+        default: 'github'
+        options: ['github', 'mac']
 
 permissions:
   contents: read
 
 jobs:
   texte:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.laeufer == 'mac' && fromJSON('["self-hosted", "macOS"]') || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Abhaengigkeiten
-        run: pip3 install --quiet pyjwt cryptography
+        # Eigene venv unter RUNNER_TEMP: auf dem Mac verweigert das
+        # System-Python ein pip install, und in Josefs Python soll nichts landen.
+        run: |
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet pyjwt cryptography
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
 
       - name: Laengen pruefen
         run: |
@@ -87,11 +97,11 @@ jobs:
           SCHREIBEN: ${{ inputs.schreiben }}
         run: |
           set -euo pipefail
-          printf '%s' "$PLAY_KEY_JSON" > /tmp/play-key.json
+          printf '%s' "$PLAY_KEY_JSON" > "$RUNNER_TEMP/play-key.json"
           if [ "$SCHREIBEN" = "true" ]; then TROCKEN=""; else TROCKEN="--dry-run"; fi
-          PLAY_KEY=/tmp/play-key.json python3 scripts/play-upload.py \
+          PLAY_KEY="$RUNNER_TEMP/play-key.json" python3 scripts/play-upload.py \
             --texte store/store-texte.json $TROCKEN
-          rm -f /tmp/play-key.json
+          rm -f "$RUNNER_TEMP/play-key.json"
 
       - name: Play — Vorstellungsgrafiken
         if: inputs.ziel != 'nur-apple' && inputs.grafik && inputs.schreiben
@@ -99,10 +109,10 @@ jobs:
           PLAY_KEY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
         run: |
           set -euo pipefail
-          printf '%s' "$PLAY_KEY_JSON" > /tmp/play-key.json
-          PLAY_KEY=/tmp/play-key.json python3 scripts/upload-feature-graphics.py
-          rm -f /tmp/play-key.json
+          printf '%s' "$PLAY_KEY_JSON" > "$RUNNER_TEMP/play-key.json"
+          PLAY_KEY="$RUNNER_TEMP/play-key.json" python3 scripts/upload-feature-graphics.py
+          rm -f "$RUNNER_TEMP/play-key.json"
 
       - name: Schluessel aufraeumen
         if: always()
-        run: rm -f /tmp/play-key.json
+        run: rm -f "$RUNNER_TEMP/play-key.json"

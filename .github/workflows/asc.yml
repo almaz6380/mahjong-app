@@ -44,15 +44,25 @@ on:
         description: 'Einreichen, auch wenn die Abos nicht mitkoennen (2.1b-Risiko)'
         type: boolean
         default: false
+      laeufer:
+        description: 'Wo laufen? github = GitHub-Rechner (kostet Minuten), mac = eigener Mac (Self-hosted Runner)'
+        type: choice
+        default: 'github'
+        options: ['github', 'mac']
 
 jobs:
   asc:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.laeufer == 'mac' && fromJSON('["self-hosted", "macOS"]') || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Abhaengigkeiten
-        run: pip3 install --quiet pyjwt cryptography
+        # Eigene venv unter RUNNER_TEMP: auf dem Mac verweigert das
+        # System-Python ein pip install, und in Josefs Python soll nichts landen.
+        run: |
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet pyjwt cryptography
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
 
       - name: App Store Connect
         env:

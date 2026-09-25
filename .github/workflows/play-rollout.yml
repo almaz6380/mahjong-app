@@ -34,18 +34,28 @@ on:
         description: 'Trockenlauf (nur anzeigen, nichts aendern)'
         type: boolean
         default: true
+      laeufer:
+        description: 'Wo laufen? github = GitHub-Rechner (kostet Minuten), mac = eigener Mac (Self-hosted Runner)'
+        type: choice
+        default: 'github'
+        options: ['github', 'mac']
 
 permissions:
   contents: read
 
 jobs:
   rollout:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.laeufer == 'mac' && fromJSON('["self-hosted", "macOS"]') || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Abhaengigkeiten
-        run: pip3 install --quiet pyjwt cryptography
+        # Eigene venv unter RUNNER_TEMP: auf dem Mac verweigert das
+        # System-Python ein pip install, und in Josefs Python soll nichts landen.
+        run: |
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet pyjwt cryptography
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
 
       - name: Ausrollen
         env:
@@ -60,8 +70,8 @@ jobs:
             echo "Secret PLAY_SERVICE_ACCOUNT_JSON fehlt im Repository." >&2
             exit 1
           fi
-          mkdir -p ~/.config/play-publisher
-          printf '%s' "$PLAY_KEY_JSON" > ~/.config/play-publisher/key.json
+          printf '%s' "$PLAY_KEY_JSON" > "$RUNNER_TEMP/play-key.json"
+          export PLAY_KEY="$RUNNER_TEMP/play-key.json"
 
           test -f "$NOTES" || { echo "::error::$NOTES gibt es nicht."; exit 1; }
           TEXT=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['de-DE'])" "$NOTES")
@@ -85,3 +95,7 @@ jobs:
           python3 scripts/play-upload.py "${ARGS[@]}"
           echo "--- Stand nachher ---"
           python3 scripts/play-upload.py --status
+
+      - name: Schluessel entfernen
+        if: always()
+        run: rm -f "$RUNNER_TEMP/play-key.json"

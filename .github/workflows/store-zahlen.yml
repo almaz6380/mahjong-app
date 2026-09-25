@@ -33,18 +33,28 @@ on:
         description: 'Apple-Analytics anfordern (einmalig noetig, dauert 1-2 Tage)'
         type: boolean
         default: false
+      laeufer:
+        description: 'Wo laufen? github = GitHub-Rechner (kostet Minuten), mac = eigener Mac (Self-hosted Runner)'
+        type: choice
+        default: 'github'
+        options: ['github', 'mac']
 
 permissions:
   contents: read
 
 jobs:
   zahlen:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.laeufer == 'mac' && fromJSON('["self-hosted", "macOS"]') || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Abhaengigkeiten
-        run: pip3 install --quiet pyjwt cryptography
+        # Eigene venv unter RUNNER_TEMP: auf dem Mac verweigert das
+        # System-Python ein pip install, und in Josefs Python soll nichts landen.
+        run: |
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet pyjwt cryptography
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
 
       - name: Zahlen holen
         env:
@@ -72,8 +82,8 @@ jobs:
           set -euo pipefail
 
           if [ -n "${PLAY_KEY_JSON:-}" ]; then
-            mkdir -p ~/.config/play-publisher
-            printf '%s' "$PLAY_KEY_JSON" > ~/.config/play-publisher/key.json
+            printf '%s' "$PLAY_KEY_JSON" > "$RUNNER_TEMP/play-key.json"
+            export PLAY_KEY="$RUNNER_TEMP/play-key.json"
           else
             echo "::warning::Secret PLAY_SERVICE_ACCOUNT_JSON fehlt — Android wird uebersprungen."
           fi
@@ -113,8 +123,15 @@ jobs:
 
           python3 scripts/store-zahlen.py "${ARGS[@]}" | tee store-zahlen.txt
 
+      - name: Schluessel entfernen
+        if: always()
+        run: rm -f "$RUNNER_TEMP/play-key.json"
+
       - name: Ergebnis als Artefakt
         if: always()
+        # Das Ergebnis steht ohnehin im Protokoll. Ein voller Artefaktspeicher
+        # ("Artifact storage quota has been hit", 25.09.) darf den Lauf nicht rot faerben.
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: store-zahlen
