@@ -5,6 +5,10 @@
 # Einmalige Einrichtung: siehe store/ci-setup.md (fünf Secrets).
 # WICHTIG: versionCode in android/app/build.gradle vorher erhöhen — Play lehnt
 # einen bereits benutzten versionCode ab.
+#
+# Laeufer „mac" = Josefs eigener Mac als Self-hosted Runner: kostet keine
+# GitHub-Minuten, braucht dort aber das Android-SDK (~/Library/Android/sdk).
+# Schluessel und Hilfsdateien liegen nur unter $RUNNER_TEMP, nie unter /tmp.
 name: Android Release
 
 on:
@@ -23,13 +27,18 @@ on:
         description: 'Wirklich zu Play hochladen? (aus = nur bauen und als Artefakt ablegen)'
         type: boolean
         default: true
+      laeufer:
+        description: 'Wo bauen? github = GitHub-Rechner (kostet Minuten), mac = eigener Mac (Self-hosted Runner)'
+        type: choice
+        default: 'github'
+        options: ['github', 'mac']
 
 permissions:
   contents: read
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.laeufer == 'mac' && fromJSON('["self-hosted", "macOS"]') || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -42,6 +51,22 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'   # AGP 8.9.1 braucht mindestens 17
+
+      - name: Android-SDK finden
+        # GitHubs Ubuntu-Rechner setzen ANDROID_HOME selbst; auf dem eigenen Mac
+        # liegt das SDK dort, wohin Android Studio es installiert.
+        run: |
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          if [ -z "$SDK" ] && [ -d "$HOME/Library/Android/sdk" ]; then
+            SDK="$HOME/Library/Android/sdk"
+          fi
+          if [ -z "$SDK" ] || [ ! -d "$SDK" ]; then
+            echo "ABBRUCH: Kein Android-SDK gefunden (erwartet unter ~/Library/Android/sdk)."
+            exit 1
+          fi
+          echo "Android-SDK: $SDK"
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
 
       - name: Abhängigkeiten
         run: npm ci
@@ -137,15 +162,16 @@ jobs:
         run: |
           AAB=android/app/build/outputs/bundle/release/app-release.aab
           [ -f "$AAB" ] || { echo "kein AAB vorhanden"; exit 0; }
-          rm -rf /tmp/aab && mkdir -p /tmp/aab && unzip -q -o "$AAB" -d /tmp/aab
+          D="$RUNNER_TEMP/aab"
+          rm -rf "$D" && mkdir -p "$D" && unzip -q -o "$AAB" -d "$D"
           echo "### Google-TEST-ID (3940256099942544):"
-          grep -rla '3940256099942544' /tmp/aab | sed 's|/tmp/aab/|  · |' || echo "  (kein Treffer)"
+          grep -rla '3940256099942544' "$D" | sed "s|$D/|  · |" || echo "  (kein Treffer)"
           echo
           echo "### Unsere echte Publisher-ID (8860791993288062):"
-          grep -rla '8860791993288062' /tmp/aab | sed 's|/tmp/aab/|  · |' || echo "  (kein Treffer)"
+          grep -rla '8860791993288062' "$D" | sed "s|$D/|  · |" || echo "  (kein Treffer)"
           echo
           echo "### Web-Bundle im Paket:"
-          ls -1 /tmp/aab/base/assets/public/assets/*.js 2>/dev/null | sed 's|.*/|  · |' | head -5 || echo "  (nicht gefunden)"
+          ls -1 "$D"/base/assets/public/assets/*.js 2>/dev/null | sed 's|.*/|  · |' | head -5 || echo "  (nicht gefunden)"
 
       - name: AAB als Artefakt ablegen
         uses: actions/upload-artifact@v4
@@ -163,15 +189,17 @@ jobs:
         run: |
           # Eigene venv: neuere Ubuntu-Läufer erlauben kein pip3 install ins
           # System-Python (PEP 668, "externally managed environment").
-          python3 -m venv /tmp/venv
-          /tmp/venv/bin/pip install --quiet pyjwt cryptography
-          printf '%s' "$PLAY_KEY_JSON" > /tmp/play-key.json
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet pyjwt cryptography
+          printf '%s' "$PLAY_KEY_JSON" > "$RUNNER_TEMP/play-key.json"
           if [ "$ROLLOUT" = "complete" ]; then ARG="--complete"; else ARG="--fraction $ROLLOUT"; fi
-          PLAY_KEY=/tmp/play-key.json /tmp/venv/bin/python scripts/play-upload.py \
+          PLAY_KEY="$RUNNER_TEMP/play-key.json" "$RUNNER_TEMP/venv/bin/python" scripts/play-upload.py \
             --aab android/app/build/outputs/bundle/release/app-release.aab \
             $ARG --notes "$NOTES"
-          rm -f /tmp/play-key.json
+          rm -f "$RUNNER_TEMP/play-key.json"
 
       - name: Schlüssel aufräumen
         if: always()
-        run: rm -f android/upload-keystore.jks android/keystore.properties /tmp/play-key.json
+        run: |
+          rm -f android/upload-keystore.jks android/keystore.properties "$RUNNER_TEMP/play-key.json"
+          rm -rf "$RUNNER_TEMP/venv" "$RUNNER_TEMP/aab"

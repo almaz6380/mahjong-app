@@ -82,3 +82,30 @@ dann denselben Workflow noch einmal mit Upload starten.
 Die iOS-Signierung auf fremden Rechnern ist erfahrungsgemäß die fummeligste
 Stelle (Zertifikat, Profil, Team-ID müssen zusammenpassen). Android zuerst
 einrichten, iOS danach.
+
+## Eigener Mac als Läufer (keine GitHub-Minuten, seit 25.09.2026)
+
+„iOS Release" und „Android Release" haben die Eingabe **`laeufer`**: `github`
+(Standard, kostet Minuten — macOS zählt zehnfach) oder `mac` = Josefs MacBook als
+*Self-hosted Runner*. Dieselbe Einrichtung läuft schon für Anigosha; Runner sind bei
+einem persönlichen GitHub-Konto **je Repo** anzumelden.
+
+**Einmal einrichten (am Mac, ~5 Minuten):**
+1. GitHub → dieses Repo → Settings → Actions → Runners → **New self-hosted runner**
+   → **macOS**, **ARM64**.
+2. Im Terminal einen EIGENEN Ordner anlegen (nicht den von Anigosha!):
+   `mkdir ~/actions-runner-mahjong && cd ~/actions-runner-mahjong`
+3. Von der GitHub-Seite nur `curl …`, `tar xzf …` und `./config.sh …` kopieren,
+   bei jeder Rückfrage Enter.
+4. Statt `./run.sh`: `./svc.sh install && ./svc.sh start`
+
+**Voraussetzungen am Mac:** Xcode ≥ 26, **CocoaPods** (`brew install cocoapods` —
+dieses Projekt hat ein Podfile), Android-SDK unter `~/Library/Android/sdk`. Die
+Workflows prüfen alle drei und brechen sonst mit klarer Meldung ab. Der Mac muss
+während des Builds wach sein (MacBook: aufgeklappt, am Strom).
+
+**Nichts Eigenes wird angefasst:** Wegwerf-Schlüsselbund unter `$RUNNER_TEMP`
+(die Suchliste wird wiederhergestellt; früher setzte der iOS-Workflow hier sogar den
+STANDARD-Schlüsselbund um), Profil unter eindeutigem Namen, API- und Play-Schlüssel
+nur unter `$RUNNER_TEMP`, nie `~/.appstoreconnect` oder `/tmp`.
+⚠ Das Repo darf nie öffentlich werden, solange der Runner angemeldet ist.
