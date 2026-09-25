@@ -175,6 +175,9 @@ jobs:
 
       - name: AAB als Artefakt ablegen
         uses: actions/upload-artifact@v4
+        # Nur Bequemlichkeit: Ist GitHubs Artefakt-Speicher voll (so am 25.09.
+        # passiert), darf das den Store-Upload danach nicht verhindern.
+        continue-on-error: true
         with:
           name: MahjongRoyale-${{ env.VN }}-vc${{ env.VC }}
           path: android/app/build/outputs/bundle/release/app-release.aab
