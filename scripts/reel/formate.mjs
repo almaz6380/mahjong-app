@@ -161,9 +161,10 @@ export function captionText(format, o) {
     `- Gesamtlänge ${o.gesamtSek} s`,
     o.einblendungen?.length ? `- Einblendungen: ${o.einblendungen.join(', ')}` : null,
     // ⚠ Diese Zeile liest der Tageslauf (wellapps-social/tools/social/lauf.mjs)
-    // fuer die Leitplanke: KI-Menschen brauchen das AI-Plaettchen, und
-    // „Wasserzeichen gesetzt" sagt ihr, dass es im Bild sitzt.
-    o.kiMenschen ? '- Medienherkunft: ki-menschen (gemalte Einblendungen Junge/Opa/Tempel, '
-      + 'KI-Standbilder, Wasserzeichen gesetzt)' : null,
+    // fuer die Leitplanke (vorflug.mjs): `ki-menschen` = realistisch, Plaettchen
+    // Pflicht; `ki-figur` = gemalt, Plaettchen verboten (Josef, 26.09.2026).
+    o.kiRealistisch ? '- Medienherkunft: ki-menschen (realistische KI-Einblendungen, Wasserzeichen gesetzt)'
+      : o.kiMenschen ? '- Medienherkunft: ki-figur (gemalte Einblendungen Junge/Opa/Tempel, '
+        + 'kein Plättchen)' : null,
   ].filter((z) => z !== null).join('\n') + '\n';
 }

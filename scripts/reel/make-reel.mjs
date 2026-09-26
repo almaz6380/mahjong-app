@@ -72,14 +72,17 @@ const BLENDE_ABSPANN = 0.55;
 //
 // Sie laufen NACH dem Hook, abwechselnd, je EIN_SEK lang, dazwischen das Spiel.
 // Die Steinklaenge laufen durch — das Spiel geht hinter der Einblendung weiter.
-// Wo ein Mensch zu sehen ist, sitzt das AI-Plaettchen im Bild (Josefs Regel
-// vom 29.08.2026); bei den Steinen nicht.
+// ⚠ KEIN AI-Plaettchen (Josef, 26.09.2026: „ki wasserzeichen nur wenn
+// realistische personen sichtbar sind"). Opa, Junge und Tempel sind GEMALT,
+// keine realistischen Menschen. EIN_REALISTISCH bleibt deshalb leer; kaeme je
+// ein fotorealistisches Bild dazu, gehoert es dort hinein.
 const EIN_DIR = join(ASSETS, 'einblendungen');
 // Feste Reihenfolge — IMMER zuerst der Opa (Josef, 25.09.2026: „erste
 // sequenz soll der alte mann sein"). Danach erzaehlt es sich von selbst:
 // Grossvater, Enkel, sein Weg zum Tempel, die Steine.
 const EIN_REIHE = ['opa', 'junge', 'tempel', 'steine'];
 const EIN_MENSCHEN = new Set(['junge', 'opa', 'tempel']);
+const EIN_REALISTISCH = new Set();
 const EIN_SEK = 1.4;
 // Beginn zu Beginn. Hoechstens 3,4 s, mindestens 2,6 s — bei kurzen
 // Aufnahmen (16 Paare ≈ 10 s) ruecken sie zusammen, damit trotzdem mehr als
@@ -219,7 +222,7 @@ html,body{width:${B}px;height:${H}px;background:transparent;font-family:'Outfit'
                  border-radius:999px;background:#fff;opacity:.92"></div>`,
     join(TMP, 'status.png'));
 
-  // AI-Plaettchen fuer die Einblendungen mit Menschen — dieselbe Form wie im
+  // AI-Plaettchen fuer REALISTISCHE Einblendungen (heute keine) — dieselbe Form wie im
   // WELLbooked!-Clip-Reel (wellapps-social/tools/social/reels-fremd/clip-reel-looks.mjs).
   await schuss(
     `<div style="position:absolute;right:48px;bottom:170px;width:64px;height:64px;border-radius:50%;
@@ -262,7 +265,7 @@ if (MIT_EINBLENDUNGEN) {
       `scale=${B * 2}:${H * 2}`,
       `zoompan=z='1.02+0.07*on/${n}':x='iw/2-(iw/zoom/2)':y='${y}':d=${n}:s=${B}x${H}:fps=${FPS}`,
     ].join(',');
-    const mitKi = EIN_MENSCHEN.has(k);
+    const mitKi = EIN_REALISTISCH.has(k);
     await lauf([
       '-y', '-i', join(EIN_DIR, `${k}.jpg`),
       ...(mitKi ? ['-loop', '1', '-i', join(TMP, 'ki.png')] : []),
@@ -425,6 +428,7 @@ writeFileSync(join(OUT, `${basis}.txt`), captionText(FORMAT, {
   figur: FIGUR,
   einblendungen: einblendungen.map((e) => e.k),
   kiMenschen: einblendungen.some((e) => EIN_MENSCHEN.has(e.k)),
+  kiRealistisch: einblendungen.some((e) => EIN_REALISTISCH.has(e.k)),
 }));
 
 rmSync(TMP, { recursive: true, force: true });

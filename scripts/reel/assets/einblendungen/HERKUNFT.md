@@ -19,9 +19,12 @@ abwechselnd etc eingebaut werden" → „neu bauen".
 - **Auf 1080 px Breite verkleinert.** Kleine Siegelstempel in den unteren Ecken schneidet
   `make-reel.mjs` beim Zuschnitt weg (`crop=iw*0.88:ih*0.88:iw*0.06:ih*0.03`).
 
-⚠ **KI-erzeugte Menschen.** Junge, Opa und Tempel tragen im Reel das AI-Plättchen,
-und das Beiblatt meldet `ki-menschen (… Wasserzeichen gesetzt)` an die Leitplanke
-im Tageslauf. Die Steine zeigen keinen Menschen und kommen ohne Plättchen.
+⚠ **Gemalt, nicht realistisch → KEIN AI-Plättchen** (Josef, 26.09.2026: „ki
+wasserzeichen nur wenn realistische personen sichtbar sind"). Bis dahin trugen Junge, Opa
+und Tempel das Plättchen. Das Beiblatt meldet jetzt `ki-figur (gemalte Einblendungen …, kein
+Plättchen)`; die Leitplanke im Tageslauf (`vorflug.mjs`) lehnt ein Plättchen darauf ab.
+Ein künftiges fotorealistisches Bild gehört in `EIN_REALISTISCH` (`make-reel.mjs`) und
+bekommt es dann wieder.
 
 ⚠ **Bewusst Standbilder mit eigener Kamerafahrt, kein KI-Video.** KI-Video mit
 Menschen hat bei WELLbooked! sichtbare Fehler gebracht.
