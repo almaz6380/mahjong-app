@@ -13,7 +13,7 @@
 import { writeFileSync, mkdirSync, rmSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spurRendern } from './synth.mjs';
 import { FORMATE, fakten, captionText, hookTexte } from './formate.mjs';
@@ -33,6 +33,11 @@ const FORMAT = arg('format', 'paar');
 const NAME = arg('name', null);            // Dateiname ohne Endung
 const FAKT_NR = Number(arg('fakt', 0));    // welcher Fakt beim Format `fakt`
 const FIGUR = arg('figur', null);          // Figurname beim Format `figur-des-tages`
+// Filmszene VOR dem Spiel (Josef, 27.09.2026: „mahjong soll so einen post
+// machen" — sein bester Beitrag, 1103 Aufrufe: erst eine KI-Filmszene, eine
+// alte Hand stellt einen Drachenstein ab, dann das Spiel mit „Did you know?").
+// Clips liegen in assets/vorspann/, Herkunft in HERKUNFT.md daneben.
+const VORSPANN = arg('vorspann', null) ? resolve(WURZEL, arg('vorspann')) : null;
 const OUT = join(WURZEL, arg('out', 'out/reels'));
 const TMP = join(OUT, '.bau');
 const B = 1080, H = 1920, FPS = 30;
@@ -88,7 +93,9 @@ const EIN_SEK = 1.4;
 // Aufnahmen (16 Paare ≈ 10 s) ruecken sie zusammen, damit trotzdem mehr als
 // eine abwechselnd kommt; zwischen zwei Einblendungen bleibt immer Spiel.
 const EIN_ABSTAND_MAX = 3.4, EIN_ABSTAND_MIN = 2.6;
-const MIT_EINBLENDUNGEN = !process.argv.includes('--ohne-einblendungen')
+// Mit Vorspann keine gemalten Einblendungen: Eine fotorealistische Filmszene
+// und danach Tuschmalerei wären zwei Welten in einem Reel.
+const MIT_EINBLENDUNGEN = !process.argv.includes('--ohne-einblendungen') && !VORSPANN
   && EIN_REIHE.every((k) => existsSync(join(EIN_DIR, `${k}.jpg`)));
 
 // Beim Format `fakt` traegt die Unterzeile den Fakt selbst — deshalb wird er
@@ -108,6 +115,10 @@ const TEXTE = {
   outroCta: 'Free on the App Store & Google Play',
 };
 
+if (VORSPANN && !existsSync(VORSPANN)) {
+  console.error(`✗ Vorspann fehlt: ${VORSPANN}`);
+  process.exit(1);
+}
 if (!existsSync(CLIP)) {
   console.error(`✗ Aufnahme fehlt: ${CLIP}\n  Erst record-solitaire.mjs laufen lassen.`);
   process.exit(1);
@@ -413,8 +424,46 @@ const ziel = join(OUT, `${basis}.mp4`);
 await lauf([
   '-y', '-i', join(TMP, 'stumm.mp4'), '-i', join(TMP, 'ton.m4a'),
   '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k', '-shortest',
-  '-movflags', '+faststart', ziel,
+  '-movflags', '+faststart', VORSPANN ? join(TMP, 'kern.mp4') : ziel,
 ]);
+
+// --- Vorspann: Filmszene vor dem Spiel ----------------------------------------
+// Ohne Text darüber — die Szene soll wie ein Film wirken, nicht wie Werbung;
+// Hook und Fakt kommen erst mit dem Spiel (so lief das Vorbild vom 18.08.).
+// ⚠ Die Hand ist fotorealistisch und KI-erzeugt → AI-Plättchen PFLICHT
+// (Josef, 26.09.2026: „ki wasserzeichen nur wenn realistische personen
+// sichtbar sind"). Es liegt nur auf der Szene, nicht auf dem Spiel.
+let gesamt = dauer;
+if (VORSPANN) {
+  console.log('Vorspann davor …');
+  const VOR_SEK = Math.min(5.0, await dauerVon(VORSPANN));
+  const BLENDE_VOR = 0.35;
+  await lauf([
+    '-y', '-i', VORSPANN, '-loop', '1', '-i', join(TMP, 'ki.png'),
+    '-filter_complex',
+    `[0:v]scale=${B}:${H}:force_original_aspect_ratio=increase,crop=${B}:${H},fps=${FPS},setsar=1[s];`
+    + `[s][1:v]overlay=0:0:shortest=1,format=yuv420p[v]`,
+    '-map', '[v]', '-t', VOR_SEK.toFixed(2), '-an',
+    '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', join(TMP, 'vor.mp4'),
+  ]);
+  const versatz = VOR_SEK - BLENDE_VOR;
+  gesamt = versatz + dauer;
+  await lauf([
+    '-y', '-i', join(TMP, 'vor.mp4'), '-i', join(TMP, 'kern.mp4'), '-i', sfx('bett'), '-i', sfx('whoosh'),
+    '-filter_complex',
+    `[0:v][1:v]xfade=transition=fade:duration=${BLENDE_VOR}:offset=${versatz.toFixed(3)},format=yuv420p,fps=${FPS}[v];`
+    // Unter der Szene nur der Teppich, etwas lauter als im Spiel; der Whoosh
+    // sitzt auf dem Schnitt, der Spielton beginnt mit dem Spiel.
+    + `[2:a]atrim=0:${VOR_SEK.toFixed(2)},asetpts=N/SR/TB,volume=0.22,afade=t=in:st=0:d=0.6,`
+    + `afade=t=out:st=${(VOR_SEK - 0.6).toFixed(2)}:d=0.6[bv];`
+    + `[3:a]adelay=${ms(versatz - 0.15)}|${ms(versatz - 0.15)},volume=0.5[wv];`
+    + `[1:a]adelay=${ms(versatz)}|${ms(versatz)}[kv];`
+    + `[bv][wv][kv]amix=inputs=3:normalize=0:dropout_transition=0,alimiter=limit=0.89:level=disabled[a]`,
+    '-map', '[v]', '-map', '[a]', '-t', gesamt.toFixed(2),
+    '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', '-c:a', 'aac', '-b:a', '160k', '-ar', '48000',
+    '-movflags', '+faststart', ziel,
+  ]);
+}
 
 // Caption + Hashtags daneben. Auf dem Handy gibt es keinen Dateimanager und
 // keine Lust, sich Text auszudenken — die Datei ist zum Kopieren gedacht.
@@ -423,14 +472,15 @@ writeFileSync(join(OUT, `${basis}.txt`), captionText(FORMAT, {
   level: beiblatt.level ?? '?',
   paare: beiblatt.paare ?? '?',
   spielSek: (beiblatt.dauer ?? 0).toFixed(0),
-  gesamtSek: dauer.toFixed(0),
+  gesamtSek: gesamt.toFixed(0),
   fakt: FAKT ? FAKT.en : null,
   figur: FIGUR,
   einblendungen: einblendungen.map((e) => e.k),
   kiMenschen: einblendungen.some((e) => EIN_MENSCHEN.has(e.k)),
-  kiRealistisch: einblendungen.some((e) => EIN_REALISTISCH.has(e.k)),
+  kiRealistisch: Boolean(VORSPANN) || einblendungen.some((e) => EIN_REALISTISCH.has(e.k)),
+  vorspann: VORSPANN ? VORSPANN.split('/').pop() : null,
 }));
 
 rmSync(TMP, { recursive: true, force: true });
-console.log(`\n✓ ${ziel}  (${(statSync(ziel).size / 1024 / 1024).toFixed(1)} MB, ${dauer.toFixed(1)} s)`);
+console.log(`\n✓ ${ziel}  (${(statSync(ziel).size / 1024 / 1024).toFixed(1)} MB, ${gesamt.toFixed(1)} s)`);
 console.log(`✓ ${join(OUT, `${basis}.txt`)}`);

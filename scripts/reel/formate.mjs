@@ -160,10 +160,11 @@ export function captionText(format, o) {
     o.fakt ? `- Fakt: ${o.fakt}` : null,
     `- Gesamtlänge ${o.gesamtSek} s`,
     o.einblendungen?.length ? `- Einblendungen: ${o.einblendungen.join(', ')}` : null,
+    o.vorspann ? `- Vorspann: ${o.vorspann} (KI-Filmszene, fal.ai — Herkunft in scripts/reel/assets/vorspann/HERKUNFT.md)` : null,
     // ⚠ Diese Zeile liest der Tageslauf (wellapps-social/tools/social/lauf.mjs)
     // fuer die Leitplanke (vorflug.mjs): `ki-menschen` = realistisch, Plaettchen
     // Pflicht; `ki-figur` = gemalt, Plaettchen verboten (Josef, 26.09.2026).
-    o.kiRealistisch ? '- Medienherkunft: ki-menschen (realistische KI-Einblendungen, Wasserzeichen gesetzt)'
+    o.kiRealistisch ? `- Medienherkunft: ki-menschen (${o.vorspann ? 'realistische KI-Filmszene' : 'realistische KI-Einblendungen'}, Wasserzeichen gesetzt)`
       : o.kiMenschen ? '- Medienherkunft: ki-figur (gemalte Einblendungen Junge/Opa/Tempel, '
         + 'kein Plättchen)' : null,
   ].filter((z) => z !== null).join('\n') + '\n';
