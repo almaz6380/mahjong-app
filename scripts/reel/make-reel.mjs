@@ -97,6 +97,8 @@ const EIN_ABSTAND_MAX = 3.4, EIN_ABSTAND_MIN = 2.6;
 // und danach Tuschmalerei wären zwei Welten in einem Reel.
 const MIT_EINBLENDUNGEN = !process.argv.includes('--ohne-einblendungen') && !VORSPANN
   && EIN_REIHE.every((k) => existsSync(join(EIN_DIR, `${k}.jpg`)));
+// Die Hook-Karte startet erst, wenn die Eröffnung (Opa) ausgeblendet ist.
+const HOOK_AB = MIT_EINBLENDUNGEN ? EIN_SEK : 0;
 
 // Beim Format `fakt` traegt die Unterzeile den Fakt selbst — deshalb wird er
 // hier schon geladen, er bestimmt den Text der Eingangskarte.
@@ -264,10 +266,15 @@ const einblendungen = [];
 if (MIT_EINBLENDUNGEN) {
   const clipDauer = await dauerVon(CLIP);
   const n = Math.round(EIN_SEK * FPS);
-  const erste = HOOK_SEK + 0.9;
+  // ⚠ Der Opa ERÖFFNET das Reel (Josef, 02.10.2026: „bei mahjong mit kleinen
+  // jungen oder opa anfangen!!!!!"). Bild 1 ist die Tuschmalerei, nicht das
+  // Brett; die Hook-Karte kommt danach (HOOK_AB). Die übrigen folgen wie bisher.
+  const zeiten = [0];
+  const erste = HOOK_AB + HOOK_SEK + 0.9;
   const letzte = clipDauer - 2.2 - EIN_SEK;          // der Sieg bleibt frei
-  const abstand = Math.min(EIN_ABSTAND_MAX, Math.max(EIN_ABSTAND_MIN, (letzte - erste) / (EIN_REIHE.length - 1)));
-  for (let t = erste, i = 0; t <= letzte + 1e-6 && i < EIN_REIHE.length; t += abstand, i++) {
+  const abstand = Math.min(EIN_ABSTAND_MAX, Math.max(EIN_ABSTAND_MIN, (letzte - erste) / (EIN_REIHE.length - 2)));
+  for (let t = erste; t <= letzte + 1e-6 && zeiten.length < EIN_REIHE.length; t += abstand) zeiten.push(t);
+  for (const [i, t] of zeiten.entries()) {
     const k = EIN_REIHE[i];
     const ziel = join(TMP, `ein-${k}.mp4`);
     const y = k === 'tempel' ? `(ih-ih/zoom)*(1-on/${n})` : 'ih/2-(ih/zoom/2)';
@@ -317,15 +324,16 @@ await lauf([
   // Der Alpha-Fade allein blendet die Karte aus; ein `enable`-Fenster braucht
   // es nicht. Wichtig ist nur, dass der Alpha wirklich auf 0 laeuft — das
   // Standbild liegt danach unsichtbar weiter im Filtergraphen.
-  + `[1:v]format=rgba,fade=t=in:st=0.10:d=0.35:alpha=1,`
-  + `fade=t=out:st=${HOOK_SEK.toFixed(2)}:d=0.45:alpha=1[k];`
+  + `[1:v]format=rgba,fade=t=in:st=${(HOOK_AB + 0.10).toFixed(2)}:d=0.35:alpha=1,`
+  + `fade=t=out:st=${(HOOK_AB + HOOK_SEK).toFixed(2)}:d=0.45:alpha=1[k];`
   + `[g][k]overlay=0:0:shortest=1[gk];`
   + `[gk][2:v]overlay=0:0:shortest=1,fps=${FPS}[v0]`
   // Einblendungen ZULETZT: Sie ersetzen kurz das ganze Bild, auch die
   // Statusleiste — eine Handy-Leiste ueber einer Tuschmalerei waere Unsinn.
   // Vor ihrem Beginn und nach ihrem Ende laeuft das Spiel unveraendert durch.
   + einblendungen.map((e, i) => `;[${3 + i}:v]format=rgba,`
-    + `fade=t=in:st=0:d=0.22:alpha=1,fade=t=out:st=${(EIN_SEK - 0.22).toFixed(2)}:d=0.22:alpha=1,`
+    // Die Eröffnung steht ab Bild 1 voll da — kein Aufblenden aus dem Brett.
+    + `${e.t === 0 ? '' : 'fade=t=in:st=0:d=0.22:alpha=1,'}fade=t=out:st=${(EIN_SEK - 0.22).toFixed(2)}:d=0.22:alpha=1,`
     + `setpts=PTS-STARTPTS+${e.t.toFixed(3)}/TB[e${i}];`
     + `[v${i}][e${i}]overlay=0:0:eof_action=pass[v${i + 1}]`).join(''),
   '-map', `[v${einblendungen.length}]`,
