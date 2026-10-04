@@ -170,9 +170,11 @@ export function shouldShowInterstitial(level: number, totalWins: number): boolea
   return true;
 }
 
-export async function maybeShowInterstitial(level: number, totalWins: number): Promise<void> {
-  if (!ready || adsRemoved) return;
-  if (!shouldShowInterstitial(level, totalWins)) return;
+// Liefert true, wenn eine Anzeige versucht wurde — die Bewertungsanfrage
+// (src/review.ts) darf dann im selben Ablauf nicht auch noch kommen.
+export async function maybeShowInterstitial(level: number, totalWins: number): Promise<boolean> {
+  if (!ready || adsRemoved) return false;
+  if (!shouldShowInterstitial(level, totalWins)) return false;
   lastInterstitial = Date.now();
   await ensureTrackingAuthorization();
   try {
@@ -181,6 +183,12 @@ export async function maybeShowInterstitial(level: number, totalWins: number): P
   } catch (e) {
     console.warn('Interstitial-Ad fehlgeschlagen:', e);
   }
+  return true;
+}
+
+/** Millisekunden seit dem letzten Interstitial-Versuch (Infinity = noch keiner). */
+export function msSinceLastInterstitial(): number {
+  return lastInterstitial ? Date.now() - lastInterstitial : Infinity;
 }
 
 // Für die Spezialmodi: Interstitial zwischen Runden, nur Zeit-gedrosselt.

@@ -408,6 +408,61 @@ Build bricht mit „Failed to apply patch" ab → einmalig ohne Cache deployen
   bloß der Zufallsname vom Anlegen. Eine schönere Subdomain **hinzufügen, nie ersetzen** —
   an der im Store hinterlegten Website hängt `app-ads.txt` und damit Werbegeld (siehe dort).
 
+## Münz-Ökonomie, Kauf-Warteschlange, Rechtstexte (04.10.2026, Version 1.2.0)
+
+Anlass war eine Rechts- und Ökonomieprüfung. Ziel: eine bezahlte Hilfe soll viele
+gewonnene Level wert sein, das Video bleibt immer die kostenlose Alternative.
+
+| Posten | vorher | seit 1.2.0 | wo |
+|---|---|---|---|
+| Level-Sieg 1/2/3 ★ | 35/50/65 | **5/10/15** | `coinsFor` in `src/game/scoring.ts` |
+| Tipp / Mischen / Zurück | 40/120/30 | **150/250/100** | `BOOSTER_COST` in `src/game/progress.ts` (gilt auch für FigureRound: Pagode, Zen, Feste) |
+| Connect, Dimensions: Tipp/Mischen | 40/60 | **150/250** | je `HINT_COST`/`SHUFFLE_COST` |
+| Tile Match: Zurück/Mischen | 20/60, nur Münzen | **100/250**, mit Video über `payOrWatch` | `TileMatchScreen.tsx` |
+| Tagesbelohnung | 20 + 10/Serientag, max 100 | **10 + 5/Serientag, max 50** | `dailyRewardCoins()` |
+| Tages-Challenge | 100 + 20×★ | **30 + 10×★** | `DAILY_REWARD` + GameScreen |
+| Tages-Event / Fest / Album | 100 / 150 / 150 | **40 / 50 / 50** | events.ts / festivals.ts / AlbumScreen |
+| Münzen verdoppeln (Video) | nach jedem Sieg | **1× pro Kalendertag** (`lastDoubleDate`) | GameScreen |
+| Münzpakete | 500/1.500/5.000 | **1.500/4.500/15.000** | `PRODUCTS` in `src/store/iap.ts` |
+
+⚠ **Die Anzeigenamen der Münzpakete in App Store Connect und Play Console tragen die
+Zahl ebenfalls** und müssen von Hand nachgezogen werden. Die Produkt-IDs bleiben.
+Bestehende Spieler behalten ihren Münzstand — es gibt bewusst keine Migration.
+
+**Bonus-Deckel:** Alle Bonus-Spiele (Match-3, Connect, Sudoku, Dimensions, 2048, Tile
+Match, Blitz, Memory, Pagode, 4-Spieler HK, Riichi) schreiben über `addBonusCoins()`
+gut, gemeinsam höchstens **100 Münzen pro Tag** (`BONUS_DAILY_CAP`,
+`bonusCoinsDate`/`bonusCoinsToday`). In App.tsx läuft das über `bonusCoins` — wer einen
+neuen Modus anschließt, gibt ihm `bonusCoins`, nicht `p.addCoins`. Level-Siege, Käufe,
+Tagesbelohnung, Tages-Challenge, Event, Fest und Album sind NICHT gedeckelt. Die
+Modi zeigen weiterhin ihren ungedeckelten Gewinn an; ist der Deckel erreicht, sagt ein
+Toast es (`bonus.capReached`).
+
+**Kauf-Warteschlange (Bugfix):** Bis 1.1.x schrieb nur die Shop-Oberfläche Münzen gut,
+über das Promise von `purchase()` — ein Kauf, der erst in einer späteren Sitzung
+bestätigt wurde (Ask-to-Buy, ausstehende Zahlung, App beendet), wurde mit `tx.finish()`
+verbraucht und die Münzen waren weg. Jetzt legt der `approved`-Handler die Münzen
+**vor** `tx.finish()` in Preferences ab (`iap.pendingCoins`, mit den letzten 100
+Transaktions-IDs gegen Doppelgutschrift), `useProgress` leert die Schlange über
+`subscribeCoinCredits()`. Schlägt das Speichern fehl, wird die Transaktion NICHT
+abgeschlossen — der Store meldet sie beim nächsten Start erneut. Auch der simulierte
+Web-Kauf läuft durch dieselbe Schlange. `ShopScreen` schreibt selbst keine Münzen mehr gut.
+
+**Bewertungsanfrage** (`src/review.ts`, `@capacitor-community/in-app-review@6`): nach dem
+10. gewonnenen Level, danach höchstens alle 90 Tage, nie im selben Ablauf wie ein
+Interstitial (`maybeShowInterstitial` liefert jetzt `true`, wenn eine Anzeige versucht
+wurde), nie im Web, **nie mit Belohnung** (Apple/Google verbieten Anreize).
+⚠ `Podfile.lock` ist dafür nicht aktualisiert — `npx cap sync ios` im Release-Workflow
+führt `pod install` aus und ergänzt den Pod. Erster iOS-Lauf deshalb mit `upload=false`.
+
+**Rechtliches:** Einstellungen verlinken Datenschutz, Impressum und Nutzungsbedingungen
+auf `almaz6380.github.io/mahjong/…` (öffnet per `window.open` extern). Die Quelltexte
+liegen in `public/privacy.html`, `public/impressum.html` und neu `public/terms.html`;
+die GitHub-Pages-Fassungen im Repo `almaz6380.github.io` müssen nach jeder Änderung dort
+nachgezogen werden. `ios/App/App/PrivacyInfo.xcprivacy` ist neu (Tracking: ja,
+Geräte-ID + Werbedaten für Drittanbieter-Werbung, UserDefaults CA92.1) und im pbxproj
+als Ressource des App-Targets eingetragen.
+
 ## Besucherzahlen: wo welche Zahl steht (seit 16.08.2026)
 
 Die Frage „wie viele Leute waren da und wann?" hat **vier verschiedene Antworten**, je nachdem,

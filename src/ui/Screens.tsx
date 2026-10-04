@@ -23,6 +23,20 @@ function ScreenHeader({ title, onBack }: { title: string; onBack: () => void }) 
   );
 }
 
+// Rechtstexte liegen auf GitHub Pages (Repo almaz6380.github.io), damit sie
+// ohne App und ohne Konto erreichbar sind — Apple, Google und das ECG wollen
+// das so. Kein Browser-Plugin installiert: window.open mit _blank öffnet in
+// Capacitor den System-Browser, im Web einen neuen Tab.
+const LEGAL_LINKS: [string, string][] = [
+  ['set.privacy', 'https://almaz6380.github.io/mahjong/datenschutz.html'],
+  ['set.imprint', 'https://almaz6380.github.io/mahjong/impressum.html'],
+  ['set.terms', 'https://almaz6380.github.io/mahjong/nutzungsbedingungen.html'],
+];
+
+function openExternal(url: string) {
+  window.open(url, '_blank', 'noopener');
+}
+
 // --- Einstellungen ---------------------------------------------------------
 export function SettingsScreen({
   progress,
@@ -148,6 +162,14 @@ export function SettingsScreen({
           <button className="small-btn danger" onClick={() => setConfirm(true)}>
             {t('set.resetBtn')}
           </button>
+        </div>
+        <div className="stats-section">{t('set.legal')}</div>
+        <div className="set-nav">
+          {LEGAL_LINKS.map(([key, url]) => (
+            <button key={key} onClick={() => openExternal(url)}>
+              <Icon name="help" size={20} /><span>{t(key)}</span><i className="chev">↗</i>
+            </button>
+          ))}
         </div>
         <div className="credit">{version ? `${version} · ` : ''}Mahjong Royale</div>
       </div>
@@ -381,12 +403,10 @@ export function StatsScreen({ progress, onBack }: { progress: Progress; onBack: 
 // --- Shop (IAP) ------------------------------------------------------------
 export function ShopScreen({
   progress,
-  addCoins,
   setRemoveAds,
   onBack,
 }: {
   progress: Progress;
-  addCoins: (n: number) => void;
   setRemoveAds: () => void;
   onBack: () => void;
 }) {
@@ -395,7 +415,9 @@ export function ShopScreen({
   const buy = async (p: Product) => {
     const res = await purchase(p.id);
     if (res.ok) {
-      if (p.coins) addCoins(p.coins);
+      // Münzen schreibt NICHT mehr die Oberfläche gut, sondern die
+      // IAP-Warteschlange (store/iap.ts → useProgress) — auch für Käufe, die
+      // erst in einer späteren Sitzung bestätigt werden.
       if (p.removesAds) {
         setRemoveAds();
         setAdsRemoved(true);

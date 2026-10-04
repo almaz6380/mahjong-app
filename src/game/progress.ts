@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Preferences } from '@capacitor/preferences';
+import { subscribeCoinCredits } from '../store/iap';
 
 // ===========================================================================
 //  Persistenter Spielerfortschritt (übersteht App-Neustart)
@@ -48,6 +49,10 @@ export interface Progress {
   albumClaimed: string[]; // bereits belohnte Album-Einträge
   lastFestival: string; // 'YYYY-M-D' des zuletzt eingelösten Fest-Bonus
   blitzReset: boolean; // Bestwert einmalig geleert (Blitz-Brett von 144 auf 52 Steine)
+  // v1.2 Münz-Ökonomie
+  lastDoubleDate: string; // 'YYYY-M-D' des letzten „Münzen verdoppeln“-Videos (1×/Tag)
+  bonusCoinsDate: string; // Tag, für den bonusCoinsToday zählt
+  bonusCoinsToday: number; // heute aus Bonus-Spielen verdiente Münzen (Deckel BONUS_DAILY_CAP)
   stats: {
     bestTimeMs: number; // schnellstes Solitaire-Level (0 = noch keins)
     dailies: number; // erledigte Tages-Challenges
@@ -91,14 +96,28 @@ const DEFAULT: Progress = {
   albumClaimed: [],
   lastFestival: '',
   blitzReset: true,
+  lastDoubleDate: '',
+  bonusCoinsDate: '',
+  bonusCoinsToday: 0,
   stats: { bestTimeMs: 0, dailies: 0, m4Hands: 0, m4Wins: 0, m4BestFaan: 0, modeBest: {} },
 };
 
+// Seit 1.2.0 (Rechtsprüfung/Ökonomie): Hilfen kosten so viel, dass sie
+// mehrere gewonnene Level wert sind (5/10/15 Münzen je Level). Das Video ist
+// immer die kostenlose Alternative.
 export const BOOSTER_COST: Record<BoosterType, number> = {
-  hint: 40,
-  shuffle: 120,
-  undo: 30,
+  hint: 150,
+  shuffle: 250,
+  undo: 100,
 };
+
+/** Gemeinsamer Tagesdeckel für Münzen aus allen Bonus-Spielen. */
+export const BONUS_DAILY_CAP = 100;
+
+/** Tagesbelohnung: 10 Münzen, je Serientag +5, höchstens 50. */
+export function dailyRewardCoins(streak: number): number {
+  return Math.min(10 + (Math.max(streak, 1) - 1) * 5, 50);
+}
 
 export function todayStr(d = new Date()): string {
   return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
@@ -173,7 +192,7 @@ export function useProgress() {
 
       // Belohnung des Tages noch nicht abgeholt → Punkt am Icon (kein Auto-Popup).
       if (loaded.lastRewardClaim !== today) {
-        const coins = Math.min(20 + (loaded.streak - 1) * 10, 100);
+        const coins = dailyRewardCoins(loaded.streak);
         setPendingDaily({ coins, streak: loaded.streak });
       }
     });
@@ -201,6 +220,42 @@ export function useProgress() {
     },
     [persist],
   );
+
+  // Münzen aus Bonus-Spielen (Match-3, Connect, 4-Spieler, Riichi …) laufen
+  // durch einen gemeinsamen Tagesdeckel. Liefert die tatsächlich gutgeschriebene
+  // Menge (0, wenn der Deckel erreicht ist).
+  const addBonusCoins = useCallback(
+    (n: number): number => {
+      const s = stateRef.current;
+      if (!s || n <= 0) return 0;
+      const today = todayStr();
+      const used = s.bonusCoinsDate === today ? s.bonusCoinsToday : 0;
+      const granted = Math.max(0, Math.min(n, BONUS_DAILY_CAP - used));
+      persist({ ...s, coins: s.coins + granted, bonusCoinsDate: today, bonusCoinsToday: used + granted });
+      return granted;
+    },
+    [persist],
+  );
+
+  // „Münzen verdoppeln“ per Video: einmal pro Kalendertag.
+  const markDoubleUsed = useCallback(() => {
+    const s = stateRef.current;
+    if (!s) return;
+    persist({ ...s, lastDoubleDate: todayStr() });
+  }, [persist]);
+
+  // Gekaufte Münzen aus der IAP-Warteschlange gutschreiben (auch Käufe, die
+  // erst in einer späteren Sitzung bestätigt werden). Erst abonnieren, wenn
+  // der Spielstand geladen ist — sonst ginge die Gutschrift ins Leere.
+  const loaded = state !== null;
+  useEffect(() => {
+    if (!loaded) return;
+    return subscribeCoinCredits((n) => {
+      const s = stateRef.current;
+      if (!s) return;
+      persist({ ...s, coins: s.coins + n });
+    });
+  }, [loaded, persist]);
 
   const spendCoins = useCallback(
     (n: number): boolean => {
@@ -496,6 +551,8 @@ export function useProgress() {
     pendingDaily,
     claimDaily,
     addCoins,
+    addBonusCoins,
+    markDoubleUsed,
     spendCoins,
     useBooster,
     refillBooster,

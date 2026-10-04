@@ -38,8 +38,8 @@ export interface ConnectProps {
   onExit: () => void;
 }
 
-const HINT_COST = 40;
-const SHUFFLE_COST = 60;
+const HINT_COST = 150;
+const SHUFFLE_COST = 250;
 
 function build(level: number): Board {
   const cfg = connectConfig(level);

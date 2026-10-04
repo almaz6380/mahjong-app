@@ -7,7 +7,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <!-- AdMob: TEST-App-ID (vor Launch durch echte ID ersetzen). -->
+        <!-- AdMob: echte App-ID von Mahjong Royale (Konto pub-8860791993288062, siehe admob-ids.md). -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-8860791993288062~6537384535"

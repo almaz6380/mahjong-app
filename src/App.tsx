@@ -30,7 +30,8 @@ import { satisfiedAchievements, getAchievement, type Achievement } from './game/
 import { loadSession, clearSession, type SavedGame } from './game/session';
 import { makeDailyBoard, dailyLayoutName, dailyDoneToday } from './game/daily';
 import { todayEvent } from './game/events';
-import { todayStr } from './game/progress';
+import { todayStr, BONUS_DAILY_CAP } from './game/progress';
+import { showToast } from './ui/ToastHost';
 import { setSoundEnabled, setHapticsEnabled } from './audio/sound';
 import { setLanguage, detectLang, t } from './i18n';
 import { setAdsRemoved } from './ads/admob';
@@ -132,11 +133,20 @@ export default function App() {
   // Sprache synchron setzen, bevor Kinder rendern (t() liest modulglobal).
   setLanguage(progress.lang || detectLang());
 
+  // Alle Bonus-Spiele (Match-3, Connect, 4-Spieler, Riichi, Pagode …) teilen
+  // sich einen Tagesdeckel. Ist er erreicht, sagt ein Toast es einmal deutlich,
+  // statt dass die Münzen stumm ausbleiben.
+  const bonusCoins = (n: number) => {
+    const granted = p.addBonusCoins(n);
+    if (n > 0 && granted < n) showToast(t('bonus.capReached', { n: BONUS_DAILY_CAP }));
+  };
+
   const api = {
     useBooster: p.useBooster,
     refillBooster: p.refillBooster,
     spendCoins: p.spendCoins,
     addCoins: p.addCoins,
+    markDoubleUsed: p.markDoubleUsed,
     recordWin: p.recordWin,
     // WICHTIG: Beim Levelaufstieg das fortgesetzte Brett verwerfen. Sonst wird
     // der gespeicherte Spielstand des ALTEN Levels erneut als Startbrett
@@ -229,7 +239,7 @@ export default function App() {
     return (
       <Table4
         onExit={() => setScreen('menu')}
-        addCoins={p.addCoins}
+        addCoins={bonusCoins}
         difficulty={progress.aiLevel}
         showTutorial={!progress.seenM4Tutorial}
         onTutorialDone={p.markM4TutorialSeen}
@@ -240,7 +250,7 @@ export default function App() {
     return (
       <RiichiTable
         onExit={() => setScreen('menu')}
-        addCoins={p.addCoins}
+        addCoins={bonusCoins}
         onHandResult={(won) => p.recordM4Hand(won, 0)}
       />
     );
@@ -253,7 +263,7 @@ export default function App() {
   const event = todayEvent();
   const modeApi = {
     coins: progress.coins,
-    addCoins: p.addCoins,
+    addCoins: bonusCoins,
     spendCoins: p.spendCoins,
     recordModeBest: (key: string, value: number, higher?: boolean) => {
       const better = p.recordModeBest(key, value, higher);
@@ -276,7 +286,7 @@ export default function App() {
       <ConnectScreen
         connectLevel={progress.connectLevel}
         coins={progress.coins}
-        addCoins={p.addCoins}
+        addCoins={bonusCoins}
         spendCoins={p.spendCoins}
         recordConnect={p.recordConnect}
         onExit={() => setScreen('menu')}
@@ -287,7 +297,7 @@ export default function App() {
     return (
       <PagodaScreen
         floor={progress.pagodaFloor}
-        addCoins={p.addCoins}
+        addCoins={bonusCoins}
         spendCoins={p.spendCoins}
         recordPagoda={p.recordPagoda}
         onExit={() => setScreen('menu')}
@@ -310,7 +320,7 @@ export default function App() {
     return <ThemesScreen progress={progress} purchaseTheme={p.purchaseTheme} selectTheme={p.selectTheme} purchaseSkin={p.purchaseSkin} selectSkin={p.selectSkin} onBack={() => setScreen('menu')} />;
   if (screen === 'achievements') return <AchievementsScreen progress={progress} onBack={() => setScreen('menu')} />;
   if (screen === 'shop')
-    return <ShopScreen progress={progress} addCoins={p.addCoins} setRemoveAds={p.setRemoveAds} onBack={() => setScreen('menu')} />;
+    return <ShopScreen progress={progress} setRemoveAds={p.setRemoveAds} onBack={() => setScreen('menu')} />;
 
   // --- Menü (Spiele-Hub) ---
   const canResume = !!resume && resume.level === progress.level;
