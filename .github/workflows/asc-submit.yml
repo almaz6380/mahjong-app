@@ -49,6 +49,10 @@ on:
         description: 'Store-Screenshots vorher ersetzen (loescht die alten bei Apple)'
         type: boolean
         default: false
+      texte:
+        description: 'Store-Texte + URLs (store-texte.json, asc-texte.py) vor dem Einreichen setzen'
+        type: boolean
+        default: true
       laeufer:
         description: 'Wo laufen? github = GitHub-Rechner (kostet Minuten), mac = eigener Mac (Self-hosted Runner)'
         type: choice
@@ -85,6 +89,7 @@ jobs:
           NUR_STATUS: ${{ inputs.nur_status }}
           ABBRECHEN: ${{ inputs.zuerst_abbrechen }}
           SHOTS: ${{ inputs.screenshots }}
+          TEXTE: ${{ inputs.texte }}
         run: |
           set -euo pipefail
           ASC_KEY_P8=$(printf '%s' "$ASC_KEY_P8_BASE64" | tr -cd 'A-Za-z0-9+/=' | base64 -d)
@@ -152,6 +157,14 @@ jobs:
           # Die Screenshots muessen dazwischen: Sobald die Version in der
           # Pruefung ist, sperrt Apple die Metadaten.
           python3 scripts/asc-submit.py $ARGS --vorbereiten
+
+          # --- 2b. Store-Texte und URLs -------------------------------------
+          # Datenschutz-, Marketing- und Support-URL haengen an der offenen
+          # Version bzw. am appInfo und sind nach dem Einreichen gesperrt.
+          # Seit dem 04.10.2026 (Vercel gesperrt) zeigen sie auf github.io.
+          if [ "$TEXTE" = "true" ]; then
+            python3 scripts/asc-texte.py --schreiben
+          fi
 
           # --- 3. Screenshots ------------------------------------------------
           if [ "$SHOTS" = "true" ]; then
