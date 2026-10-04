@@ -8,7 +8,7 @@ import type { Progress } from '../game/progress';
 // Steins entfernt wurden; dann wartet eine einmalige Belohnung.
 
 export const ALBUM_GOAL = 4; // Paare pro Eintrag bis „komplett"
-export const ALBUM_REWARD = 150;
+export const ALBUM_REWARD = 50;
 
 export const ALBUM_IDS = [
   'myth1', 'myth2', 'myth3', 'myth4',

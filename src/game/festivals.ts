@@ -15,10 +15,10 @@ export interface Festival {
 }
 
 export const FESTIVALS: Festival[] = [
-  { id: 'laterne', titleKey: 'fest.laterne', emoji: '🏮', shapePrefix: 'laterne', bonus: 150, from: [2, 10], to: [2, 24] },
-  { id: 'sakura', titleKey: 'fest.sakura', emoji: '🌸', shapePrefix: 'bluete', bonus: 150, from: [3, 20], to: [4, 10] },
-  { id: 'drache', titleKey: 'fest.drache', emoji: '🐉', shapePrefix: 'drache', bonus: 150, from: [5, 28], to: [6, 10] },
-  { id: 'mond', titleKey: 'fest.mond', emoji: '🌕', shapePrefix: 'ring', bonus: 150, from: [9, 15], to: [10, 1] },
+  { id: 'laterne', titleKey: 'fest.laterne', emoji: '🏮', shapePrefix: 'laterne', bonus: 50, from: [2, 10], to: [2, 24] },
+  { id: 'sakura', titleKey: 'fest.sakura', emoji: '🌸', shapePrefix: 'bluete', bonus: 50, from: [3, 20], to: [4, 10] },
+  { id: 'drache', titleKey: 'fest.drache', emoji: '🐉', shapePrefix: 'drache', bonus: 50, from: [5, 28], to: [6, 10] },
+  { id: 'mond', titleKey: 'fest.mond', emoji: '🌕', shapePrefix: 'ring', bonus: 50, from: [9, 15], to: [10, 1] },
 ];
 
 const key = (m: number, d: number) => m * 100 + d;

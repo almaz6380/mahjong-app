@@ -24,5 +24,5 @@ const TITLE: Record<EventMode, string> = {
 export function todayEvent(dateStr: string = todayStr()): DailyEvent {
   const idx = seedFromString('event-' + dateStr) % EVENT_MODES.length;
   const mode = EVENT_MODES[idx];
-  return { mode, titleKey: TITLE[mode], bonus: 100 };
+  return { mode, titleKey: TITLE[mode], bonus: 40 };
 }

@@ -5,6 +5,7 @@ import { t } from '../../i18n';
 import { playTap, playMatch, playWin, playInvalid } from '../../audio/sound';
 import { maybeShowInterstitialModes } from '../../ads/admob';
 import { watchRewardedAd } from '../../ui/reward';
+import { payOrWatch } from '../../ui/pay';
 import { presentFact } from '../../ui/FactHost';
 import type { ModeProps } from '../types';
 import {
@@ -12,8 +13,9 @@ import {
   removeThree, shuffleRemaining, TRAY_SIZE, type Board,
 } from './logic';
 
-const UNDO_COST = 20;
-const SHUFFLE_COST = 60;
+// Seit 1.2.0 wie im Solitaire teurer — dafür immer mit Video-Alternative.
+const UNDO_COST = 100;
+const SHUFFLE_COST = 250;
 
 function cloneBoard(b: Board): Board {
   return { tiles: b.tiles.map((t) => ({ ...t })), tray: [...b.tray], solution: b.solution };
@@ -56,15 +58,17 @@ export function TileMatchScreen({ api, onExit }: ModeProps) {
     check(nb);
   }, [board, result, check]);
 
-  const doUndo = () => {
+  // Erst fragen (Münzen oder Video), dann auf dem dann AKTUELLEN Brett
+  // handeln — das Video dauert, das Brett darf sich nicht unbemerkt ändern.
+  const doUndo = async () => {
     if (result || board.tray.length === 0) return;
-    if (!api.spendCoins(UNDO_COST)) return;
-    const nb = cloneBoard(board); undoMove(nb); setBoard(nb);
+    if (!(await payOrWatch({ what: t('tm.undo'), cost: UNDO_COST, coins: api.coins, spendCoins: api.spendCoins }))) return;
+    setBoard((prev) => { const nb = cloneBoard(prev); undoMove(nb); return nb; });
   };
-  const doShuffle = () => {
+  const doShuffle = async () => {
     if (result) return;
-    if (!api.spendCoins(SHUFFLE_COST)) return;
-    const nb = cloneBoard(board); shuffleRemaining(nb); setBoard(nb);
+    if (!(await payOrWatch({ what: t('tm.shuffle'), cost: SHUFFLE_COST, coins: api.coins, spendCoins: api.spendCoins }))) return;
+    setBoard((prev) => { const nb = cloneBoard(prev); shuffleRemaining(nb); return nb; });
   };
   const doRemoveThree = async () => {
     const ok = await watchRewardedAd();

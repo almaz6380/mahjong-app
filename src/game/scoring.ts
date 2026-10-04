@@ -29,5 +29,7 @@ export function starsFor(stats: LevelStats): 1 | 2 | 3 {
 
 // Münzen für ein abgeschlossenes Level.
 export function coinsFor(stars: number): number {
-  return 20 + 15 * stars; // 1★=35, 2★=50, 3★=65
+  // Seit 1.2.0 bewusst knapp: 1★=5, 2★=10, 3★=15. Eine bezahlte Hilfe (100–250)
+  // ist damit viele Level wert; das Video bleibt die Alternative.
+  return 5 * stars;
 }

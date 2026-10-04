@@ -6,11 +6,12 @@ import { useGame } from '../game/useGame';
 import { starsFor, coinsFor } from '../game/scoring';
 import { modsForLevel, KEINE_MODS } from '../game/modifiers';
 import { getLayout } from '../game/layouts';
-import { BOOSTER_COST, type BoosterType, type Progress } from '../game/progress';
+import { BOOSTER_COST, todayStr, type BoosterType, type Progress } from '../game/progress';
 import { DAILY_REWARD } from '../game/daily';
 import { saveSession, clearSession } from '../game/session';
 import { maybeShowInterstitial, requestReward, type RewardOutcome } from '../ads/admob';
 import { presentFact } from './FactHost';
+import { maybeAskForReview } from '../review';
 import { showToast } from './ToastHost';
 import { WinCeremony } from './WinCeremony';
 import { Sakura } from './Sakura';
@@ -24,6 +25,7 @@ interface Api {
   refillBooster: (t: BoosterType, amount?: number) => void;
   spendCoins: (n: number) => boolean;
   addCoins: (n: number) => void;
+  markDoubleUsed: () => void;
   recordWin: (level: number, stars: number, coins: number, elapsedMs?: number) => void;
   advanceLevel: () => void;
   completeDailyChallenge: (coins: number) => void;
@@ -185,7 +187,7 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
         hiddenCount: game.tiles.filter((x) => x.hidden).length,
       });
       if (mode === 'daily') {
-        const coins = DAILY_REWARD + stars * 20;
+        const coins = DAILY_REWARD + stars * 10;
         api.completeDailyChallenge(coins);
         setWin({ stars, coins, doubled: false });
       } else {
@@ -197,8 +199,12 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
     }
   }, [game.won, game, api, level, mode]);
 
+  // „Münzen verdoppeln“ gibt es seit 1.2.0 nur einmal pro Kalendertag —
+  // sonst wäre jedes Level ein Video und die Ökonomie wieder ausgehebelt.
+  const doubleAvailable = progress.lastDoubleDate !== todayStr();
+
   const doubleCoins = useCallback(async () => {
-    if (!win || win.doubled || adBusy) return;
+    if (!win || win.doubled || adBusy || !doubleAvailable) return;
     setAdBusy(true);
     let outcome: RewardOutcome;
     try {
@@ -208,20 +214,24 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
     }
     if (outcome === 'earned') {
       api.addCoins(win.coins);
+      api.markDoubleUsed();
       setWin({ ...win, doubled: true });
     } else {
       showToast(t(outcome === 'aborted' ? 'game.rewardAborted' : 'game.rewardUnavailable'));
     }
-  }, [win, api, adBusy]);
+  }, [win, api, adBusy, doubleAvailable]);
 
   const nextLevel = useCallback(async () => {
-    await maybeShowInterstitial(level, progress.totalWins);
+    const adShown = await maybeShowInterstitial(level, progress.totalWins);
     // Infokarte zeigen UND das nächste Level schon dahinter aufbauen. Würde erst
     // nach dem Schließen der Karte gewechselt, blitzt dazwischen für ein Bild
     // wieder die Sieg-Karte auf ("Belohnung, die sofort verschwindet").
     const shown = presentFact();
     api.advanceLevel(); // Parent remountet mit Level+1
     await shown;
+    // Bewertungsanfrage erst nach der Infokarte und nur, wenn in diesem Ablauf
+    // keine Werbung kam (Regeln in src/review.ts).
+    void maybeAskForReview(progress.totalWins, adShown);
   }, [level, progress.totalWins, api]);
 
   // Gewonnene Runde per Zurück-Pfeil verlassen: Level trotzdem gutschreiben,
@@ -343,7 +353,7 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
               <Icon name="coin" size={24} /> +<CountUp value={win.doubled ? win.coins * 2 : win.coins} />
               {win.doubled && <span className="doubled"> ×2!</span>}
             </p>
-            {!win.doubled && (
+            {!win.doubled && doubleAvailable && (
               <button className="big-btn ghost solid" onClick={doubleCoins} disabled={adBusy}>
                 <span className="btn-ico">
                   <Icon name="video" /> {adBusy ? t('game.videoLoading') : t('game.doubleCoins')}

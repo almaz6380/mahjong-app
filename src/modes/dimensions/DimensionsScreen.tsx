@@ -14,8 +14,8 @@ import {
 
 const CW = 42;   // Zellbreite (px)
 const CH = 20;   // Ebenen-Höhe (px)
-const HINT_COST = 40;
-const SHUFFLE_COST = 60;
+const HINT_COST = 150;
+const SHUFFLE_COST = 250;
 
 function clone(b: Board): Board {
   return { tiles: b.tiles.map((t) => ({ ...t })), solution: b.solution };

@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { Preferences } from '@capacitor/preferences';
 
 // ===========================================================================
 //  In-App-Käufe (Shop)
@@ -22,10 +23,99 @@ export interface Product {
 
 export const PRODUCTS: Product[] = [
   { id: 'remove_ads', label: 'shop.removeAds', price: '2,99 €', removesAds: true, icon: '🚫' },
-  { id: 'coins_small', label: 'shop.coins500', price: '0,99 €', coins: 500, icon: '🪙' },
-  { id: 'coins_medium', label: 'shop.coins1500', price: '1,99 €', coins: 1500, icon: '💰' },
-  { id: 'coins_large', label: 'shop.coins5000', price: '4,99 €', coins: 5000, icon: '💎' },
+  // Seit 1.2.0 verdreifacht (vorher 500/1500/5000). Die ANZEIGENAMEN der
+  // Produkte in App Store Connect und Play Console tragen die Zahl ebenfalls —
+  // die müssen von Hand nachgezogen werden, sonst verspricht der Store-Dialog
+  // weniger, als gutgeschrieben wird.
+  { id: 'coins_small', label: 'shop.coinsSmall', price: '0,99 €', coins: 1500, icon: '🪙' },
+  { id: 'coins_medium', label: 'shop.coinsMedium', price: '1,99 €', coins: 4500, icon: '💰' },
+  { id: 'coins_large', label: 'shop.coinsLarge', price: '4,99 €', coins: 15000, icon: '💎' },
 ];
+
+// ===========================================================================
+//  Münz-Gutschrift über eine persistente Warteschlange
+// ===========================================================================
+// Bis 1.1.x schrieb nur die Oberfläche die Münzen gut — über das Promise von
+// purchase(), also nur, wenn der Kauf in DERSELBEN Sitzung abgeschlossen wurde.
+// Verzögerte Käufe (Ask-to-Buy, ausstehende Zahlung, App während des Kaufs
+// beendet) kamen beim nächsten Start über `approved` herein, wurden mit
+// tx.finish() verbraucht — und die Münzen waren weg.
+//
+// Jetzt schreibt der approved-Handler die Münzen VOR tx.finish() in eine
+// Warteschlange in Preferences. useProgress leert sie (subscribeCoinCredits).
+// Die Transaktions-IDs (letzte 100) verhindern Doppelgutschriften, falls der
+// Store dieselbe Transaktion erneut meldet.
+const QUEUE_KEY = 'iap.pendingCoins';
+const MAX_TX_IDS = 100;
+
+interface CoinQueue {
+  coins: number;
+  txIds: string[];
+}
+
+let queueChain: Promise<unknown> = Promise.resolve();
+const coinListeners = new Set<(n: number) => void>();
+
+// Alle Zugriffe auf die Warteschlange nacheinander, sonst überschreiben sich
+// zwei gleichzeitige approved-Ereignisse gegenseitig.
+function withQueue<T>(fn: (q: CoinQueue) => Promise<T> | T): Promise<T> {
+  const run = queueChain.then(async () => {
+    let q: CoinQueue = { coins: 0, txIds: [] };
+    try {
+      const { value } = await Preferences.get({ key: QUEUE_KEY });
+      if (value) {
+        const parsed = JSON.parse(value);
+        q = { coins: Number(parsed.coins) || 0, txIds: Array.isArray(parsed.txIds) ? parsed.txIds : [] };
+      }
+    } catch {
+      /* kaputter Eintrag: mit leerer Schlange weiter */
+    }
+    return fn(q);
+  });
+  queueChain = run.catch(() => {});
+  return run;
+}
+
+async function saveQueue(q: CoinQueue): Promise<void> {
+  await Preferences.set({ key: QUEUE_KEY, value: JSON.stringify(q) });
+}
+
+/** Münzen eines Kaufs vormerken. Liefert false, wenn die Transaktion schon gezählt war. */
+function enqueueCoins(coins: number, txId: string): Promise<boolean> {
+  return withQueue(async (q) => {
+    if (txId && q.txIds.includes(txId)) return false;
+    const txIds = txId ? [...q.txIds, txId].slice(-MAX_TX_IDS) : q.txIds;
+    await saveQueue({ coins: q.coins + coins, txIds });
+    return true;
+  }).then((added) => {
+    if (added) void drainCoins();
+    return added;
+  });
+}
+
+/** Gutschriften an alle Abonnenten ausliefern und die Schlange leeren. */
+function drainCoins(): Promise<void> {
+  if (coinListeners.size === 0) return Promise.resolve();
+  return withQueue(async (q) => {
+    if (q.coins <= 0) return 0;
+    await saveQueue({ coins: 0, txIds: q.txIds });
+    return q.coins;
+  }).then((n) => {
+    if (n > 0) for (const cb of coinListeners) cb(n);
+  });
+}
+
+/**
+ * Münz-Gutschriften abonnieren: liefert ausstehende Münzen sofort und jede
+ * neue Gutschrift, sobald sie eintrifft. Gibt die Abmeldefunktion zurück.
+ */
+export function subscribeCoinCredits(cb: (n: number) => void): () => void {
+  coinListeners.add(cb);
+  void drainCoins();
+  return () => {
+    coinListeners.delete(cb);
+  };
+}
 
 export interface PurchaseResult {
   ok: boolean;
@@ -80,7 +170,25 @@ export async function initIAP(): Promise<void> {
 
   store
     .when()
-    .approved((tx: any) => tx.finish())
+    .approved(async (tx: any) => {
+      // Münzen ERST sichern, dann die Transaktion abschließen — ein finish()
+      // ohne Gutschrift verbraucht den Kauf endgültig.
+      const txId = String(tx.transactionId ?? '');
+      for (const tp of tx.products ?? []) {
+        const product = PRODUCTS.find((p) => p.id === tp.id);
+        if (product?.coins) {
+          try {
+            await enqueueCoins(product.coins, txId ? `${txId}:${product.id}` : '');
+          } catch (e) {
+            // Nicht abschließen: Der Store meldet die Transaktion beim nächsten
+            // Start erneut, dann klappt das Speichern hoffentlich.
+            console.warn('IAP: Gutschrift nicht gespeichert, Abschluss vertagt:', e);
+            return;
+          }
+        }
+      }
+      tx.finish();
+    })
     .finished((tx: any) => {
       for (const tp of tx.products ?? []) {
         const product = PRODUCTS.find((p) => p.id === tp.id);
@@ -107,7 +215,8 @@ export async function purchase(id: ProductId): Promise<PurchaseResult> {
   if (!product) return { ok: false, error: 'Unbekanntes Produkt' };
 
   if (!isNative) {
-    // Web/Dev: Kauf simulieren
+    // Web/Dev: Kauf simulieren — über dieselbe Warteschlange wie nativ.
+    if (product.coins) await enqueueCoins(product.coins, `web-${Date.now()}-${Math.random()}`);
     return { ok: true, product };
   }
 
