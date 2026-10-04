@@ -23,13 +23,12 @@ export interface Product {
 
 export const PRODUCTS: Product[] = [
   { id: 'remove_ads', label: 'shop.removeAds', price: '2,99 €', removesAds: true, icon: '🚫' },
-  // Seit 1.2.0 verdreifacht (vorher 500/1500/5000). Die ANZEIGENAMEN der
-  // Produkte in App Store Connect und Play Console tragen die Zahl ebenfalls —
-  // die müssen von Hand nachgezogen werden, sonst verspricht der Store-Dialog
-  // weniger, als gutgeschrieben wird.
-  { id: 'coins_small', label: 'shop.coinsSmall', price: '0,99 €', coins: 1500, icon: '🪙' },
-  { id: 'coins_medium', label: 'shop.coinsMedium', price: '1,99 €', coins: 4500, icon: '💰' },
-  { id: 'coins_large', label: 'shop.coinsLarge', price: '4,99 €', coins: 15000, icon: '💎' },
+  // Bewusst unverändert seit 1.0 (Josef, 04.10.2026). Die Anzeigenamen der
+  // Produkte in App Store Connect und Play Console tragen dieselbe Zahl —
+  // wer hier etwas ändert, muss sie von Hand nachziehen.
+  { id: 'coins_small', label: 'shop.coinsSmall', price: '0,99 €', coins: 500, icon: '🪙' },
+  { id: 'coins_medium', label: 'shop.coinsMedium', price: '1,99 €', coins: 1500, icon: '💰' },
+  { id: 'coins_large', label: 'shop.coinsLarge', price: '4,99 €', coins: 5000, icon: '💎' },
 ];
 
 // ===========================================================================

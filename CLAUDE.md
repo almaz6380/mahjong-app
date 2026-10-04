@@ -423,10 +423,10 @@ gewonnene Level wert sein, das Video bleibt immer die kostenlose Alternative.
 | Tages-Challenge | 100 + 20×★ | **30 + 10×★** | `DAILY_REWARD` + GameScreen |
 | Tages-Event / Fest / Album | 100 / 150 / 150 | **40 / 50 / 50** | events.ts / festivals.ts / AlbumScreen |
 | Münzen verdoppeln (Video) | nach jedem Sieg | **1× pro Kalendertag** (`lastDoubleDate`) | GameScreen |
-| Münzpakete | 500/1.500/5.000 | **1.500/4.500/15.000** | `PRODUCTS` in `src/store/iap.ts` |
+| Münzpakete | 500/1.500/5.000 | **unverändert** (Josefs Entscheidung) | `PRODUCTS` in `src/store/iap.ts` |
 
-⚠ **Die Anzeigenamen der Münzpakete in App Store Connect und Play Console tragen die
-Zahl ebenfalls** und müssen von Hand nachgezogen werden. Die Produkt-IDs bleiben.
+Die Münzpakete bleiben bewusst unverändert, ein Paket reicht dadurch für weniger
+Hilfen als vorher. Die Store-Anzeigenamen passen weiter.
 Bestehende Spieler behalten ihren Münzstand — es gibt bewusst keine Migration.
 
 **Bonus-Deckel:** Alle Bonus-Spiele (Match-3, Connect, Sudoku, Dimensions, 2048, Tile
