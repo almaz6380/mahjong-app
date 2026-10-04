@@ -21,7 +21,7 @@ import urllib.error
 import urllib.request
 
 SCRIPTS = os.path.dirname(os.path.abspath(__file__))
-URL = 'https://mahjong-app-plum.vercel.app'
+URL = 'https://almaz6380.github.io'
 
 spec = importlib.util.spec_from_file_location('asc', os.path.join(SCRIPTS, 'asc-status.py'))
 asc = importlib.util.module_from_spec(spec)

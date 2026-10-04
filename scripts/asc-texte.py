@@ -27,7 +27,12 @@ import urllib.error
 import urllib.request
 
 SCRIPTS = os.path.dirname(os.path.abspath(__file__))
-URL = 'https://mahjong-app-plum.vercel.app'
+# ⚠ 04.10.2026: Vercel ist gesperrt (402). Marketing-URL = Wurzel von github.io,
+# dort liegt die app-ads.txt; Support = Impressum. Die Datenschutz-URL haengt
+# am appInfo (je Sprache) und wird unten mit dem Untertitel gesetzt.
+URL = 'https://almaz6380.github.io'
+SUPPORT_URL = 'https://almaz6380.github.io/mahjong/impressum.html'
+DATENSCHUTZ_URL = 'https://almaz6380.github.io/mahjong/datenschutz.html'
 SCHREIBEN = '--schreiben' in sys.argv
 
 # Play-Code -> Apple-Code. Nur diese beiden weichen ab.
@@ -104,7 +109,7 @@ for loc, t in TEXTE.items():
             'data': {'type': 'appStoreVersionLocalizations', 'id': vorhanden[loc],
                      'attributes': {'description': t['description'],
                                     'keywords': t['keywords'],
-                                    'supportUrl': URL, 'marketingUrl': URL}}})
+                                    'supportUrl': SUPPORT_URL, 'marketingUrl': URL}}})
     print(f"  [{loc}] {'gesetzt' if SCHREIBEN else 'würde gesetzt'} — "
           f"{len(t['description'])} Zeichen, Keywords {len(t['keywords'])}")
 
@@ -133,7 +138,8 @@ else:
         if SCHREIBEN:
             call('PATCH', f'/v1/appInfoLocalizations/{ivorh[loc]}', {
                 'data': {'type': 'appInfoLocalizations', 'id': ivorh[loc],
-                         'attributes': {'subtitle': t['subtitle']}}})
+                         'attributes': {'subtitle': t['subtitle'],
+                                        'privacyPolicyUrl': DATENSCHUTZ_URL}}})
         gespeichert = next((l['attributes'].get('name') for l in il
                             if l['attributes']['locale'] == loc), None)
         hinweis = '' if gespeichert == t['name'] else f"  ⚠ Name im Store: „{gespeichert}\""

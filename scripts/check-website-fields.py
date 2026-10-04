@@ -33,8 +33,8 @@ import urllib.error
 import urllib.request
 
 SCRIPTS = os.path.dirname(os.path.abspath(__file__))
-WEBSITE = 'https://mahjong-app-plum.vercel.app'
-HOST = 'mahjong-app-plum.vercel.app'
+WEBSITE = 'https://almaz6380.github.io'
+HOST = 'almaz6380.github.io'
 PUBLISHER = 'pub-8860791993288062'
 
 probleme = []
