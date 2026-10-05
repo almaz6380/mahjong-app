@@ -27,5 +27,8 @@ export function initAnalytics() {
   // ins Leere und würde die Konsole mit 404ern zumüllen.
   const host = location.hostname
   if (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '') return
+  // Seit dem Umzug auf Cloudflare (05.10.2026) gibt es /_vercel/insights nicht mehr;
+  // dort käme index.html als Skript zurück. Nur auf einer vercel.app-Adresse zählen.
+  if (!host.endsWith('.vercel.app')) return
   inject()
 }
