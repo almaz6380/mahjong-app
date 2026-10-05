@@ -393,7 +393,10 @@ Build bricht mit „Failed to apply patch" ab → einmalig ohne Cache deployen
 
 ## Deploy (Web)
 
-- Live: https://mahjong-app-plum.vercel.app (Vercel-Projekt „mahjong-app", Konto almaz6380)
+- Live: **https://mahjong.almaz6380.workers.dev** (Cloudflare Workers seit 05.10.2026, `wrangler.jsonc`,
+  Kurzadressen in `public/_redirects`; jeder Push auf `main` deployt). Link-Seite fürs Profil:
+  `/links`. Vorher mahjong-app-plum.vercel.app — Vercel hat den Account gesperrt (402).
+  Die Abschnitte unten zu Vercel (Deploy, Analytics) sind damit Geschichte.
 - **NICHT `vercel deploy`** (CLI-Upload hängt in diesem Netz endlos) — stattdessen `git push`
   (GitHub-Integration, Repo almaz6380/mahjong-app, repoId 1289297254). Triggert der Webhook nicht:
   `POST api.vercel.com/v13/deployments?teamId=team_hp1h5xj3PD8KAn98cxsWddt6` mit gitSource ref main.
