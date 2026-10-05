@@ -1,0 +1,18 @@
+// Web-Fassung auf Cloudflare Workers (seit 05.10.2026; vorher Vercel, das den Account
+// gesperrt hat — mahjong-app-plum.vercel.app antwortet mit 402). Nur statische Dateien
+// aus dist/. Gebaut und veröffentlicht von Cloudflare selbst (Workers Builds, mit dem
+// GitHub-Repo verknüpft). Vorlage: FixTheMix/Anigosha.
+{
+  "name": "mahjong",
+  "compatibility_date": "2026-09-01",
+  // Wrangler baut selbst — vor deploy UND vor preview. Ohne das gäbe es kein dist/.
+  "build": { "command": "npm run build" },
+  // Ohne diesen Block bricht der Vorschau-Build anderer Branches ab.
+  "previews": {},
+  "assets": {
+    "directory": "./dist",
+    // /links liefert links.html, /privacy liefert privacy.html (Standard-html_handling);
+    // alles andere, was keine Datei ist, bekommt index.html.
+    "not_found_handling": "single-page-application"
+  }
+}
