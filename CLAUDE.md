@@ -657,7 +657,7 @@ PATCH `{uploaded:true,sourceFileChecksum:md5}`). **Einreichen NUR über neue rev
 cd android && JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew bundleRelease
 # → app/build/outputs/bundle/release/app-release.aab
 ```
-minSdk 23 / compileSdk+targetSdk 35 (Billing-Lib 9 + Play-Pflicht).
+minSdk 24 (Play-Pflicht seit Okt. 2026: „Play automatic protection requires a minimum SDK version of 24“ → 403 beim Upload, vor `:commit`, es wird nichts veröffentlicht) / compileSdk+targetSdk 36.
 
 **Upload + Release per Play-Developer-API** (kein manuelles Hochladen mehr nötig): Dienstkonto-Key
 `~/.config/play-publisher/key.json` (`play-upload@wellbooked-501311.iam.gserviceaccount.com`, hat
