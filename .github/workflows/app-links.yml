@@ -1,0 +1,57 @@
+name: App-Links einrichten
+
+# Einladungslinks fuers Duell (…/duell/CODE) direkt in der App oeffnen.
+#   android: liest den SHA-256-Fingerabdruck des Play-Signaturschluessels
+#            (rein lesend) — er gehoert nach wrangler.jsonc → ANDROID_CERT_SHA256.
+#   ios:     schaltet „Associated Domains" an der App-ID ein und legt ein
+#            passendes App-Store-Profil an. ⚠ Entwertet die alten Profile —
+#            ios-release.yml holt sich das Profil seitdem selbst per API.
+# Siehe scripts/app-links.py.
+on:
+  workflow_dispatch:
+    inputs:
+      teil:
+        description: 'Was?'
+        type: choice
+        options: ['android', 'ios', 'beide']
+        default: 'android'
+      ios_aendern:
+        description: 'iOS: Faehigkeit wirklich einschalten (aus = nur nachsehen)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Abhaengigkeiten
+        run: |
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet pyjwt cryptography
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+      - name: Android-Fingerabdruck
+        if: ${{ inputs.teil != 'ios' }}
+        env:
+          PLAY_KEY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          printf '%s' "$PLAY_KEY_JSON" > "$RUNNER_TEMP/play-key.json"
+          PLAY_KEY="$RUNNER_TEMP/play-key.json" python3 scripts/app-links.py play-fingerabdruck
+          rm -f "$RUNNER_TEMP/play-key.json"
+      - name: iOS-Faehigkeit + Profil
+        if: ${{ inputs.teil != 'android' }}
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          AENDERN: ${{ inputs.ios_aendern }}
+        run: |
+          ASC_KEY_P8=$(printf '%s' "$ASC_KEY_P8_BASE64" | tr -cd 'A-Za-z0-9+/=' | base64 -d) && export ASC_KEY_P8
+          if [ "$AENDERN" = "true" ]; then
+            python3 scripts/app-links.py ios-profil --faehigkeit
+          else
+            python3 scripts/app-links.py ios-profil
+          fi

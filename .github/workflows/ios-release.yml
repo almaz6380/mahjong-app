@@ -111,6 +111,28 @@ jobs:
             > ~/Library/MobileDevice/Provisioning\ Profiles/mahjong-ci.mobileprovision
           rm -f "$RUNNER_TEMP/cert.p12"
 
+      - name: Profil frisch von Apple holen
+        # Seit die App-ID „Associated Domains" traegt (Duell-Links, 08.10.2026),
+        # ist das Profil im Secret ungueltig — jede neue Faehigkeit entwertet alle
+        # alten Profile. Deshalb hier das aktuelle gueltige Profil per API holen
+        # (scripts/app-links.py legt notfalls eins an). Klappt das nicht, bleibt
+        # das Profil aus dem Secret stehen, wie bisher.
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+        run: |
+          python3 -m venv "$RUNNER_TEMP/venv-asc"
+          "$RUNNER_TEMP/venv-asc/bin/pip" install --quiet pyjwt cryptography
+          ASC_KEY_P8=$(printf '%s' "$ASC_KEY_P8_BASE64" | tr -cd 'A-Za-z0-9+/=' | base64 -d) && export ASC_KEY_P8
+          ZIEL="$HOME/Library/MobileDevice/Provisioning Profiles/mahjong-ci.mobileprovision"
+          if "$RUNNER_TEMP/venv-asc/bin/python" scripts/app-links.py ios-profil --ausgabe "$RUNNER_TEMP/frisch.mobileprovision"; then
+            cp "$RUNNER_TEMP/frisch.mobileprovision" "$ZIEL"
+          else
+            echo "::warning::Profil nicht per API geholt — nehme das aus dem Secret"
+          fi
+          rm -rf "$RUNNER_TEMP/venv-asc" "$RUNNER_TEMP/frisch.mobileprovision"
+
       - name: ExportOptions schreiben
         run: |
           set -euo pipefail
