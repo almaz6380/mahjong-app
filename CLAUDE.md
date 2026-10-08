@@ -968,6 +968,14 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   iOS-Build **28** (1.3.0) trägt die Universal Links und hat den eingereichten Build 27 ersetzt
   (eingereicht 14:22 UTC, reviewSubmission `bbcfe617-…`; Apple antwortete beim ersten Versuch mit
   500 auf `appInfos` — einfach wiederholt, ohne erneuten Abbruch).
+  ⚠ **Build 28 am selben Tag abgelehnt, Richtlinie 2.1 „Information Needed"** (iPad Air,
+  iPadOS 27.0.1): „unable to locate the App Tracking Transparency permission request". Ursache
+  war die Entscheidung aus 1.1.2, ATT erst vor der ersten Anzeige zu zeigen (ab Level 3) — so
+  weit spielt kein Prüfer. 1.1.3 und 1.2.0 kamen damit noch durch, Apple prüft das also nicht
+  jedes Mal gleich streng. **Seit Build 29 kommt ATT wieder beim Start**, direkt nach dem
+  DSGVO-Consent und VOR `AdMob.initialize()` (`initAds()` in `src/ads/admob.ts`). Die
+  Mitteilungs-Frage bleibt nach hinten verschoben, am Start steht also nur dieser eine Dialog.
+  Nicht wieder nach hinten schieben — sonst kommt dieselbe Ablehnung.
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
   **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
   Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in

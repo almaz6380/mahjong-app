@@ -66,10 +66,8 @@ async function runConsentFlow(): Promise<void> {
   try {
     const info = await AdMob.requestConsentInfo();
 
-    // Der iOS-Tracking-Dialog (ATT) kommt seit 1.1.2 NICHT mehr hier beim Start,
-    // sondern erst unmittelbar vor der ersten Werbung — siehe
-    // ensureTrackingAuthorization(). Bis dahin laufen Anzeigen ohne
-    // Personalisierung; Apple erlaubt das ausdruecklich.
+    // Der iOS-Tracking-Dialog (ATT) folgt in initAds() direkt nach diesem
+    // Consent — siehe ensureTrackingAuthorization().
 
     if (info.isConsentFormAvailable && info.status === 'REQUIRED') {
       await AdMob.showConsentForm();
@@ -99,11 +97,16 @@ export async function changeAdConsent(): Promise<void> {
   }
 }
 
-// iOS ab 14: Tracking-Erlaubnis (ATT) einmalig erfragen — aber erst, wenn
-// gleich wirklich eine Anzeige kommt. Bis 1.1.1 stand dieser Dialog beim
-// allerersten Start, VOR der Startseite, direkt neben der Mitteilungs-Frage:
-// zwei Bettel-Dialoge, bevor der Spieler einen Stein gesehen hatte. Ein
-// Spieler, der Level 3 erreicht hat, hat einen Grund, hier zuzustimmen.
+// iOS ab 14: Tracking-Erlaubnis (ATT) einmalig erfragen — seit 1.3.0
+// (Build 29) wieder beim START, direkt nach dem DSGVO-Consent und vor
+// AdMob.initialize().
+//
+// ⚠ Warum nicht mehr erst vor der ersten Anzeige (so war es 1.1.2 bis 1.3.0
+// Build 28): Apple hat 1.3.0 am 08.10.2026 nach Richtlinie 2.1 abgelehnt —
+// „we are unable to locate the App Tracking Transparency permission request".
+// Der Prüfer spielt nicht bis Level 3, also sah er den Dialog nie. Die
+// Mitteilungs-Frage bleibt dagegen nach hinten verschoben (notifyAsked), es
+// steht also weiterhin nur EIN Systemdialog am Start.
 //
 // Gefragt wird seit Build 25 NATIV im AppDelegate, nicht mehr ueber
 // `AdMob.requestTrackingAuthorization()`: Das Plugin ruft ATTrackingManager
@@ -145,6 +148,9 @@ export async function initAds(): Promise<void> {
   RewardAdPluginEvents = mod.RewardAdPluginEvents;
 
   await runConsentFlow();
+  // Vor initialize(): Die Abfrage muss erscheinen, bevor irgendetwas
+  // gesammelt wird, das zum Tracking taugen koennte (Apple, Richtlinie 2.1).
+  await ensureTrackingAuthorization();
 
   await AdMob.initialize({ initializeForTesting: USE_TEST_ADS });
   ready = true;
