@@ -203,6 +203,25 @@ def main():
         return print('Vorbereitet — NICHT eingereicht. Jetzt die Screenshots hochladen,\n'
                      'danach denselben Aufruf mit --submit wiederholen.')
     print('Prüfung einreichen …' + tag)
+    # Nach einer Ablehnung bleibt die alte Einreichung als UNRESOLVED_ISSUES
+    # offen (08.10.2026, 1.3.0). Eine zweite daneben anzulegen lehnt Apple ab;
+    # stattdessen die alte wiederverwenden: Einträge als erledigt markieren
+    # und erneut abschicken — wie „Erneut zur Prüfung einreichen" im Browser.
+    subs = call(tok, 'GET', f'/v1/reviewSubmissions?filter[app]={APP_ID}&limit=10')['data']
+    offen = next((x for x in subs if x['attributes'].get('state') == 'UNRESOLVED_ISSUES'), None)
+    if offen:
+        print(f'Abgelehnte Einreichung {offen["id"]} wird wiederverwendet.')
+        if write:
+            items = call(tok, 'GET', f'/v1/reviewSubmissions/{offen["id"]}/items')['data']
+            for it in items:
+                print(f'  Eintrag {it["id"]}: {it["attributes"].get("state")}')
+                if it['attributes'].get('state') in ('REJECTED', 'UNRESOLVED_ISSUES'):
+                    call(tok, 'PATCH', f'/v1/reviewSubmissionItems/{it["id"]}', {
+                        'data': {'type': 'reviewSubmissionItems', 'id': it['id'],
+                                 'attributes': {'resolved': True}},
+                    })
+            abschicken(tok, offen['id'])
+        return
     if write:
         sub = call(tok, 'POST', '/v1/reviewSubmissions', {
             'data': {'type': 'reviewSubmissions',
