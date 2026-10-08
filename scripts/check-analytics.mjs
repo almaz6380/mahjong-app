@@ -1,11 +1,12 @@
-// Prüft die Besucherzählung (Vercel Web Analytics) — vor allem die eine Regel,
+// Prüft die Besucherzählung (Cloudflare Web Analytics, vorher Vercel) — vor allem die eine Regel,
 // an der alles hängt: **in der nativen App darf sie NICHT laden.**
 //
 // Warum ein Skript und kein Blick in den Quelltext: Capacitor kopiert das
 // gebaute Bundle unverändert nach ios/ und android/. Ob der Riegel wirklich
 // hält, entscheidet sich also im FERTIGEN Bundle, nicht in src/. Genau dort
 // misst dieses Skript — es lädt dist/ in einem echten Browser und zählt die
-// Netzwerkaufrufe an /_vercel/insights/.
+// Anfragen an das Zählskript (static.cloudflareinsights.com) — abgefangen,
+// es geht also nichts ins Netz.
 //
 // Aufruf: npm run build && node scripts/check-analytics.mjs
 //
@@ -60,12 +61,6 @@ const TYPES = {
 
 const server = createServer((req, res) => {
   const path = decodeURIComponent(req.url.split('?')[0])
-  // Vercel liefert das Zählskript zur Laufzeit aus; lokal genügt eine leere
-  // Antwort — geprüft wird, DASS es angefordert wird, nicht was es tut.
-  if (path.startsWith('/_vercel/insights')) {
-    res.writeHead(200, { 'content-type': 'text/javascript' }).end('')
-    return
-  }
   const file = join(DIST, path === '/' ? 'index.html' : path)
   if (!file.startsWith(DIST) || !existsSync(file)) {
     res.writeHead(404).end('not found')
@@ -92,11 +87,14 @@ async function insightsRequested(url, { native = false } = {}) {
       window.androidBridge = { postMessage() {} }
     })
   }
-  const page = await ctx.newPage()
+  // Das Zählskript kommt von Cloudflare; hier genügt eine leere Antwort —
+  // geprüft wird, DASS es angefordert wird, nicht was es tut.
   let hit = false
-  page.on('request', (r) => {
-    if (r.url().includes('/_vercel/insights')) hit = true
+  await ctx.route('https://static.cloudflareinsights.com/**', (route) => {
+    hit = true
+    route.fulfill({ status: 200, contentType: 'text/javascript', body: '' })
   })
+  const page = await ctx.newPage()
   await page.goto(url, { waitUntil: 'load' }).catch(() => {})
   // Das Skript hängt sich mit `defer` bzw. nachträglich ein — kurz nachfassen.
   await page.waitForTimeout(1500)

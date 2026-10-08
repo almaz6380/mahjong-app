@@ -504,12 +504,12 @@ wonach gefragt ist — und nur eine davon kennt Uhrzeiten:
 
 | Quelle | Was | Zeitauflösung |
 |---|---|---|
-| **Vercel → Projekt „mahjong-app" → Analytics** | Besucher/Seitenaufrufe der **Web-Fassung**, Referrer, Land, Gerät | **stundengenau** |
+| **Cloudflare → Web Analytics → mahjong.almaz6380.workers.dev** (seit 08.10.2026, vorher Vercel) | Besucher/Seitenaufrufe der **Web-Fassung**, Referrer, Land, Gerät | **stundengenau** |
 | Play Console → Statistiken | Installationen, aktive Nutzer, Sitzungen (Android-App) | tagesweise |
 | App Store Connect → App-Analysen | Impressionen, Downloads, Sessions, aktive Geräte (iOS-App) | tagesweise |
 | AdMob | Impressionen als grober Aktivitätsindikator (nur nativ) | tagesweise |
 
-Store-Konsolen rechnen also **in Tagen**; wer eine Uhrzeit braucht, muss in Vercel schauen.
+Store-Konsolen rechnen also **in Tagen**; wer eine Uhrzeit braucht, muss in Cloudflare schauen.
 
 **Die Zählung ist absichtlich auf das Web beschränkt** (`src/analytics.ts` + je ein `<script>` in
 `public/links.html`, `privacy.html`, `impressum.html`).
@@ -521,16 +521,16 @@ in **Plays „Data safety"** und in `public/privacy.html` stehen; die App ist he
 als trackingfrei geführt. Wer die Sperre entfernt, muss alle drei nachziehen — sonst stimmen die
 Store-Angaben nicht mehr. Auf `localhost` zählt es ebenfalls nicht, damit dev/preview still bleibt.
 Prüfskript: **`npm run build && node scripts/check-analytics.mjs`** — lädt das FERTIGE `dist/` in
-einem echten Browser und zählt die Aufrufe an `/_vercel/insights/`. Zwei Kunstgriffe stecken darin:
+einem echten Browser und zählt die Anfragen an `static.cloudflareinsights.com` (abgefangen, nichts geht ins Netz). Zwei Kunstgriffe stecken darin:
 `window.androidBridge` setzen (so erkennt Capacitor eine native WebView) und ein Host-Alias über
 Chromes `host-resolver-rules` (weil localhost bewusst nicht zählt). Der Server im Skript ist
 bewusst selbstgebaut statt `vite preview` — Vite blockt fremde Hostnamen und macht damit genau
 den Web-Fall unprüfbar.
 
-⚠ **Ohne den Schalter im Vercel-Dashboard passiert gar nichts.** Das Zählskript liegt unter
-`/_vercel/insights/script.js` und existiert erst, wenn im Projekt unter *Analytics* Web Analytics
-aktiviert ist — vorher 404 und keine Zahlen, ohne jede Fehlermeldung. Kostenlos bis 50.000 Events
-im Monat (Hobby-Plan).
+⚠ **Das Token steht an fünf Stellen**: `src/analytics.ts` und fest in `public/links.html`,
+`privacy.html`, `impressum.html`, `terms.html`. Es ist öffentlich und gehört zur Seite
+„mahjong.almaz6380.workers.dev" in Cloudflare → Web Analytics. Ein falsches Token meldet keinen
+Fehler — die Seite bleibt dort einfach auf 0.
 
 Die App ist eine Single-Page-Anwendung ohne Router, es gibt also **einen Seitenaufruf je Besuch** —
 gut für „wie viele und wann", aber es sagt nichts darüber, welche Spielmodi benutzt werden. Dafür
