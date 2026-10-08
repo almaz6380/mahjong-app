@@ -2,9 +2,28 @@
 // gesperrt hat — mahjong-app-plum.vercel.app antwortet mit 402). Nur statische Dateien
 // aus dist/. Gebaut und veröffentlicht von Cloudflare selbst (Workers Builds, mit dem
 // GitHub-Repo verknüpft). Vorlage: FixTheMix/Anigosha.
+// Seit 08.10.2026 zusätzlich der Duell-Server (worker/index.ts): Er beantwortet nur
+// /api/duel/* (run_worker_first), alles andere kommt unverändert aus dist/.
 {
   "name": "mahjong",
   "compatibility_date": "2026-09-01",
+  "main": "worker/index.ts",
+  // Je Duell ein Raum (benannt nach dem Code) und eine gemeinsame Warteschlange.
+  // SQLite-Klassen, weil nur die im kostenlosen Workers-Tarif erlaubt sind.
+  "durable_objects": {
+    "bindings": [
+      { "name": "DUEL_ROOM", "class_name": "DuelRoom" },
+      { "name": "DUEL_LOBBY", "class_name": "DuelLobby" }
+    ]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["DuelRoom", "DuelLobby"] }],
+  "vars": {
+    // SHA-256-Fingerabdruck des App-Signaturschlüssels von Google Play (Play Console →
+    // Testen und veröffentlichen → App-Integrität → App-Signatur). Ohne ihn öffnen
+    // Duell-Links auf Android die Web-Fassung statt der App — sonst geht alles.
+    // Mehrere mit Komma trennen. Format: AB:CD:…
+    "ANDROID_CERT_SHA256": ""
+  },
   // Wrangler baut selbst — vor deploy UND vor preview. Ohne das gäbe es kein dist/.
   "build": { "command": "npm run build" },
   // Ohne diesen Block bricht der Vorschau-Build anderer Branches ab.
@@ -13,6 +32,9 @@
     "directory": "./dist",
     // /links liefert links.html, /privacy liefert privacy.html (Standard-html_handling);
     // alles andere, was keine Datei ist, bekommt index.html.
-    "not_found_handling": "single-page-application"
+    "not_found_handling": "single-page-application",
+    // Ohne das bekäme ein Aufruf von /api/duel/... die index.html statt des Servers.
+    // /duell/* = Einladungslinks (Weiterleitung), /.well-known/* = App-Verknüpfung.
+    "run_worker_first": ["/api/*", "/duell/*", "/.well-known/*"]
   }
 }

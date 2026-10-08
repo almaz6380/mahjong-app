@@ -157,6 +157,37 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   `reshuffleBoard`-Probe, 4000 Joker-Züge, 200 Memory-Level, **plus eine
   Gegenprobe, die absichtlich fehlschlagen muss** — ein Test, der nie anschlägt,
   prüft nichts).
+- **Duell (seit 08.10.2026): Solitaire-Rennen + Riichi 1 gegen 1 gegen Freunde/Zufallsgegner.**
+  Server = **Cloudflare Durable Objects im selben Worker** wie die Web-Fassung (`worker/index.ts`,
+  `wrangler.jsonc`: `main`, `run_worker_first` für `/api/*`, `/duell/*`, `/.well-known/*`).
+  Je Duell ein `DuelRoom` (benannt nach dem 5-stelligen Code), eine `DuelLobby` für die
+  Warteschlange. Spiellogik **rein und ohne Laufzeit** in `worker/logic/` (`Room`, `SoloMatch`,
+  `RiichiMatch`, Schnittstelle `RoomIO`) — dieselben Klassen laufen auch in der App für das Duell
+  gegen die KI (`src/duel/session.ts`, `DuelSession.vsComputer`). Gemeinsamer Kern Client/Server:
+  `src/duel/solitaire.ts` (Brett aus Seed, `SoloBoard`) und `src/duel/protocol.ts`.
+  Oberfläche `src/modes/duel/` (Menü, `DuelSolitaire`, `DuelRiichi`, `DuelResult`).
+  Regeln: gleiches Brett (44–56 Steine, keine verdeckten/Spezialsteine), Countdown nach Serverzeit,
+  wer zuerst räumt gewinnt, 10 min Deckel (dann weniger Reststeine), Tipp/Mischen gratis mit 5 s
+  Sperre, **Sackgasse ohne Ausweg → Rest abgeräumt, +20 s Strafzeit**, 30 s Rückkehrfrist sonst
+  Aufgabe, Revanche. Riichi: Menschen auf Platz 0 und 2, KI auf 1/3, 4 Hände, 15 s/Zug (sonst
+  Tsumogiri), 8 s für Ron. Münzen über `bonusCoins` (Tagesdeckel), gegen die KI die Hälfte.
+  ⚠ **Der Server spielt jedes Brett mit und nimmt nur gültige Züge an** — dafür muss das Mischen
+  auf beiden Seiten identisch sein: `reshuffleBoard`/`useGame` haben dafür ein optionales `rand`
+  (`shuffleRand`), der Zähler steht in `SoloBoard.shuffles`. Wer an Brett-Erzeugung oder Figuren-
+  Rampe dreht, muss `DUEL_PROTOCOL` erhöhen, sonst bekommen alte Apps ein anderes Brett.
+  ⚠ Effekte in `DuelSolitaire` dürfen nicht von Funktionen abhängen, die jedes Rendern neu sind:
+  Die Uhr rendert alle 250 ms, ein 400-ms-Timer (Sackgasse) wurde so nie ausgelöst — im E2E gefunden.
+  **Einladungslinks** `…/duell/CODE`: im Browser leitet der Worker auf `/?duell=CODE` um (unter
+  `/duell/` fände die App mit `base: './'` ihre Dateien nicht); in der App über Universal Links /
+  App Links (`appUrlOpen`, `src/duel/links.ts`). iOS: `ios/App/App/App.entitlements` wird im
+  Workflow NUR eingebunden, wenn das Provisioning-Profil „Associated Domains" trägt (sonst bricht
+  die Signierung) — sonst Warnung, Links öffnen dann die Web-Fassung. Android: `assetlinks.json`
+  braucht `ANDROID_CERT_SHA256` (wrangler `vars`, Play Console → App-Integrität → App-Signatur).
+  Räume verfallen nach 6 h, ein DO-Alarm löscht dann auch den Speicher (Datenschutzerklärung 6b).
+  Prüfskripte: **`node scripts/check-duel.mjs`** (Determinismus, Lösbarkeit, Ablehnung inkl.
+  Gegenprobe, Zeitlimit, Abbruch/Rückkehr, Strafzeit, 30 Riichi-Partien) und
+  **`node scripts/e2e-duel.mjs`** (zwei echte Browser gegen `npx wrangler dev --port 8787`,
+  `CHROME=…`, optional `SHOTS=<ordner>`).
 - **Memory (`src/modes/memory/board.ts` + `MemoryScreen.tsx`)** läuft seit
   11.08.2026 auf **echten Figuren** statt auf einem `repeat(cols, 1fr)`-Raster:
   Level 1–12 flache Silhouette (`fig.cells.filter(c => c.layer === 0)` — dafür

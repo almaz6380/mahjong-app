@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Duell-Einladungslinks (…/duell/CODE) direkt in der App öffnen.
+	     Wird nur eingebunden, wenn das Provisioning-Profil die Fähigkeit
+	     "Associated Domains" trägt (siehe .github/workflows/ios-release.yml). -->
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:mahjong.almaz6380.workers.dev</string>
+	</array>
+</dict>
+</plist>

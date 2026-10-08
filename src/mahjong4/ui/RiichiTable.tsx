@@ -19,9 +19,9 @@ const YAKU_DE: Record<string, string> = {
   sanankou: 'Drei verd. Tripel', chanta: 'Chanta', junchan: 'Junchan', shousangen: 'Kl. drei Drachen',
   honitsu: 'Halbe Farbe', chinitsu: 'Ganze Farbe',
 };
-const yakuLabel = (n: string) => YAKU_DE[n] ?? n;
+export const yakuLabel = (n: string) => YAKU_DE[n] ?? n;
 
-function RTile({ code, small, dim, onClick, highlight }: { code: TileCode; small?: boolean; dim?: boolean; onClick?: () => void; highlight?: boolean }) {
+export function RTile({ code, small, dim, onClick, highlight }: { code: TileCode; small?: boolean; dim?: boolean; onClick?: () => void; highlight?: boolean }) {
   return (
     <button
       className={'mtile' + (small ? ' small' : '') + (dim ? ' dim' : '') + (highlight ? ' hl' : '') + (onClick ? ' tap' : '')}
@@ -33,7 +33,7 @@ function RTile({ code, small, dim, onClick, highlight }: { code: TileCode; small
   );
 }
 
-function Back({ n, vertical }: { n: number; vertical?: boolean }) {
+export function Back({ n, vertical }: { n: number; vertical?: boolean }) {
   return (
     <div className={'backs' + (vertical ? ' v' : '')}>
       {Array.from({ length: n }).map((_, i) => <span key={i} className="back" />)}
@@ -41,7 +41,7 @@ function Back({ n, vertical }: { n: number; vertical?: boolean }) {
   );
 }
 
-function Pond({ tiles }: { tiles: TileCode[] }) {
+export function Pond({ tiles }: { tiles: TileCode[] }) {
   return <div className="pond">{tiles.map((c, i) => <RTile key={i} code={c} small dim />)}</div>;
 }
 

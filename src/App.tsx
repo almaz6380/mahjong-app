@@ -22,6 +22,8 @@ import { ZenScreen } from './modes/zen/ZenScreen';
 import { PagodaScreen, PAGODA_FLOORS } from './modes/pagoda/PagodaScreen';
 import { FestivalScreen } from './modes/festival/FestivalScreen';
 import { AlbumScreen } from './ui/AlbumScreen';
+import { DuelScreen } from './modes/duel/DuelScreen';
+import { consumeInviteCode, onInviteLink } from './duel/links';
 import { activeFestival } from './game/festivals';
 import { useProgress } from './game/progress';
 import { layoutForLevel } from './game/layouts';
@@ -50,7 +52,7 @@ import { Sakura } from './ui/Sakura';
 import { setAmbientLevel } from './ui/SumiE';
 import type { PlacedTile } from './game/engine';
 
-type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop' | 'modes' | 'memory' | 'merge' | 'sudoku' | 'match3' | 'tilematch' | 'blitz' | 'dimensions' | 'connect' | 'riichi' | 'zen' | 'pagoda' | 'album' | 'festival';
+type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop' | 'modes' | 'memory' | 'merge' | 'sudoku' | 'match3' | 'tilematch' | 'blitz' | 'dimensions' | 'connect' | 'riichi' | 'zen' | 'pagoda' | 'album' | 'festival' | 'duel';
 
 export default function App() {
   const p = useProgress();
@@ -64,6 +66,20 @@ export default function App() {
   const [dailyBoard, setDailyBoard] = useState<PlacedTile[] | null>(null);
   const [gamesOpen, setGamesOpen] = useState(false);
   const [showDailyReward, setShowDailyReward] = useState(false);
+  // Code aus einem Einladungslink (…/duell/ABC23) — öffnet direkt das Duell.
+  const [duelCode, setDuelCode] = useState<string | null>(() => consumeInviteCode());
+
+  useEffect(
+    () =>
+      onInviteLink((code) => {
+        setDuelCode(code);
+        setScreen('duel');
+      }),
+    [],
+  );
+  useEffect(() => {
+    if (duelCode) setScreen('duel');
+  }, []);
 
   // Laufendes Spiel laden (für „Fortsetzen").
   useEffect(() => {
@@ -315,6 +331,22 @@ export default function App() {
       <FestivalScreen fest={fest} claimFestival={p.claimFestival} spendCoins={p.spendCoins} onExit={() => setScreen('menu')} />
     );
   }
+  if (screen === 'duel')
+    return (
+      <DuelScreen
+        key={duelCode ?? 'duel'}
+        addCoins={bonusCoins}
+        initialCode={duelCode}
+        onOpenRiichi={() => {
+          setDuelCode(null);
+          setScreen('riichi');
+        }}
+        onExit={() => {
+          setDuelCode(null);
+          setScreen('menu');
+        }}
+      />
+    );
   if (screen === 'howto') return <HowToScreen onBack={() => setScreen('menu')} />;
   if (screen === 'themes')
     return <ThemesScreen progress={progress} purchaseTheme={p.purchaseTheme} selectTheme={p.selectTheme} purchaseSkin={p.purchaseSkin} selectSkin={p.selectSkin} onBack={() => setScreen('menu')} />;
@@ -331,6 +363,7 @@ export default function App() {
 
   const gameItems: GameItem[] = [
     { id: 'solitaire', icon: <img className="game-img" src={gameSolitaire} alt="" />, name: t('hub.solitaire'), sub: canResume ? t('hub.resume', { n: resume!.level }) : t('hub.solitaire.sub', { n: progress.level }), onClick: canResume ? startResume : startFresh },
+    { id: 'duel', icon: <span className="game-emoji" aria-hidden>⚔️</span>, name: t('duel.title'), sub: t('hub.duel.sub'), onClick: () => setScreen('duel') },
     { id: 'connect', icon: <img className="game-img" src={gameConnect} alt="" />, name: t('menu.connect'), sub: t('hub.connect.sub'), badge: connectLevel > 1 ? 'Lv ' + connectLevel : undefined, onClick: () => setScreen('connect') },
     { id: 'm4', icon: <img className="game-img" src={gameM4} alt="" />, name: t('menu.m4'), sub: t('hub.m4.sub'), onClick: () => setScreen('mahjong4') },
     { id: 'riichi', icon: <img className="game-img" src={gameRiichi} alt="" />, name: t('menu.riichi'), sub: t('hub.riichi.sub'), onClick: () => setScreen('riichi') },
