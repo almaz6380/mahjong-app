@@ -957,8 +957,15 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   (Play per Workflow „Store-Texte", Apple beim Einreichen). Versionshinweise
   `store/whatsnew-1.3.0.json`. ⚠ Der erste Android-Upload scheiterte an **minSdk 23** —
   Play verlangt jetzt 24 (siehe „Native Builds"), nichts wurde veröffentlicht, vc27 blieb frei.
-  **Offen (braucht Josef):** Android-Fingerabdruck für `ANDROID_CERT_SHA256` und iOS-Profil mit
-  „Associated Domains" — bis dahin öffnen Einladungslinks die Web-Fassung (Code-Eingabe geht immer).
+  **App-Links am selben Tag per API erledigt** (Workflow „App-Links einrichten",
+  `scripts/app-links.py`): Android-Fingerabdruck aus `generatedApks` gelesen (kommt schon als
+  `AB:CD:…`, nicht nochmal umwandeln) und in `wrangler.jsonc` eingetragen; bei Apple
+  „Associated Domains" an der App-ID eingeschaltet und ein neues Profil angelegt — der
+  Upload-Schlüssel darf das. ⚠ **Seitdem ist das Profil im Secret `IOS_PROVISIONING_PROFILE_BASE64`
+  ungültig** (jede neue Fähigkeit entwertet alle alten Profile). `ios-release.yml` holt das Profil
+  darum bei jedem Lauf frisch per API und schreibt dessen Namen in `PROVISIONING_PROFILE_SPECIFIER`
+  (das Projekt nennt das Profil beim Namen — der erste Probebuild scheiterte genau daran).
+  iOS-Build **28** (1.3.0) trägt die Universal Links und ersetzt den eingereichten Build 27.
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
   **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
   Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in
