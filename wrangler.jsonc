@@ -19,10 +19,11 @@
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["DuelRoom", "DuelLobby"] }],
   "vars": {
     // SHA-256-Fingerabdruck des App-Signaturschlüssels von Google Play (Play Console →
-    // Testen und veröffentlichen → App-Integrität → App-Signatur). Ohne ihn öffnen
+    // Testen und veröffentlichen → App-Integrität → App-Signatur; per API: Workflow
+    // „App-Links einrichten“, teil=android). Ohne ihn öffnen
     // Duell-Links auf Android die Web-Fassung statt der App — sonst geht alles.
     // Mehrere mit Komma trennen. Format: AB:CD:…
-    "ANDROID_CERT_SHA256": ""
+    "ANDROID_CERT_SHA256": "2C:27:9E:67:30:C3:EE:64:89:8E:6A:0A:8E:B3:BF:81:BC:7E:72:6A:28:DE:13:BD:C5:22:CF:76:68:C9:7C:CB"
   },
   // Wrangler baut selbst — vor deploy UND vor preview. Ohne das gäbe es kein dist/.
   "build": { "command": "npm run build" },

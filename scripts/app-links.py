@@ -64,6 +64,9 @@ def versioncode() -> int:
 
 def als_doppelpunkt_hex(wert: str) -> str:
     w = wert.strip()
+    # Google liefert ihn schon als „AB:CD:…" — so durchreichen.
+    if ':' in w:
+        return w.upper()
     if len(w) == 64 and all(c in '0123456789abcdefABCDEF' for c in w):
         roh = bytes.fromhex(w)
     else:
@@ -80,7 +83,6 @@ def play_fingerabdruck():
     for eintrag in daten.get('generatedApks', []):
         h = eintrag.get('certificateSha256Hash')
         if h:
-            print(f'roh: {h!r} (Länge {len(h)})')
             abdruecke.append(als_doppelpunkt_hex(h))
     if not abdruecke:
         sys.exit(f'Keine Signaturdaten für versionCode {vc}:\n{json.dumps(daten, indent=2)[:2000]}')
