@@ -80,6 +80,7 @@ def play_fingerabdruck():
     for eintrag in daten.get('generatedApks', []):
         h = eintrag.get('certificateSha256Hash')
         if h:
+            print(f'roh: {h!r} (Länge {len(h)})')
             abdruecke.append(als_doppelpunkt_hex(h))
     if not abdruecke:
         sys.exit(f'Keine Signaturdaten für versionCode {vc}:\n{json.dumps(daten, indent=2)[:2000]}')
@@ -130,7 +131,7 @@ def ios_profil(faehigkeit: bool, ausgabe: str | None):
     if not cert_ids:
         sys.exit('Kein gültiges Verteilungszertifikat gefunden. Nichts geändert.')
 
-    caps = pruefe(asc_anfrage(tok, 'GET', f'/v1/bundleIds/{bid}/bundleIdCapabilities?limit=50'), 'bundleIdCapabilities')
+    caps = pruefe(asc_anfrage(tok, 'GET', f'/v1/bundleIds/{bid}/bundleIdCapabilities'), 'bundleIdCapabilities')
     hat = any(c['attributes'].get('capabilityType') == FAEHIGKEIT for c in caps['data'])
     print(f'Associated Domains an der App-ID: {"ja" if hat else "nein"}')
     if not hat and faehigkeit:
@@ -143,7 +144,7 @@ def ios_profil(faehigkeit: bool, ausgabe: str | None):
         hat = True
 
     # Ein aktives App-Store-Profil, das die Fähigkeit trägt?
-    profile = pruefe(asc_anfrage(tok, 'GET', f'/v1/bundleIds/{bid}/profiles?limit=50'), 'Profile')
+    profile = pruefe(asc_anfrage(tok, 'GET', f'/v1/bundleIds/{bid}/profiles'), 'Profile')
     passend = None
     for p in profile['data']:
         a = p['attributes']
