@@ -146,6 +146,12 @@ jobs:
           APPID=$(plutil -extract Entitlements.application-identifier raw -o - "$RUNNER_TEMP/profil.plist")
           BUNDLE=${APPID#*.}
           echo "Profil \"$NAME\" fuer $BUNDLE"
+          # Das Projekt nennt das Profil beim Namen. Wird es neu angelegt (z. B.
+          # nach einer neuen Faehigkeit), heisst es anders — also den Namen aus
+          # dem Profil selbst ins App-Target schreiben.
+          perl -pi -e "s/PROVISIONING_PROFILE_SPECIFIER = \"[^\"]*\";/PROVISIONING_PROFILE_SPECIFIER = \"$NAME\";/" \
+            ios/App/App.xcodeproj/project.pbxproj
+          grep 'PROVISIONING_PROFILE_SPECIFIER' ios/App/App.xcodeproj/project.pbxproj
           # Einladungslinks fuers Duell (Universal Links) brauchen die Faehigkeit
           # "Associated Domains" IM PROFIL. Steht sie nicht drin, wuerde die
           # Signierung mit App.entitlements scheitern — dann ohne bauen, die
