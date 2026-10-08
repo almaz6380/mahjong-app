@@ -302,13 +302,15 @@ export function blastSet(
   return raus;
 }
 
-export function reshuffleBoard(tiles: PlacedTile[], nb: Neighbors): PlacedTile[] {
+// `rand` ist optional: Nur das Duell reicht einen Seed durch, damit der Server
+// das Mischen exakt nachspielen kann. Alle anderen Modi mischen wie bisher.
+export function reshuffleBoard(tiles: PlacedTile[], nb: Neighbors, rand: Rng = Math.random): PlacedTile[] {
   const active = tiles.filter((t) => !t.removed);
   const indices = active.map((t) => t.key);
   const faces = active.map((t) => t.face);
 
   for (let attempt = 0; attempt < 800; attempt++) {
-    const res = assignSolvable(indices, nb, makePairs(faces), tiles.length);
+    const res = assignSolvable(indices, nb, makePairs(faces, rand), tiles.length, rand);
     if (res) {
       // `hidden` bleibt über den Spread an der Position kleben — genau richtig:
       // Die verdeckte Stelle ist ein Fleck auf dem Brett, nach dem Mischen liegt

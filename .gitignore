@@ -19,3 +19,4 @@ android/keystore.properties
 
 # Aufgenommene Reels und Zwischenbilder — Videos gehoeren nicht ins Repo
 out/
+.wrangler/

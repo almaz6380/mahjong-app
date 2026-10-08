@@ -25,6 +25,15 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- Duell-Einladungen (…/duell/CODE) direkt in der App öffnen.
+                 Bestätigt über /.well-known/assetlinks.json (worker/index.ts). -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="mahjong.almaz6380.workers.dev" android:pathPrefix="/duell/" />
+            </intent-filter>
         </activity>
 
         <provider

@@ -124,6 +124,20 @@ jobs:
           APPID=$(plutil -extract Entitlements.application-identifier raw -o - "$RUNNER_TEMP/profil.plist")
           BUNDLE=${APPID#*.}
           echo "Profil \"$NAME\" fuer $BUNDLE"
+          # Einladungslinks fuers Duell (Universal Links) brauchen die Faehigkeit
+          # "Associated Domains" IM PROFIL. Steht sie nicht drin, wuerde die
+          # Signierung mit App.entitlements scheitern — dann ohne bauen, die
+          # Links oeffnen dann eben die Web-Fassung (Code-Eingabe geht immer).
+          if grep -q 'com.apple.developer.associated-domains' "$RUNNER_TEMP/profil.plist"; then
+            # Nur im App-Target eintragen (ueber die Bundle-ID-Zeile) — als
+            # xcodebuild-Argument galte es auch fuer die Pods und braeche dort.
+            perl -pi -e 's/(\s*)(PRODUCT_BUNDLE_IDENTIFIER = com\.mahjongroyale\.app;)/$1$2$1CODE_SIGN_ENTITLEMENTS = App\/App.entitlements;/' \
+              ios/App/App.xcodeproj/project.pbxproj
+            grep -c 'CODE_SIGN_ENTITLEMENTS' ios/App/App.xcodeproj/project.pbxproj
+            echo "Associated Domains im Profil: Universal Links aktiv"
+          else
+            echo "::warning::Profil ohne Associated Domains — Duell-Links oeffnen im Browser statt in der App"
+          fi
           cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

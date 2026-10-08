@@ -9,7 +9,7 @@ import { Icon } from './Icon';
 import { t, LANGS, type Lang } from '../i18n';
 import { appVersionLabel } from '../appVersion';
 
-function ScreenHeader({ title, onBack }: { title: string; onBack: () => void }) {
+export function ScreenHeader({ title, onBack }: { title: string; onBack: () => void }) {
   return (
     <header className="hud">
       <button className="icon-btn" onClick={onBack} aria-label="Zurück">

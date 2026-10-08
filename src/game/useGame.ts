@@ -10,6 +10,7 @@ import {
   type FadeTile,
   type Neighbors,
   type PlacedTile,
+  type Rng,
 } from './engine';
 import { applyHidden, applySpecials, KEINE_MODS, type LevelMods } from './modifiers';
 
@@ -38,6 +39,11 @@ interface GameOptions {
    * `time` etwa wirkt im Blitz auf den Countdown, im Level auf die Sterne.
    */
   onSpecial?: (kind: SpecialKind) => void;
+  /**
+   * Zufallsquelle fürs Mischen. Nur das Duell setzt sie (Seed vom Server, damit
+   * der Server das Mischen nachspielen kann); ohne sie bleibt es `Math.random`.
+   */
+  shuffleRand?: () => Rng;
 }
 
 export function useGame(initialLayout = 'classic', opts: GameOptions = {}) {
@@ -325,7 +331,7 @@ export function useGame(initialLayout = 'classic', opts: GameOptions = {}) {
   // liefert reshuffleBoard dasselbe Brett zurück – dann darf weder ein Booster
   // verbraucht werden noch soll die Oberfläche endlos weiter mischen.
   const shuffle = useCallback((): boolean => {
-    const next = reshuffleBoard(tiles, nbRef.current);
+    const next = reshuffleBoard(tiles, nbRef.current, optsRef.current.shuffleRand?.());
     if (next === tiles) return false;
     setTiles(next);
     setSelected(null);
