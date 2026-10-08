@@ -951,6 +951,14 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   IMMER `nur_status` laufen lassen: Er zeigt Build-Zustand, Versionen und die offene
   Einreichung in einem Aufruf und kostet 15 Sekunden.
 
+- **8.10.2026 — v1.3.0 (Android vc27 / iOS Build 27): Duell-Modus** (Abschnitt „Duell" oben).
+  Android **vc27 in Produktion an alle**, iOS **Build 27 eingereicht** (reviewSubmission
+  `e86ec8e2-…`), Web + Duell-Server live, Store-Texte in allen Sprachen um „Duell" ergänzt
+  (Play per Workflow „Store-Texte", Apple beim Einreichen). Versionshinweise
+  `store/whatsnew-1.3.0.json`. ⚠ Der erste Android-Upload scheiterte an **minSdk 23** —
+  Play verlangt jetzt 24 (siehe „Native Builds"), nichts wurde veröffentlicht, vc27 blieb frei.
+  **Offen (braucht Josef):** Android-Fingerabdruck für `ANDROID_CERT_SHA256` und iOS-Profil mit
+  „Associated Domains" — bis dahin öffnen Einladungslinks die Web-Fassung (Code-Eingabe geht immer).
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
   **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
   Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in
