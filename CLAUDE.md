@@ -998,11 +998,14 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   nicht. `asc-submit.py` verwendet sie jetzt wieder (Eintrag `resolved: true`, dann
   `submitted: true`) — dieselbe reviewSubmission `bbcfe617-…`, kein Abbruch nötig.
 - **9.10.2026 — v1.4.0 (Android vc28): Lawine** (Abschnitt `src/modes/lawine/` oben). Branch `lawine`
-  in `main` gemergt (Web live), Android **vc28 in Produktion an alle** (13:39 UTC). iOS ist
-  **vorbereitet, aber nicht hochgeladen**: pbxproj steht auf 1.4.0 / Build 30, Versionshinweise
-  `store/whatsnew-1.4.0.json` nennen Duell UND Lawine — denn iOS-Nutzer haben 1.3.0 noch nie bekommen
-  (Build 29 stand zu dem Zeitpunkt seit 21 h in `WAITING_FOR_REVIEW`). Entweder nach der Freigabe von
-  1.3.0 als neue Version einreichen, oder 1.3.0 abbrechen und per `--rename-from 1.3.0` ersetzen.
+  in `main` gemergt (Web live), Android **vc28 in Produktion an alle** (13:39 UTC).
+  **iOS: 1.3.0 (Build 29) nach 21 h Wartezeit abgebrochen und durch 1.4.0 / Build 30 ersetzt**
+  (Josefs Entscheidung — eine Prüfrunde statt zwei). Eingereicht 14:01 UTC, reviewSubmission
+  `878d82bf-…`, derselbe Versions-Datensatz `65fd3689-…` per `--rename-from 1.3.0`. Damit hat iOS
+  **nie eine 1.3.0** bekommen; `store/whatsnew-1.4.0.json` nennt deshalb Duell UND Lawine, der
+  Play-Text nur Lawine. Store-Beschreibung (`store-texte.json`) hat jetzt einen Lawine-Abschnitt —
+  bei Apple mit der Einreichung gesetzt, **bei Play noch nicht** (Workflow „Store-Texte", `nur-play`).
+  Ablauf in einem Lauf von `asc-submit.yml` (zuerst_abbrechen + rename_from + submit), 80 s.
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
   **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
   Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in
