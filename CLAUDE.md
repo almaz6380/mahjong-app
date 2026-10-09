@@ -1004,7 +1004,7 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   `878d82bf-…`, derselbe Versions-Datensatz `65fd3689-…` per `--rename-from 1.3.0`. Damit hat iOS
   **nie eine 1.3.0** bekommen; `store/whatsnew-1.4.0.json` nennt deshalb Duell UND Lawine, der
   Play-Text nur Lawine. Store-Beschreibung (`store-texte.json`) hat jetzt einen Lawine-Abschnitt —
-  bei Apple mit der Einreichung gesetzt, **bei Play noch nicht** (Workflow „Store-Texte", `nur-play`).
+  bei Apple mit der Einreichung gesetzt, bei Play am selben Abend per Workflow „Store-Texte" (`nur-play`, ohne Grafik).
   Ablauf in einem Lauf von `asc-submit.yml` (zuerst_abbrechen + rename_from + submit), 80 s.
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
   **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
