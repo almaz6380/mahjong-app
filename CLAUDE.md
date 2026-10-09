@@ -997,6 +997,12 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   bleibt die alte Einreichung als `UNRESOLVED_ISSUES` offen; eine zweite daneben anzulegen geht
   nicht. `asc-submit.py` verwendet sie jetzt wieder (Eintrag `resolved: true`, dann
   `submitted: true`) — dieselbe reviewSubmission `bbcfe617-…`, kein Abbruch nötig.
+- **9.10.2026 — v1.4.0 (Android vc28): Lawine** (Abschnitt `src/modes/lawine/` oben). Branch `lawine`
+  in `main` gemergt (Web live), Android **vc28 in Produktion an alle** (13:39 UTC). iOS ist
+  **vorbereitet, aber nicht hochgeladen**: pbxproj steht auf 1.4.0 / Build 30, Versionshinweise
+  `store/whatsnew-1.4.0.json` nennen Duell UND Lawine — denn iOS-Nutzer haben 1.3.0 noch nie bekommen
+  (Build 29 stand zu dem Zeitpunkt seit 21 h in `WAITING_FOR_REVIEW`). Entweder nach der Freigabe von
+  1.3.0 als neue Version einreichen, oder 1.3.0 abbrechen und per `--rename-from 1.3.0` ersetzen.
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
   **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
   Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in
