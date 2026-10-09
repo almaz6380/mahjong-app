@@ -43,6 +43,7 @@ export interface Progress {
   tileSkin: string; // gewähltes Stein-Design
   ownedSkins: string[];
   connectLevel: number; // höchstes freigeschaltetes Mahjong-Connect-Level
+  lawineLevel: number; // höchstes freigeschaltetes Lawine-Level
   // v1.1 „Asia-Premium"
   pagodaFloor: number; // aktuelle Etage im Pagoden-Aufstieg (1 = ganz unten)
   album: Record<string, number>; // Mythen/Schätze: gesammelte Paare je Stein-ID
@@ -91,6 +92,7 @@ const DEFAULT: Progress = {
   tileSkin: 'ivory',
   ownedSkins: ['ivory'],
   connectLevel: 1,
+  lawineLevel: 1,
   pagodaFloor: 1,
   album: {},
   albumClaimed: [],
@@ -469,6 +471,16 @@ export function useProgress() {
     [persist],
   );
 
+  // Lawine-Level freischalten (höchstes erreichtes Level).
+  const recordLawine = useCallback(
+    (level: number) => {
+      const s = stateRef.current;
+      if (!s || level <= s.lawineLevel) return;
+      persist({ ...s, lawineLevel: level, lastPlayedDate: todayStr() });
+    },
+    [persist],
+  );
+
   const setRemoveAds = useCallback(() => {
     const s = stateRef.current;
     if (!s) return;
@@ -570,6 +582,7 @@ export function useProgress() {
     purchaseSkin,
     selectSkin,
     recordConnect,
+    recordLawine,
     recordPagoda,
     bumpAlbum,
     claimAlbum,
