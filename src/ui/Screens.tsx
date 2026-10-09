@@ -359,6 +359,7 @@ export function StatsScreen({ progress, onBack }: { progress: Progress; onBack: 
   const dash = (v: number | undefined) => (v === undefined ? '–' : v);
   const rowsBest: [string, string | number][] = [
     [t('menu.connect'), progress.connectLevel > 1 ? t('home.level', { n: progress.connectLevel }) : '–'],
+    [t('menu.lawine'), progress.lawineLevel > 1 ? t('home.level', { n: progress.lawineLevel }) : '–'],
     [t('mode.tilematch'), mb['tilematch'] ? t('home.level', { n: mb['tilematch'] }) : '–'],
     [t('mode.blitz'), mb['blitz'] ? t('blitz.score', { n: mb['blitz'] }) : '–'],
     [t('mode.match3'), dash(mb['match3'])],

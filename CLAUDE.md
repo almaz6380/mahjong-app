@@ -104,6 +104,23 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   `ui/RiichiTable.tsx`; HK-Tisch `ui/Table4.tsx`
 - `src/modes/connect/` — **Mahjong Connect** (BFS-Pfad ≤2 Kurven, garantiert lösbar via Auto-Mischen),
   Fortschritt in `progress.connectLevel`
+- `src/modes/lawine/` — **Lawine** (Schiebe-Mahjong; gebaut am 15.08.2026, aber erst am **09.10.2026**
+  in `main` übernommen — der Zweig lag bis dahin vergessen herum. Beim Übernehmen nachgezogen: Tipp/Mischen
+  **150/250** wie Connect seit 1.2.0, Münzen über `bonusCoins` (Tagesdeckel). Hub-Spiel wie Connect, Vorbild
+  war eine „Zen Mahjong Slide"-Werbung): flaches Raster, gleiche Paare schlagen — **benachbart, freie
+  Zeilen-/Spaltenlinie ODER beide oben frei auf ihrer Spalte** —, danach fallen die Steine spaltenweise
+  nach (`applyGravity`). Level deterministisch (`makeLevel`, Seed `lawine:<n>`), Fortschritt
+  `progress.lawineLevel` (+`recordLawine`), Booster über `payOrWatch`, Sackgasse → kostenloses
+  Auto-Mischen (permutiert NUR Motive, nie Positionen — so kann kein Stein schweben; Notfall-Zweig
+  erzwingt ein Paar auf beweisbar schlagbaren Positionen). ⚠ **Die Oben-frei-Regel ist gemessen, keine
+  Geschmacksfrage:** ohne sie Ø8 Rettungs-Mischungen je Level (Sackgassen sind bei reiner Linien-Regel
+  strukturell), mit ihr Ø3; der Sorten-Deckel liegt aus demselben Grund bei 14 statt 18 (`levels.ts`).
+  Fall-Animation = left/top-Transition auf `.lawine-tile` — erlaubt, weil das Brett keinen
+  Scale-Elternteil hat und in ganzzahligen Pixeln rechnet (iOS-Regel gilt dem Solitaire-Brett).
+  Motiv-Vorrat `distinctFacesByGroup()` in tiles.ts (gemeinsame Quelle mit Connect). Prüfungen:
+  Abschnitt 7 in `node scripts/check-specials.mjs` (inkl. Durchspiel-Simulation + Gegenproben);
+  Hub-Icon: `node scripts/render-game-lawine.mjs`. Das „Alle Spiele"-Sheet scrollt seit dem
+  9. Eintrag (`.games-list` overflow-y).
 - `src/modes/` — Bonus-Spiele (2048, Match-3, Memory, Sudoku, Tile Match, Zeit-Blitz, 3D-Dimensions),
   gemeinsame `ModeApi` in types.ts. Tages-Challenge (`daily`, 7×8/78 Steine) und Zeit-Blitz
   (`blitz`, 6×7/52) haben eigene kompakte Layouts in `layouts.ts` — die alten Riesenbretter

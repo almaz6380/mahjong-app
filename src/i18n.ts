@@ -425,6 +425,7 @@ const D: Record<string, Entry> = {
 
   // Mahjong Connect
   'menu.connect': { de: 'Mahjong Connect', en: 'Mahjong Connect' },
+  'menu.lawine': { de: 'Lawine', en: 'Avalanche' },
   'connect.title': { de: 'Mahjong Connect', en: 'Mahjong Connect' },
   'connect.level': { de: 'Level {n}', en: 'Level {n}' },
   'connect.cleared': { de: 'Brett geschafft!', en: 'Board cleared!' },
@@ -477,6 +478,7 @@ const D: Record<string, Entry> = {
   'hub.daily': { de: 'Tages-Challenge', en: 'Daily challenge' },
   'hub.daily.sub': { de: 'Jeden Tag neu', en: 'New every day' },
   'hub.connect.sub': { de: 'Gleiche Steine verbinden', en: 'Connect matching tiles' },
+  'hub.lawine.sub': { de: 'Paare räumen, Steine rutschen nach', en: 'Clear pairs, tiles slide down' },
   'hub.m4.sub': { de: '1 gegen 3 KI', en: 'You vs 3 AI' },
   'hub.riichi.sub': { de: 'Japanisch · Riichi/Dora', en: 'Japanese · riichi/dora' },
   'hub.more': { de: 'Mehr Spiele', en: 'More games' },

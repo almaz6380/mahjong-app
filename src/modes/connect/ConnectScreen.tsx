@@ -6,28 +6,13 @@ import { playTap, playMatch, playInvalid, playWin } from '../../audio/sound';
 import { maybeShowInterstitialModes } from '../../ads/admob';
 import { payOrWatch } from '../../ui/pay';
 import { presentFact } from '../../ui/FactHost';
-import { buildDeck } from '../../game/tiles';
+import { distinctFacesByGroup } from '../../game/tiles';
 import { connectConfig } from './levels';
 import { makeBoard, canConnect, findAnyPair, removePair, isCleared, shuffleRemaining, EMPTY, type Board } from './connect';
 
-// Steinsorten für Connect – nach Gruppen im Wechsel (visuell vielfältig, bunte
-// Sorten zuerst), damit kleine Bretter nicht nur aus fast gleichen „Kronen" bestehen.
-const DISTINCT: string[] = (() => {
-  const groups = new Map<string, string[]>();
-  const seen = new Set<string>();
-  for (const f of buildDeck()) {
-    if (seen.has(f.id)) continue;
-    seen.add(f.id);
-    (groups.get(f.group) ?? groups.set(f.group, []).get(f.group)!).push(f.id);
-  }
-  const order = ['cir', 'bam', 'dragon', 'wind', 'flower', 'char', 'season'];
-  const lists = order.filter((g) => groups.has(g)).map((g) => groups.get(g)!);
-  const out: string[] = [];
-  for (let i = 0; out.length < seen.size; i++) {
-    for (const l of lists) if (i < l.length) out.push(l[i]);
-  }
-  return out;
-})();
+// Steinsorten für Connect — Reihenfolge und Begründung in distinctFacesByGroup
+// (src/game/tiles.ts), gemeinsame Quelle mit Lawine.
+const DISTINCT: string[] = distinctFacesByGroup();
 
 export interface ConnectProps {
   connectLevel: number;

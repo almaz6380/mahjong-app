@@ -18,6 +18,7 @@ import { TileMatchScreen } from './modes/tilematch/TileMatchScreen';
 import { BlitzScreen } from './modes/blitz/BlitzScreen';
 import { DimensionsScreen } from './modes/dimensions/DimensionsScreen';
 import { ConnectScreen } from './modes/connect/ConnectScreen';
+import { LawineScreen } from './modes/lawine/LawineScreen';
 import { ZenScreen } from './modes/zen/ZenScreen';
 import { PagodaScreen, PAGODA_FLOORS } from './modes/pagoda/PagodaScreen';
 import { FestivalScreen } from './modes/festival/FestivalScreen';
@@ -42,6 +43,7 @@ import { Capacitor } from '@capacitor/core';
 import { setFactsEnabled } from './ui/FactHost';
 import gameSolitaire from './assets/game-solitaire.webp';
 import gameConnect from './assets/game-connect.webp';
+import gameLawine from './assets/game-lawine.webp';
 import gameM4 from './assets/game-m4.webp';
 import gameRiichi from './assets/game-riichi.webp';
 import gameZen from './assets/game-zen.webp';
@@ -52,7 +54,7 @@ import { Sakura } from './ui/Sakura';
 import { setAmbientLevel } from './ui/SumiE';
 import type { PlacedTile } from './game/engine';
 
-type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop' | 'modes' | 'memory' | 'merge' | 'sudoku' | 'match3' | 'tilematch' | 'blitz' | 'dimensions' | 'connect' | 'riichi' | 'zen' | 'pagoda' | 'album' | 'festival' | 'duel';
+type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop' | 'modes' | 'memory' | 'merge' | 'sudoku' | 'match3' | 'tilematch' | 'blitz' | 'dimensions' | 'connect' | 'lawine' | 'riichi' | 'zen' | 'pagoda' | 'album' | 'festival' | 'duel';
 
 export default function App() {
   const p = useProgress();
@@ -308,6 +310,17 @@ export default function App() {
         onExit={() => setScreen('menu')}
       />
     );
+  if (screen === 'lawine')
+    return (
+      <LawineScreen
+        lawineLevel={progress.lawineLevel}
+        coins={progress.coins}
+        addCoins={bonusCoins}
+        spendCoins={p.spendCoins}
+        recordLawine={p.recordLawine}
+        onExit={() => setScreen('menu')}
+      />
+    );
   if (screen === 'zen') return <ZenScreen onExit={() => setScreen('menu')} />;
   if (screen === 'pagoda')
     return (
@@ -358,6 +371,7 @@ export default function App() {
   const canResume = !!resume && resume.level === progress.level;
   const dailyDone = dailyDoneToday(progress.lastDailyChallenge);
   const connectLevel = progress.connectLevel;
+  const lawineLevel = progress.lawineLevel;
   const eventDone = progress.lastEvent === todayStr();
   const fest = activeFestival();
 
@@ -365,6 +379,7 @@ export default function App() {
     { id: 'solitaire', icon: <img className="game-img" src={gameSolitaire} alt="" />, name: t('hub.solitaire'), sub: canResume ? t('hub.resume', { n: resume!.level }) : t('hub.solitaire.sub', { n: progress.level }), onClick: canResume ? startResume : startFresh },
     { id: 'duel', icon: <span className="game-emoji" aria-hidden>⚔️</span>, name: t('duel.title'), sub: t('hub.duel.sub'), onClick: () => setScreen('duel') },
     { id: 'connect', icon: <img className="game-img" src={gameConnect} alt="" />, name: t('menu.connect'), sub: t('hub.connect.sub'), badge: connectLevel > 1 ? 'Lv ' + connectLevel : undefined, onClick: () => setScreen('connect') },
+    { id: 'lawine', icon: <img className="game-img" src={gameLawine} alt="" />, name: t('menu.lawine'), sub: t('hub.lawine.sub'), badge: lawineLevel > 1 ? 'Lv ' + lawineLevel : undefined, onClick: () => setScreen('lawine') },
     { id: 'm4', icon: <img className="game-img" src={gameM4} alt="" />, name: t('menu.m4'), sub: t('hub.m4.sub'), onClick: () => setScreen('mahjong4') },
     { id: 'riichi', icon: <img className="game-img" src={gameRiichi} alt="" />, name: t('menu.riichi'), sub: t('hub.riichi.sub'), onClick: () => setScreen('riichi') },
     { id: 'zen', icon: <img className="game-img" src={gameZen} alt="" />, name: t('menu.zen'), sub: t('hub.zen.sub'), onClick: () => setScreen('zen') },
