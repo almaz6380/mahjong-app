@@ -114,6 +114,13 @@ export async function changeAdConsent(): Promise<void> {
 // Dialog nicht (Apple-Ablehnung bei Anigosha, 12.08.2026). Ohne erteiltes ATT
 // keine IDFA, also jede iOS-Anzeige nicht-personalisiert.
 //
+// ⚠ Seit Build 31 fragt der AppDelegate ZUSAETZLICH selbst (1 s nach
+// didBecomeActive, mit erneutem Versuch) — 1.4.0 (Build 30) wurde trotz
+// Start-Abfrage mit derselben Begruendung abgelehnt, weil dieser JS-Weg allein
+// an UMP, Preferences und der UserDefaults-Meldung haengt. Der Weg hier bleibt
+// als zweiter Ausloeser; das Warten auf die Antwort sorgt dafuer, dass
+// AdMob.initialize() erst nach der Entscheidung laeuft.
+//
 // Der Ausloeser laeuft ueber @capacitor/preferences: Der Schluessel landet als
 // "CapacitorStorage.att.anfrage" in UserDefaults.standard, der AppDelegate
 // hoert auf die Aenderung, fragt auf dem Hauptthread und loescht den

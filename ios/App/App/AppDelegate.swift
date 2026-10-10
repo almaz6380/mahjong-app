@@ -45,6 +45,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Rueckfallweg: Kam die Anfrage, waehrend die App nicht aktiv war,
         // holt der naechste Vordergrund-Wechsel sie nach.
         pruefeTrackingAnfrage()
+        // Hauptweg seit Build 31: nativ und ohne Umweg ueber JavaScript fragen.
+        planeStartAbfrage()
     }
 
     // MARK: - App Tracking Transparency
@@ -58,13 +60,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     //  keine IDFA, und jede iOS-Anzeige ist nicht-personalisiert — das ist der
     //  Unterschied zwischen 3 € und 6 bis 8 € eCPM je Interstitial.
     //
-    //  Der ZEITPUNKT bleibt, wie in 1.1.2 entschieden: nicht beim ersten Start
-    //  (dort standen schon zwei Systemdialoge), sondern unmittelbar vor der
-    //  ersten Anzeige. Deshalb kein fester Aufruf in didBecomeActive, sondern
-    //  ein Ausloeser: admob.ts setzt ueber @capacitor/preferences den Schluessel
-    //  `att.anfrage`, UserDefaults meldet die Aenderung, und hier wird auf dem
-    //  Hauptthread gefragt. admob.ts wartet danach auf die Antwort, bevor es
-    //  die Anzeige laedt.
+    //  ZEITPUNKT: beim Start. Apple hat 1.3.0 (Build 28) und 1.4.0 (Build 30)
+    //  nach Richtlinie 2.1 abgelehnt, weil der Pruefer den Dialog nicht fand.
+    //  Bis Build 30 haengte die Abfrage allein am JavaScript-Ausloeser unten
+    //  (UMP-Consent -> Preferences -> UserDefaults-Meldung) — reisst irgendein
+    //  Glied dieser Kette, erscheint nichts, und es gab keinen zweiten Versuch.
+    //  Seit Build 31 fragt der AppDelegate deshalb SELBST: eine Sekunde nach
+    //  didBecomeActive (frueher verwirft iOS die Anfrage gern stillschweigend),
+    //  und bleibt der Status danach `.notDetermined`, beim naechsten Aktivwerden
+    //  noch einmal. Der JS-Ausloeser bleibt als zweiter Weg bestehen; admob.ts
+    //  wartet ohnehin auf die Antwort, bevor AdMob initialisiert wird.
     @objc private func userDefaultsGeaendert() {
         DispatchQueue.main.async { [weak self] in self?.pruefeTrackingAnfrage() }
     }
@@ -81,14 +86,45 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         frageNachTracking()
     }
 
+    /// Verhindert, dass mehrere Aktivierungen kurz hintereinander mehrere
+    /// verzoegerte Abfragen einplanen.
+    private var startAbfrageGeplant = false
+    /// Verwirft iOS die Anfrage, ohne dass die App den Vordergrund verlaesst,
+    /// kommt kein neues didBecomeActive — deshalb bis zu drei Versuche direkt
+    /// hintereinander, danach erst wieder beim naechsten Aktivwerden.
+    private var startVersuche = 0
+
+    private func planeStartAbfrage() {
+        guard !startAbfrageGeplant else { return }
+        guard ATTrackingManager.trackingAuthorizationStatus == .notDetermined else { return }
+        startAbfrageGeplant = true
+        startVersuche += 1
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            guard let self = self else { return }
+            guard UIApplication.shared.applicationState == .active else {
+                // Inzwischen wieder im Hintergrund: beim naechsten Aktivwerden neu planen.
+                self.startAbfrageGeplant = false
+                return
+            }
+            self.frageNachTracking()
+        }
+    }
+
     private func frageNachTracking() {
         guard !trackingAbfrageLaeuft else { return }
         // Schon beantwortet (auch „abgelehnt") — iOS zeigt den Dialog dann
         // ohnehin kein zweites Mal, die Antwort aendert man in den Einstellungen.
         guard ATTrackingManager.trackingAuthorizationStatus == .notDetermined else { return }
         trackingAbfrageLaeuft = true
-        ATTrackingManager.requestTrackingAuthorization { [weak self] _ in
-            self?.trackingAbfrageLaeuft = false
+        ATTrackingManager.requestTrackingAuthorization { [weak self] status in
+            DispatchQueue.main.async {
+                self?.trackingAbfrageLaeuft = false
+                // Kein Dialog erschienen (iOS hat die Anfrage verworfen):
+                // beim naechsten Aktivwerden erneut versuchen.
+                guard let self = self, status == .notDetermined else { return }
+                self.startAbfrageGeplant = false
+                if self.startVersuche < 3 { self.planeStartAbfrage() }
+            }
         }
     }
 
