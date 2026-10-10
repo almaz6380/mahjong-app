@@ -1,0 +1,61 @@
+name: Standardsprache
+
+# Standardsprache der Store-Eintraege ansehen bzw. umstellen (Apple + Play).
+# Die Standardsprache sieht jeder, fuer dessen Land es keine eigene Fassung gibt.
+# Trockenlauf ist Standard; ohne „sprache" wird nur gelesen.
+
+on:
+  workflow_dispatch:
+    inputs:
+      sprache:
+        description: 'Neue Standardsprache, z. B. en-US (leer = nur ansehen)'
+        type: string
+        default: ''
+      ziel:
+        description: 'Welcher Store'
+        type: choice
+        options: ['beide', 'nur-apple', 'nur-play']
+        default: 'beide'
+      schreiben:
+        description: 'Wirklich umstellen? (aus = Trockenlauf)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  sprache:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Abhaengigkeiten
+        run: |
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet pyjwt cryptography
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+
+      - name: Standardsprache
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          PLAY_KEY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          SPRACHE: ${{ inputs.sprache }}
+          ZIEL: ${{ inputs.ziel }}
+          SCHREIBEN: ${{ inputs.schreiben }}
+        run: |
+          set -euo pipefail
+          ASC_KEY_P8=$(printf '%s' "$ASC_KEY_P8_BASE64" | tr -cd 'A-Za-z0-9+/=' | base64 -d)
+          export ASC_KEY_P8
+          printf '%s' "$PLAY_KEY_JSON" > "$RUNNER_TEMP/play-key.json"
+          export PLAY_KEY="$RUNNER_TEMP/play-key.json"
+          ARGS=(--ziel "$ZIEL")
+          [ -n "$SPRACHE" ] && ARGS+=(--setze "$SPRACHE")
+          [ "$SCHREIBEN" = "true" ] && ARGS+=(--schreiben)
+          python3 scripts/standardsprache.py "${ARGS[@]}"
+
+      - name: Schluessel aufraeumen
+        if: always()
+        run: rm -f "$RUNNER_TEMP/play-key.json"
