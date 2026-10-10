@@ -1006,6 +1006,16 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   Play-Text nur Lawine. Store-Beschreibung (`store-texte.json`) hat jetzt einen Lawine-Abschnitt —
   bei Apple mit der Einreichung gesetzt, bei Play am selben Abend per Workflow „Store-Texte" (`nur-play`, ohne Grafik).
   Ablauf in einem Lauf von `asc-submit.yml` (zuerst_abbrechen + rename_from + submit), 80 s.
+  ⚠ **Build 30 am 10.10. ERNEUT nach 2.1 abgelehnt — ATT-Dialog nicht gefunden**, obwohl er seit
+  Build 29 „beim Start“ kam. Grund: Er hing allein am JS-Auslöser (UMP-Consent → Preferences →
+  `UserDefaults.didChangeNotification` → AppDelegate), ohne zweiten Versuch; zudem verwirft iOS eine
+  ATT-Anfrage direkt beim Start gern stillschweigend (Callback kommt mit `.notDetermined`). Dieser
+  Weg war nie wirklich geprüft — 1.1.3/1.2.0 kamen nur durch, weil der Prüfer nicht bis Level 3 kam.
+  **Seit Build 31 fragt der AppDelegate selbst**: `planeStartAbfrage()` aus `applicationDidBecomeActive`,
+  1 s Verzögerung, bis zu 3 Versuche, danach wieder beim nächsten Aktivwerden; der JS-Weg bleibt
+  als zweiter Auslöser. Build 31 eingereicht am 10.10. um 08:47 UTC über dieselbe (abgelehnte)
+  reviewSubmission `878d82bf-…`. Kommt trotzdem dieselbe Ablehnung: Antwort im Resolution Center
+  mit Hinweis auf Einstellungen → Datenschutz → Tracking („Apps erlauben, Tracking anzufordern“).
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
   **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
   Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in
