@@ -1006,6 +1006,11 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   Play-Text nur Lawine. Store-Beschreibung (`store-texte.json`) hat jetzt einen Lawine-Abschnitt —
   bei Apple mit der Einreichung gesetzt, bei Play am selben Abend per Workflow „Store-Texte" (`nur-play`, ohne Grafik).
   Ablauf in einem Lauf von `asc-submit.yml` (zuerst_abbrechen + rename_from + submit), 80 s.
+  **App-Store-Kopfzeile (neu seit WWDC26, „Neue Möglichkeiten, Apps zu vermarkten“):** Bild/Video oben
+  auf der Produktseite und in den Suchergebnissen, je Suchbegriff über benutzerdefinierte Produktseiten
+  austauschbar. Entwurf in 7 Sprachen: `node scripts/render-store-header.mjs` → `store/app-store-header/
+  header-<locale>.jpg` (3840×2160, Motiv bewusst mittig und beschnittfest, weil Maße/Beschnitt beim Bau
+  undokumentiert waren). Hochladen bisher von Hand in App Store Connect — ob die API das kann, ist ungeprüft.
   ⚠ **Build 30 am 10.10. ERNEUT nach 2.1 abgelehnt — ATT-Dialog nicht gefunden**, obwohl er seit
   Build 29 „beim Start“ kam. Grund: Er hing allein am JS-Auslöser (UMP-Consent → Preferences →
   `UserDefaults.didChangeNotification` → AppDelegate), ohne zweiten Versuch; zudem verwirft iOS eine
