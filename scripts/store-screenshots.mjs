@@ -27,7 +27,10 @@ const GERAETE = [
   { ordner: 'ios-screenshots/ipad13', lang: 'de', w: 1032, h: 1376, dsf: 2 },
   { ordner: 'ios-screenshots/ipad13-en', lang: 'en', w: 1032, h: 1376, dsf: 2 },
   { ordner: 'play-screenshots', lang: 'de', w: 360, h: 716, dsf: 3 },
+  { ordner: 'play-screenshots-en', lang: 'en', w: 360, h: 716, dsf: 3 },
 ];
+// Nur einzelne Sätze erzeugen: NUR=play-screenshots-en node scripts/store-screenshots.mjs
+const NUR = process.env.NUR?.split(',');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -62,7 +65,9 @@ async function seite(g) {
 }
 
 /** Die „Alle Spiele"-Liste öffnen. Die Zeilen tragen keine ID — Reihenfolge zählt. */
-const REIHE = { solitaire: 0, connect: 1, m4: 2, riichi: 3, zen: 4, pagoda: 5, album: 6, more: 7 };
+// ⚠ Muss zu `gameItems` in App.tsx passen — seit Duell und Lawine (Okt. 2026)
+// verschoben, vorher hätte „4-connect" den Duell-Eintrag fotografiert.
+const REIHE = { solitaire: 0, duel: 1, connect: 2, lawine: 3, m4: 4, riichi: 5, zen: 6, pagoda: 7, album: 8, more: 9 };
 async function ausSheet(p, id) {
   await p.click('.allgames-btn');
   await sleep(700);
@@ -78,7 +83,7 @@ const MOTIVE = [
   { datei: '5-riichi.png', tun: async (p) => ausSheet(p, 'riichi') },
 ];
 
-for (const g of GERAETE) {
+for (const g of GERAETE.filter((x) => !NUR || NUR.includes(x.ordner))) {
   const dir = join(ZIEL, g.ordner);
   await mkdir(dir, { recursive: true });
   for (const m of MOTIVE) {

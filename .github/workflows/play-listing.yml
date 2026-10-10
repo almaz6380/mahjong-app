@@ -78,8 +78,13 @@ jobs:
                 --feature store/play-feature-graphic.png "${GEMEINSAM[@]}"
               ;;
             *)
+              # Sprachfassung, falls vorhanden (play-screenshots-en fuer en-US),
+              # sonst der deutsche Satz.
+              VERZ=store/play-screenshots
+              [ -d "store/play-screenshots-${LANG_INPUT%%-*}" ] && VERZ="store/play-screenshots-${LANG_INPUT%%-*}"
+              echo "Screenshots aus $VERZ"
               python3 scripts/play-upload.py \
-                --screenshots store/play-screenshots "${GEMEINSAM[@]}"
+                --screenshots "$VERZ" "${GEMEINSAM[@]}"
               ;;
           esac
 
