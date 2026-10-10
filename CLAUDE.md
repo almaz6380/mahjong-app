@@ -1011,6 +1011,14 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   austauschbar. Entwurf in 7 Sprachen: `node scripts/render-store-header.mjs` → `store/app-store-header/
   header-<locale>.jpg` (3840×2160, Motiv bewusst mittig und beschnittfest, weil Maße/Beschnitt beim Bau
   undokumentiert waren). Hochladen bisher von Hand in App Store Connect — ob die API das kann, ist ungeprüft.
+  **Standardsprache (10.10.2026):** Play steht jetzt auf **en-US** (vorher de-DE), Workflow
+  „Standardsprache“ (`scripts/standardsprache.py`, Trockenlauf als Standard). ⚠ Play verlangt dafür
+  Screenshots im Zielsprachen-Eintrag (403 „too few screenshots for language en-US“) — deshalb gibt es
+  jetzt `store/play-screenshots-en/`; `play-listing.yml` nimmt `play-screenshots-<sprache>` automatisch.
+  **Apple steht noch auf de-DE:** Der PATCH auf `primaryLocale` wurde während der laufenden Prüfung
+  stumm ignoriert (200, Wert unverändert) — nach der Freigabe erneut laufen lassen (`nur-apple`).
+  ⚠ `store-screenshots.mjs` tippt die „Alle Spiele“-Zeilen per Index an (`REIHE`); die muss zu
+  `gameItems` in App.tsx passen — nach Duell/Lawine hätte „4-connect“ sonst das Duell fotografiert.
   ⚠ **Build 30 am 10.10. ERNEUT nach 2.1 abgelehnt — ATT-Dialog nicht gefunden**, obwohl er seit
   Build 29 „beim Start“ kam. Grund: Er hing allein am JS-Auslöser (UMP-Consent → Preferences →
   `UserDefaults.didChangeNotification` → AppDelegate), ohne zweiten Versuch; zudem verwirft iOS eine
