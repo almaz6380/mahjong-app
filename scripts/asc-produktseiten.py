@@ -23,6 +23,7 @@ Bereits vorhandene Seiten (gleicher Name) werden nicht doppelt angelegt;
 Werbetext und Suchbegriffe werden dort nachgezogen.
 """
 import argparse
+import hashlib
 import importlib.util
 import json
 import os
@@ -71,6 +72,82 @@ def alle(pfad):
         naechste = antwort.get('links', {}).get('next')
         pfad = naechste[len(asc.BASE):] if naechste else None
     return daten
+
+
+SHOTS = os.path.join(HIER, '..', 'store', 'ios-screenshots')
+# Gleiche Zuordnung wie upload-ios-screenshots.py: de-DE deutsche Bilder,
+# alle anderen Sprachen die englischen.
+SETS = {'APP_IPHONE_65': ('iphone65', 'iphone65-en'),
+        'APP_IPAD_PRO_3GEN_129': ('ipad13', 'ipad13-en')}
+
+
+def roh_call(methode, url, roh, kopf):
+    req = urllib.request.Request(url, method=methode, data=roh)
+    for k, v in kopf.items():
+        req.add_header(k, v)
+    with urllib.request.urlopen(req) as r:
+        r.read()
+
+
+def bilder_hochladen(loc_id, loc, zuerst, schreiben):
+    """Fehlende Screenshot-Saetze einer Seiten-Sprache auffuellen.
+
+    ⚠ Die Vorlage (appStoreVersionTemplate) kopiert die Bilder NUR in die
+    Sprache, die beim Anlegen inline mitkommt — alle spaeter angelegten
+    Sprachen stehen ohne Bilder da, und ohne Bilder lehnt Apple die
+    Einreichung ab („This resource cannot be reviewed"). Am 11.10.2026
+    genau so passiert.
+    Das Motiv der Seite (`zuerst`, z. B. „5-riichi") kommt an Position 1."""
+    saetze = alle(f'/v1/appCustomProductPageLocalizations/{loc_id}/appScreenshotSets?limit=20')
+    typen = {x['attributes']['screenshotDisplayType'] for x in saetze}
+    for typ, (de, en) in SETS.items():
+        if typ in typen:
+            continue
+        ordner = os.path.join(SHOTS, de if loc == 'de-DE' else en)
+        dateien = sorted(f for f in os.listdir(ordner) if f.endswith('.png'))
+        dateien.sort(key=lambda f: 0 if zuerst and f.startswith(zuerst) else 1)
+        if not schreiben:
+            print(f'  {loc:6} TROCKENLAUF: würde {typ} hochladen: {dateien}')
+            continue
+        sid = call('POST', '/v1/appScreenshotSets', {'data': {
+            'type': 'appScreenshotSets', 'attributes': {'screenshotDisplayType': typ},
+            'relationships': {'appCustomProductPageLocalization': {'data': {
+                'type': 'appCustomProductPageLocalizations', 'id': loc_id}}}}})['data']['id']
+        for name in dateien:
+            roh = open(os.path.join(ordner, name), 'rb').read()
+            r = call('POST', '/v1/appScreenshots', {'data': {
+                'type': 'appScreenshots', 'attributes': {'fileName': name, 'fileSize': len(roh)},
+                'relationships': {'appScreenshotSet': {'data': {'type': 'appScreenshotSets', 'id': sid}}}}})
+            bild = r['data']['id']
+            op = r['data']['attributes']['uploadOperations'][0]
+            roh_call(op['method'], op['url'], roh, {h['name']: h['value'] for h in op.get('requestHeaders', [])})
+            call('PATCH', f'/v1/appScreenshots/{bild}', {'data': {
+                'type': 'appScreenshots', 'id': bild,
+                'attributes': {'uploaded': True, 'sourceFileChecksum': hashlib.md5(roh).hexdigest()}}})
+        print(f'  {loc:6} {typ}: {len(dateien)} Bilder hochgeladen (zuerst {dateien[0]})')
+
+
+def entwurf():
+    """Offene, noch nicht abgeschickte Einreichung (READY_FOR_REVIEW) oder None.
+    Apple erlaubt davon nur eine; ein abgebrochener Lauf hinterlaesst sie."""
+    for sub in alle(f'/v1/reviewSubmissions?filter[app]={asc.APP_ID}&filter[state]=READY_FOR_REVIEW&limit=20'):
+        if not sub['attributes'].get('submittedDate'):
+            return sub
+    return None
+
+
+def aus_entwurf_loesen(v_ids, schreiben):
+    """Seiten-Versionen aus dem Entwurf nehmen — erst dann sind sie wieder
+    PREPARE_FOR_SUBMISSION und ihre Sprachen bearbeitbar."""
+    sub = entwurf()
+    if not sub:
+        return
+    for it in alle(f"/v1/reviewSubmissions/{sub['id']}/items?include=appCustomProductPageVersion&limit=50"):
+        ziel = ((it.get('relationships') or {}).get('appCustomProductPageVersion') or {}).get('data') or {}
+        if ziel.get('id') in v_ids:
+            if schreiben:
+                call('DELETE', f"/v1/reviewSubmissionItems/{it['id']}")
+            print(f"  aus Entwurf {sub['id'][:8]} gelöst: {ziel['id'][:8]}" + ('' if schreiben else ' (TROCKENLAUF)'))
 
 
 def live_version():
@@ -181,6 +258,15 @@ def anlegen(cfg, version, vorhanden, schreiben):
             continue
 
         versionen = alle(f'/v1/appCustomProductPages/{seite_id}/appCustomProductPageVersions?limit=10')
+        haengend = [v['id'] for v in versionen if v['attributes'].get('state') == 'READY_FOR_REVIEW']
+        if haengend:
+            aus_entwurf_loesen(set(haengend), schreiben)
+            if schreiben:
+                versionen = alle(f'/v1/appCustomProductPages/{seite_id}/appCustomProductPageVersions?limit=10')
+            else:
+                for v in versionen:
+                    if v['id'] in haengend:
+                        v['attributes']['state'] = 'PREPARE_FOR_SUBMISSION'
         bearbeitbar = [v for v in versionen if v['attributes'].get('state') == 'PREPARE_FOR_SUBMISSION']
         if not bearbeitbar:
             print('  keine bearbeitbare Version (schon eingereicht?) — übersprungen')
@@ -209,6 +295,9 @@ def anlegen(cfg, version, vorhanden, schreiben):
                     'attributes': {'promotionalText': promo}}})
                 print(f'  {loc:6} Werbetext gesetzt')
 
+            if loc in locs:
+                bilder_hochladen(locs[loc]['id'], loc, seite.get('zuerst'), schreiben)
+
             # Suchbegriffe: nur solche, die die App selbst führt.
             felder, ids = app_kw.get(loc, (set(), []))
             wunsch = seite['keywords'].get(play_loc, [])
@@ -219,6 +308,11 @@ def anlegen(cfg, version, vorhanden, schreiben):
             if not treffer:
                 print(f'  {loc:6} ⚠ keine passende Keyword-ID gefunden (IDs der App: {ids[:12]})')
                 continue
+            if loc in locs:
+                schon = set(keyword_ids('appCustomProductPageLocalizations', locs[loc]['id']))
+                treffer = [i for i in treffer if i not in schon]
+                if not treffer:
+                    continue
             if not schreiben:
                 print(f'  {loc:6} TROCKENLAUF: würde Suchbegriffe {treffer} zuordnen')
                 continue
@@ -246,9 +340,13 @@ def einreichen(vorhanden, schreiben):
         return
     # Läuft gerade eine App-Prüfung, nimmt Apple keine zweite Einreichung an.
     # Dann meldet die API 409 und es bleibt beim Hinweis.
-    sub = call('POST', '/v1/reviewSubmissions', {'data': {
-        'type': 'reviewSubmissions', 'attributes': {'platform': 'IOS'},
-        'relationships': {'app': {'data': {'type': 'apps', 'id': asc.APP_ID}}}}})['data']
+    sub = entwurf()
+    if sub:
+        print(f"  verwende offenen Entwurf {sub['id']}")
+    else:
+        sub = call('POST', '/v1/reviewSubmissions', {'data': {
+            'type': 'reviewSubmissions', 'attributes': {'platform': 'IOS'},
+            'relationships': {'app': {'data': {'type': 'apps', 'id': asc.APP_ID}}}}})['data']
     for name, v_id in versionen:
         call('POST', '/v1/reviewSubmissionItems', {'data': {
             'type': 'reviewSubmissionItems', 'relationships': {
