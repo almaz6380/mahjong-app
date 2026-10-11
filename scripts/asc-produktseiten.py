@@ -56,10 +56,9 @@ def call(methode, pfad, daten=None):
             return json.loads(roh) if roh else {}
     except urllib.error.HTTPError as e:
         text = e.read().decode(errors='replace')
-        try:
-            text = '; '.join(f"{x.get('title')}: {x.get('detail')}" for x in json.loads(text)['errors'])
-        except Exception:
-            text = text[:600]
+        # Ganzer Text: Apple legt die eigentliche Ursache gern in
+        # errors[].meta.associatedErrors ab, nicht in title/detail.
+        text = text[:4000]
         raise ApiFehler(f'HTTP {e.code} bei {methode} {pfad}: {text}') from None
 
 
@@ -111,7 +110,18 @@ def zeige(version):
                     ids = keyword_ids('appCustomProductPageLocalizations', loc['id'])
                 except ApiFehler as e:
                     ids = [f'({e})']
-                print(f"       {loc['attributes']['locale']:6} Suchbegriffe {ids}")
+                try:
+                    saetze = alle(f"/v1/appCustomProductPageLocalizations/{loc['id']}/appScreenshotSets?limit=20")
+                    bilder = [s2['attributes'].get('screenshotDisplayType') for s2 in saetze]
+                except ApiFehler as e:
+                    bilder = [f'({str(e)[:200]})']
+                print(f"       {loc['attributes']['locale']:6} Suchbegriffe {ids}  Screenshot-Saetze {bilder}")
+    # Offene Einreichungen samt Eintraegen — ein abgebrochener Versuch bleibt
+    # als Entwurf liegen und muss weiterverwendet oder verworfen werden.
+    for sub in alle(f'/v1/reviewSubmissions?filter[app]={asc.APP_ID}&filter[state]=READY_FOR_REVIEW,UNRESOLVED_ISSUES,WAITING_FOR_REVIEW,IN_REVIEW&limit=20'):
+        print(f"\nEinreichung {sub['id']}  {sub['attributes'].get('state')}")
+        for it in alle(f"/v1/reviewSubmissions/{sub['id']}/items?limit=20"):
+            print(f"   Eintrag {it['id']}  {it['attributes'].get('state')}  {json.dumps(it.get('relationships', {}))[:0]}")
     return seiten
 
 
