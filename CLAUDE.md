@@ -1015,8 +1015,9 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   „Standardsprache“ (`scripts/standardsprache.py`, Trockenlauf als Standard). ⚠ Play verlangt dafür
   Screenshots im Zielsprachen-Eintrag (403 „too few screenshots for language en-US“) — deshalb gibt es
   jetzt `store/play-screenshots-en/`; `play-listing.yml` nimmt `play-screenshots-<sprache>` automatisch.
-  **Apple steht noch auf de-DE:** Der PATCH auf `primaryLocale` wurde während der laufenden Prüfung
-  stumm ignoriert (200, Wert unverändert) — nach der Freigabe erneut laufen lassen (`nur-apple`).
+  **Apple:** Der PATCH auf `primaryLocale` während der laufenden Prüfung antwortete 200, der Wert
+  blieb aber sichtbar de-DE — Apple hat ihn **zurückgehalten und mit der Freigabe übernommen**: am
+  11.10. stand Apple ohne weiteren Lauf auf **en-US**. Also nicht doppelt setzen, sondern abwarten.
   ⚠ `store-screenshots.mjs` tippt die „Alle Spiele“-Zeilen per Index an (`REIHE`); die muss zu
   `gameItems` in App.tsx passen — nach Duell/Lawine hätte „4-connect“ sonst das Duell fotografiert.
   ⚠ **Build 30 am 10.10. ERNEUT nach 2.1 abgelehnt — ATT-Dialog nicht gefunden**, obwohl er seit
@@ -1029,6 +1030,8 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   als zweiter Auslöser. Build 31 eingereicht am 10.10. um 08:47 UTC über dieselbe (abgelehnte)
   reviewSubmission `878d82bf-…`. Kommt trotzdem dieselbe Ablehnung: Antwort im Resolution Center
   mit Hinweis auf Einstellungen → Datenschutz → Tracking („Apps erlauben, Tracking anzufordern“).
+  **✅ 11.10.2026: 1.4.0 (Build 31) von Apple freigegeben** — die native ATT-Abfrage hat gereicht.
+  Damit tragen beide Plattformen 1.4.0 (Android vc28 / iOS Build 31), Duell + Lawine überall live.
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
   **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
   Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in
