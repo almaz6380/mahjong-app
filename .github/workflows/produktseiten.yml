@@ -1,0 +1,52 @@
+name: Produktseiten
+
+# Eigene Produktseiten im App Store (Custom Product Pages) ansehen, anlegen,
+# einreichen. Quelle: store/produktseiten.json. Trockenlauf ist Standard.
+
+on:
+  workflow_dispatch:
+    inputs:
+      modus:
+        description: 'Was tun'
+        type: choice
+        options: ['ansehen', 'anlegen', 'einreichen', 'anlegen-und-einreichen']
+        default: 'ansehen'
+      schreiben:
+        description: 'Wirklich aendern? (aus = Trockenlauf)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  seiten:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Abhaengigkeiten
+        run: |
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet pyjwt cryptography
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+
+      - name: Produktseiten
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          MODUS: ${{ inputs.modus }}
+          SCHREIBEN: ${{ inputs.schreiben }}
+        run: |
+          set -euo pipefail
+          ASC_KEY_P8=$(printf '%s' "$ASC_KEY_P8_BASE64" | tr -cd 'A-Za-z0-9+/=' | base64 -d)
+          export ASC_KEY_P8
+          ARGS=()
+          case "$MODUS" in
+            anlegen) ARGS+=(--anlegen) ;;
+            einreichen) ARGS+=(--einreichen) ;;
+            anlegen-und-einreichen) ARGS+=(--anlegen --einreichen) ;;
+          esac
+          [ "$SCHREIBEN" = "true" ] && ARGS+=(--schreiben)
+          python3 scripts/asc-produktseiten.py "${ARGS[@]}"

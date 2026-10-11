@@ -1,0 +1,37 @@
+{
+  "_hinweis": "Eigene Produktseiten im App Store (Custom Product Pages), gelesen von scripts/asc-produktseiten.py. Je Seite: Name (nur intern), Suchbegriffe (muessen in den Keywords der App stehen, siehe store-texte.json) und Werbetext je Sprache (max. 170 Zeichen). Screenshots kommen aus der live geschalteten Version (Vorlage), die Kopfzeile wird von Hand in der Inhalts-Mediathek zugeordnet.",
+  "seiten": [
+    {
+      "name": "Riichi",
+      "keywords": {
+        "de-DE": ["riichi"], "en-US": ["riichi"], "es-ES": ["riichi"], "pt-BR": ["riichi"],
+        "fr-FR": ["riichi"], "it-IT": ["riichi"], "ja-JP": ["リーチ", "麻雀"]
+      },
+      "promo": {
+        "de-DE": "Echtes japanisches Riichi-Mahjong: Yaku, Dora und Fu-Wertung gegen starke KI – oder im Duell 1 gegen 1 gegen Freunde.",
+        "en-US": "Real Japanese Riichi mahjong: yaku, dora and fu scoring against a strong AI – or 1 vs 1 against friends in Duel mode.",
+        "es-ES": "Auténtico mahjong Riichi japonés: yaku, dora y puntuación fu contra una IA fuerte, o 1 contra 1 con amigos en Duelo.",
+        "pt-BR": "Mahjong Riichi japonês de verdade: yaku, dora e pontuação fu contra uma IA forte – ou 1 contra 1 com amigos no Duelo.",
+        "fr-FR": "Le vrai mahjong japonais Riichi : yaku, dora et calcul des fu contre une IA solide – ou en 1 contre 1 avec tes amis en Duel.",
+        "it-IT": "Vero mahjong giapponese Riichi: yaku, dora e punteggio fu contro un'IA forte – oppure 1 contro 1 con gli amici nel Duello.",
+        "ja-JP": "本格リーチ麻雀。役・ドラ・符計算まで再現し、強いAIと対局。対戦モードでは友だちと1対1でも遊べます。"
+      }
+    },
+    {
+      "name": "Connect",
+      "keywords": {
+        "de-DE": ["connect"], "en-US": ["connect"], "es-ES": ["connect"], "pt-BR": ["connect"],
+        "fr-FR": ["connect"], "it-IT": ["connect"], "ja-JP": ["コネクト"]
+      },
+      "promo": {
+        "de-DE": "Mahjong Connect: Verbinde gleiche Steine mit höchstens zwei Kurven. Hunderte Level, immer lösbar – plus Solitaire, Lawine und mehr.",
+        "en-US": "Mahjong Connect: link matching tiles with at most two turns. Hundreds of levels, always solvable – plus solitaire, Avalanche and more.",
+        "es-ES": "Mahjong Connect: une fichas iguales con dos giros como máximo. Cientos de niveles, siempre resolubles, y además solitario y Avalancha.",
+        "pt-BR": "Mahjong Connect: ligue peças iguais com no máximo duas curvas. Centenas de níveis, sempre solucionáveis – e ainda paciência e Avalanche.",
+        "fr-FR": "Mahjong Connect : relie les tuiles identiques en deux virages maximum. Des centaines de niveaux toujours solubles, plus solitaire et Avalanche.",
+        "it-IT": "Mahjong Connect: collega tessere uguali con al massimo due curve. Centinaia di livelli sempre risolvibili, più solitario e Valanga.",
+        "ja-JP": "二角取り（四川省）系の麻雀コネクト。同じ牌を2回以内の曲がりでつなごう。何百ものレベルはすべてクリア可能。"
+      }
+    }
+  ]
+}
