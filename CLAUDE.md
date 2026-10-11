@@ -1018,6 +1018,19 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   **Apple:** Der PATCH auf `primaryLocale` während der laufenden Prüfung antwortete 200, der Wert
   blieb aber sichtbar de-DE — Apple hat ihn **zurückgehalten und mit der Freigabe übernommen**: am
   11.10. stand Apple ohne weiteren Lauf auf **en-US**. Also nicht doppelt setzen, sondern abwarten.
+  **Eigene Produktseiten (11.10.2026):** Workflow „Produktseiten" (`scripts/asc-produktseiten.py`,
+  Quelle `store/produktseiten.json`, Trockenlauf als Standard) legt Seiten je Suchbegriff an —
+  bisher **Riichi** (Suche „riichi“, ja: リーチ/麻雀) und **Connect** („connect“/コネクト), je 7 Sprachen,
+  Motiv-Screenshot zuerst. Suchbegriffe gehen nur, wenn sie in den App-Keywords stehen (eine
+  Duell-Seite braucht „duel“ erst in den Keywords der nächsten Version); die Keyword-IDs SIND die
+  Begriffe. ⚠ Die Vorlage (`appStoreVersionTemplate`) kopiert Screenshots nur in die beim Anlegen
+  inline mitgeschickte Sprache — der Rest muss hochgeladen werden, sonst „cannot be reviewed“.
+  ⚠ **Höchstens 2 laufende Prüfungen je Plattform** (`MAX_IN_REVIEW_SUBMISSIONS_PER_PLATFORM_LIMIT_REACHED`):
+  Kopfzeilen aus der Inhalts-Mediathek zählen mit. Wer gleichzeitig eine App-Version einreichen will,
+  muss darauf achten, dass ein Platz frei ist. Der echte Fehlergrund steht nur in
+  `errors[].meta.associatedErrors`.
+  Englischer App-Name bleibt „Mahjong Royale: Solitaire“ — „Mahjong Royale“ allein ist im
+  englischen Store vergeben (409 „already being used“, nur bei en-US).
   ⚠ `store-screenshots.mjs` tippt die „Alle Spiele“-Zeilen per Index an (`REIHE`); die muss zu
   `gameItems` in App.tsx passen — nach Duell/Lawine hätte „4-connect“ sonst das Duell fotografiert.
   ⚠ **Build 30 am 10.10. ERNEUT nach 2.1 abgelehnt — ATT-Dialog nicht gefunden**, obwohl er seit
