@@ -53,6 +53,10 @@ on:
         description: 'Store-Texte + URLs (store-texte.json, asc-texte.py) vor dem Einreichen setzen'
         type: boolean
         default: true
+      kopfzeile:
+        description: 'Kopfzeile + Suchergebnis-Bild aus der Mediathek zuordnen (asc-kopfzeile.py)'
+        type: boolean
+        default: false
       laeufer:
         description: 'Wo laufen? github = GitHub-Rechner (kostet Minuten), mac = eigener Mac (Self-hosted Runner)'
         type: choice
@@ -90,6 +94,7 @@ jobs:
           ABBRECHEN: ${{ inputs.zuerst_abbrechen }}
           SHOTS: ${{ inputs.screenshots }}
           TEXTE: ${{ inputs.texte }}
+          KOPFZEILE: ${{ inputs.kopfzeile }}
         run: |
           set -euo pipefail
           ASC_KEY_P8=$(printf '%s' "$ASC_KEY_P8_BASE64" | tr -cd 'A-Za-z0-9+/=' | base64 -d)
@@ -169,6 +174,13 @@ jobs:
           # --- 3. Screenshots ------------------------------------------------
           if [ "$SHOTS" = "true" ]; then
             python3 scripts/upload-ios-screenshots.py --ersetzen
+          fi
+
+          # --- 3b. Kopfzeile -------------------------------------------------
+          # Placements gehen nur auf eine BEARBEITBARE Version — also genau hier,
+          # zwischen Vorbereiten und Einreichen.
+          if [ "$KOPFZEILE" = "true" ]; then
+            python3 scripts/asc-kopfzeile.py --zuordnen --schreiben
           fi
 
           # --- 4. Einreichen -------------------------------------------------
