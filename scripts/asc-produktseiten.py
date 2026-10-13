@@ -332,6 +332,19 @@ def einreichen(vorhanden, schreiben):
             if v['attributes'].get('state') == 'PREPARE_FOR_SUBMISSION':
                 versionen.append((s['attributes']['name'], v['id']))
     if not versionen:
+        # Seiten, die schon im Entwurf stecken, stehen auf READY_FOR_REVIEW —
+        # dann fehlt nur noch das Abschicken des Entwurfs (so am 11./12.10.,
+        # als das Limit von 2 laufenden Prüfungen das Abschicken blockierte).
+        sub = entwurf()
+        if sub and alle(f"/v1/reviewSubmissions/{sub['id']}/items?limit=50"):
+            print(f"Entwurf {sub['id']} hat schon Einträge — schicke nur ab")
+            if not schreiben:
+                print('TROCKENLAUF — nichts eingereicht')
+                return
+            call('PATCH', f"/v1/reviewSubmissions/{sub['id']}", {'data': {
+                'type': 'reviewSubmissions', 'id': sub['id'], 'attributes': {'submitted': True}}})
+            print(f"Eingereicht, reviewSubmission {sub['id']}")
+            return
         print('Nichts einzureichen.')
         return
     print('Einzureichen: ' + ', '.join(n for n, _ in versionen))
