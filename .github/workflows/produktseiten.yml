@@ -9,7 +9,7 @@ on:
       modus:
         description: 'Was tun'
         type: choice
-        options: ['ansehen', 'anlegen', 'einreichen', 'anlegen-und-einreichen']
+        options: ['ansehen', 'anlegen', 'einreichen', 'anlegen-und-einreichen', 'zurueckziehen-anlegen-einreichen']
         default: 'ansehen'
       schreiben:
         description: 'Wirklich aendern? (aus = Trockenlauf)'
@@ -47,6 +47,7 @@ jobs:
             anlegen) ARGS+=(--anlegen) ;;
             einreichen) ARGS+=(--einreichen) ;;
             anlegen-und-einreichen) ARGS+=(--anlegen --einreichen) ;;
+            zurueckziehen-anlegen-einreichen) ARGS+=(--zurueckziehen --anlegen --einreichen) ;;
           esac
           [ "$SCHREIBEN" = "true" ] && ARGS+=(--schreiben)
           python3 scripts/asc-produktseiten.py "${ARGS[@]}"

@@ -23,6 +23,7 @@ Bereits vorhandene Seiten (gleicher Name) werden nicht doppelt angelegt;
 Werbetext und Suchbegriffe werden dort nachgezogen.
 """
 import argparse
+import time
 import hashlib
 import importlib.util
 import json
@@ -324,6 +325,33 @@ def anlegen(cfg, version, vorhanden, schreiben):
                 print(f'  {loc:6} ⚠ Suchbegriffe nicht zugeordnet: {e}')
 
 
+def zurueckziehen(schreiben):
+    """Laufende Prüfungen zurückziehen, die NUR Produktseiten enthalten (nie
+    eine App-Version), und warten, bis die Seiten wieder bearbeitbar sind."""
+    for sub in alle(f'/v1/reviewSubmissions?filter[app]={asc.APP_ID}'
+                    '&filter[state]=WAITING_FOR_REVIEW,READY_FOR_REVIEW&limit=20'):
+        items = alle(f"/v1/reviewSubmissions/{sub['id']}/items?include=appCustomProductPageVersion,appStoreVersion&limit=50")
+        cpp = [((it.get('relationships') or {}).get('appCustomProductPageVersion') or {}).get('data') for it in items]
+        if not items or not all(cpp):
+            continue
+        if not sub['attributes'].get('submittedDate'):
+            continue  # Entwurf, nicht abgeschickt
+        print(f"Prüfung {sub['id']} ({sub['attributes'].get('state')}) mit {len(items)} Produktseite(n)")
+        if not schreiben:
+            print('  TROCKENLAUF: würde zurückziehen')
+            continue
+        call('PATCH', f"/v1/reviewSubmissions/{sub['id']}", {'data': {
+            'type': 'reviewSubmissions', 'id': sub['id'], 'attributes': {'canceled': True}}})
+        print('  zurückgezogen — warte, bis die Seiten wieder bearbeitbar sind')
+        ids = {c['id'] for c in cpp}
+        for _ in range(60):
+            zust = [call('GET', f'/v1/appCustomProductPageVersions/{i}')['data']['attributes'].get('state') for i in ids]
+            if all(z == 'PREPARE_FOR_SUBMISSION' for z in zust):
+                break
+            time.sleep(5)
+        print(f'  Zustand: {zust}')
+
+
 def einreichen(vorhanden, schreiben):
     """Alle bearbeitbaren Seiten-Versionen in EINE Prüfung packen."""
     versionen = []
@@ -347,6 +375,16 @@ def einreichen(vorhanden, schreiben):
             return
         print('Nichts einzureichen.')
         return
+    # ⚠ Neue Seiten-Versionen übernehmen die Suchbegriffe NICHT (13.10.2026,
+    # Version 2 von Riichi/Connect ging so ohne Begriffe in die Prüfung).
+    leer = []
+    for name, v_id in versionen:
+        for l in alle(f'/v1/appCustomProductPageVersions/{v_id}/appCustomProductPageLocalizations?limit=50'):
+            if not keyword_ids('appCustomProductPageLocalizations', l['id']):
+                leer.append(f"{name}/{l['attributes']['locale']}")
+    if leer:
+        sys.exit('Ohne Suchbegriffe, nicht eingereicht: ' + ', '.join(leer)
+                 + '\n→ zuerst mit --anlegen nachziehen.')
     print('Einzureichen: ' + ', '.join(n for n, _ in versionen))
     if not schreiben:
         print('TROCKENLAUF — nichts eingereicht')
@@ -375,11 +413,15 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--anlegen', action='store_true')
     ap.add_argument('--einreichen', action='store_true')
+    ap.add_argument('--zurueckziehen', action='store_true',
+                    help='laufende Prüfung, die nur Produktseiten enthält, zurückziehen')
     ap.add_argument('--schreiben', action='store_true', help='wirklich ändern (sonst Trockenlauf)')
     a = ap.parse_args()
     with open(os.path.join(HIER, '..', 'store', 'produktseiten.json'), encoding='utf-8') as fh:
         cfg = json.load(fh)
     version = live_version()
+    if a.zurueckziehen:
+        zurueckziehen(a.schreiben)
     vorhanden = zeige(version)
     if a.anlegen:
         anlegen(cfg, version, vorhanden, a.schreiben)
