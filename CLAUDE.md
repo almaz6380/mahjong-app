@@ -1029,6 +1029,8 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   Kopfzeilen aus der Inhalts-Mediathek zählen mit. Wer gleichzeitig eine App-Version einreichen will,
   muss darauf achten, dass ein Platz frei ist. Der echte Fehlergrund steht nur in
   `errors[].meta.associatedErrors`.
+  **Riichi + Connect am 13.10.2026 eingereicht** (reviewSubmission `cc7957c8-…`), sobald die
+  Kopfzeilen-Prüfung einen Platz freigab.
   Englischer App-Name bleibt „Mahjong Royale: Solitaire“ — „Mahjong Royale“ allein ist im
   englischen Store vergeben (409 „already being used“, nur bei en-US).
   ⚠ `store-screenshots.mjs` tippt die „Alle Spiele“-Zeilen per Index an (`REIHE`); die muss zu
