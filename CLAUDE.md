@@ -1031,6 +1031,18 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   `errors[].meta.associatedErrors`.
   **Riichi + Connect am 13.10.2026 eingereicht** (reviewSubmission `cc7957c8-…`), sobald die
   Kopfzeilen-Prüfung einen Platz freigab.
+  **Kopfzeile per API** (Workflow „Kopfzeile", `scripts/asc-kopfzeile.py`, seit 13.10.2026): Apple
+  verlangt für die Kopfzeile **genau 5244×2950 PNG** (16:9, gilt auch für Suchergebnisse) oder
+  3840×1646 PNG (21:9) — die ersten 3840×2160-JPGs passten nur für In-App-Events. Bilder liegen in
+  `store/app-store-kopfzeile/` (`FORMAT=png DSF=3 node scripts/render-store-header.mjs`, dann auf
+  5244×2950 skaliert). Ablauf: Upload in die Mediathek (reservieren → PUT → `uploaded:true`, ohne
+  Prüfsumme) → Placement `PRODUCT_PAGE_HEADER_ASSET` + `APP_STORE_SEARCH_RESULTS_ASSET`, Gruppe
+  `DEFAULT_PROFILE`. ⚠ Nur auf BEARBEITBARE Ziele: freigegebene Version/Seite → 409. Die Hauptseite
+  bekommt ihre Kopfzeile deshalb erst mit der nächsten App-Version (Workflow dann mit `zuordnen`).
+  ⚠ **Neue Produktseiten-Versionen übernehmen Text und Screenshots, aber NICHT die Suchbegriffe** —
+  Version 2 von Riichi/Connect ging am 13.10. ohne Begriffe in die Prüfung, wurde zurückgezogen
+  und mit Begriffen neu eingereicht (reviewSubmission `8cf9f107-…`). `--einreichen` verweigert
+  seitdem Seiten ohne Suchbegriffe.
   Englischer App-Name bleibt „Mahjong Royale: Solitaire“ — „Mahjong Royale“ allein ist im
   englischen Store vergeben (409 „already being used“, nur bei en-US).
   ⚠ `store-screenshots.mjs` tippt die „Alle Spiele“-Zeilen per Index an (`REIHE`); die muss zu
