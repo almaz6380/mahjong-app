@@ -22,6 +22,9 @@ const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/M
 const W = 1920;
 const H = 1080;
 const DSF = Number(process.env.DSF ?? 2);
+// FORMAT=png: verlustfrei als PNG (für die Kopfzeile verlangt Apple PNG in genau
+// 5244×2950 — dafür mit DSF=3 rendern und danach skalieren, siehe unten).
+const PNG = process.env.FORMAT === 'png';
 
 // Die Modusnamen so, wie sie in der App unter „Alle Spiele" stehen
 // (menu.* in i18n.ts bzw. src/locales/*.ts).
@@ -111,9 +114,12 @@ for (const [loc, modi] of Object.entries(MODI)) {
     }
     return { px, breite: Math.round(el.getBoundingClientRect().width) };
   }, MAX_BREITE);
-  const ziel = join(OUT, `header-${loc}.jpg`);
-  // JPEG statt PNG: ein Foto als PNG wiegt bei 3840×2160 gut 4 MB je Sprache.
-  await page.screenshot({ path: ziel, type: 'jpeg', quality: 92, clip: { x: 0, y: 0, width: W, height: H } });
+  const ziel = join(OUT, `header-${loc}.${PNG ? 'png' : 'jpg'}`);
+  // JPEG für die In-App-Event-Fassung (ein Foto als PNG wiegt gut 4 MB); PNG
+  // für die Kopfzeile, weil Apple dort nur PNG annimmt.
+  await page.screenshot(PNG
+    ? { path: ziel, type: 'png', clip: { x: 0, y: 0, width: W, height: H } }
+    : { path: ziel, type: 'jpeg', quality: 92, clip: { x: 0, y: 0, width: W, height: H } });
   console.log(`  ${loc}  →  ${groesse.breite}px bei ${groesse.px}px Schrift  →  ${ziel}`);
 }
 await browser.close();

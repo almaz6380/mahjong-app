@@ -9,7 +9,7 @@ on:
       modus:
         description: 'Was tun'
         type: choice
-        options: ['ansehen', 'zuordnen']
+        options: ['ansehen', 'hochladen', 'zuordnen', 'alles']
         default: 'ansehen'
       schreiben:
         description: 'Wirklich zuordnen? (aus = Trockenlauf)'
@@ -41,6 +41,10 @@ jobs:
           ASC_KEY_P8=$(printf '%s' "$ASC_KEY_P8_BASE64" | tr -cd 'A-Za-z0-9+/=' | base64 -d)
           export ASC_KEY_P8
           ARGS=()
-          [ "$MODUS" = "zuordnen" ] && ARGS+=(--zuordnen)
+          case "$MODUS" in
+            hochladen) ARGS+=(--hochladen) ;;
+            zuordnen) ARGS+=(--zuordnen) ;;
+            alles) ARGS+=(--hochladen --neue-seitenversion --zuordnen) ;;
+          esac
           [ "$SCHREIBEN" = "true" ] && ARGS+=(--schreiben)
           python3 scripts/asc-kopfzeile.py "${ARGS[@]}"
