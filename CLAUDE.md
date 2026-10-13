@@ -1059,6 +1059,13 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   mit Hinweis auf Einstellungen → Datenschutz → Tracking („Apps erlauben, Tracking anzufordern“).
   **✅ 11.10.2026: 1.4.0 (Build 31) von Apple freigegeben** — die native ATT-Abfrage hat gereicht.
   Damit tragen beide Plattformen 1.4.0 (Android vc28 / iOS Build 31), Duell + Lawine überall live.
+- **13.10.2026 — iOS 1.4.1 (Build 32, nur iOS): reines Store-Release.** Code unverändert zu Build 31;
+  Anlass war die Kopfzeile auf der Hauptseite (geht nur an einer bearbeitbaren Version) und der neue
+  Suchbegriff Duell (`duel`/`duell`/`duelo`/`duello`/対戦 in `store-texte.json`, pt-BR steht damit genau
+  auf 100 Zeichen). Eingereicht 12:31 UTC, reviewSubmission `1c0021a3-…`, in EINEM Lauf von
+  `asc-submit.yml` mit dem neuen Schalter `kopfzeile: true` (ordnet zwischen Vorbereiten und Einreichen
+  zu). Android bleibt auf vc28. Versionshinweise `store/whatsnew-1.4.1.json`. Nach der Freigabe kann
+  eine Duell-Produktseite folgen (Suchbegriff steht dann in den App-Keywords).
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
   **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
   Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in
