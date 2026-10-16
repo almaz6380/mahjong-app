@@ -87,6 +87,32 @@ for p in iaps:
           ', '.join(f"{v['id'][:10]}…:{v['attributes'].get('state')}" for v in vs))
     kauf_versionen[pid] = (p, vs)
 
+# Fall B (16.10.2026): Es gibt nur einen Entwurf mit den Käufen (über die
+# Kauf-Seite angelegt), die App-Version steckt in keiner Einreichung. Dann die
+# bearbeitbare/abgelehnte Version in GENAU diesen Entwurf hängen.
+if not mit_version and nur_kaeufe and not nur_kaeufe[0][0]['attributes'].get('submittedDate'):
+    entwurf = nur_kaeufe[0][0]
+    vers = call('GET', f'/v1/apps/{asc.APP_ID}/appStoreVersions?filter[platform]=IOS&limit=5')['data']
+    offen = [v for v in vers if v['attributes']['appStoreState'] in
+             ('PREPARE_FOR_SUBMISSION', 'DEVELOPER_REJECTED', 'REJECTED', 'METADATA_REJECTED')]
+    if not offen:
+        sys.exit('Keine bearbeitbare App-Version — nichts geändert.')
+    v = offen[0]
+    b = call('GET', f"/v1/appStoreVersions/{v['id']}/build").get('data')
+    print(f"\nFall B: Version {v['attributes']['versionString']} ({v['attributes']['appStoreState']}, "
+          f"Build {b['attributes']['version'] if b else 'KEINER'}) in Entwurf {entwurf['id']} hängen")
+    if not SCHREIBEN:
+        print('TROCKENLAUF — nichts geändert.')
+        sys.exit(0)
+    call('POST', '/v1/reviewSubmissionItems', {'data': {
+        'type': 'reviewSubmissionItems', 'relationships': {
+            'reviewSubmission': {'data': {'type': 'reviewSubmissions', 'id': entwurf['id']}},
+            'appStoreVersion': {'data': {'type': 'appStoreVersions', 'id': v['id']}}}}})
+    print('Version an den Entwurf gehängt')
+    call('PATCH', f"/v1/reviewSubmissions/{entwurf['id']}", {'data': {
+        'type': 'reviewSubmissions', 'id': entwurf['id'], 'attributes': {'submitted': True}}})
+    print(f"✅ Einreichung {entwurf['id']} abgeschickt (Version + {len(nur_kaeufe[0][1])} Käufe)")
+    sys.exit(0)
 if not mit_version:
     sys.exit('Keine Einreichung mit App-Version gefunden — nichts geändert.')
 print(f"\nZiel: Einreichung {mit_version['id']} (mit App-Version)")
