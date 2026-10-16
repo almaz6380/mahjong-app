@@ -14,6 +14,13 @@ import urllib.error
 import urllib.request
 
 EINREICHEN = '--einreichen' in sys.argv
+TEXTE = '--texte' in sys.argv
+
+# Soll-Texte (16.10.2026): interne Namen mit Umlaut; die Beschreibung von
+# remove_ads nannte noch den Banner, den es seit 8.8.2026 nicht mehr gibt.
+SOLL_NAME = {'coins_small': '500 Münzen', 'coins_medium': '1500 Münzen', 'coins_large': '5000 Münzen'}
+SOLL_TEXT = {('remove_ads', 'de-DE'): 'Entfernt die Vollbild-Werbung dauerhaft.',
+             ('remove_ads', 'en-US'): 'Permanently removes full-screen ads.'}
 
 HIER = os.path.dirname(os.path.abspath(__file__))
 spec = importlib.util.spec_from_file_location('asc', os.path.join(HIER, 'asc-status.py'))
@@ -31,6 +38,18 @@ def post(pfad, daten):
             return json.load(r)
     except urllib.error.HTTPError as e:
         return {'_fehler': f'HTTP {e.code}: {e.read().decode(errors="replace")[:1500]}'}
+
+
+def patch(pfad, daten):
+    req = urllib.request.Request(asc.BASE + pfad, method='PATCH', data=json.dumps(daten).encode())
+    req.add_header('Authorization', f'Bearer {TOK}')
+    req.add_header('Content-Type', 'application/json')
+    try:
+        with urllib.request.urlopen(req) as r:
+            r.read()
+            return None
+    except urllib.error.HTTPError as e:
+        return f'HTTP {e.code}: {e.read().decode(errors="replace")[:800]}'
 
 
 def get(pfad):
@@ -53,8 +72,19 @@ for p in iaps.get('data', []):
           f"name={a.get('name')!r} id={p['id']}")
     print(f"  Prüfhinweis: {a.get('reviewNote')!r}")
     loks = get(f"/v2/inAppPurchases/{p['id']}/inAppPurchaseLocalizations?limit=50")
+    pid = a.get('productId')
+    if TEXTE and pid in SOLL_NAME and a.get('name') != SOLL_NAME[pid]:
+        f = patch(f"/v2/inAppPurchases/{p['id']}", {'data': {
+            'type': 'inAppPurchases', 'id': p['id'], 'attributes': {'name': SOLL_NAME[pid]}}})
+        print(f"  → interner Name: {f or 'gesetzt auf ' + SOLL_NAME[pid]}")
     for l in loks.get('data', []):
         la = l['attributes']
+        soll = SOLL_TEXT.get((pid, la.get('locale')))
+        if TEXTE and soll and la.get('description') != soll:
+            f = patch(f"/v1/inAppPurchaseLocalizations/{l['id']}", {'data': {
+                'type': 'inAppPurchaseLocalizations', 'id': l['id'], 'attributes': {'description': soll}}})
+            print(f"  → {la.get('locale')} Beschreibung: {f or 'gesetzt'}")
+            la['description'] = soll if not f else la.get('description')
         print(f"  {la.get('locale'):6} {la.get('state'):24} „{la.get('name')}“ – {la.get('description')}")
     shot = get(f"/v2/inAppPurchases/{p['id']}/appStoreReviewScreenshot")
     d = shot.get('data')

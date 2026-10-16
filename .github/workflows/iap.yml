@@ -3,7 +3,12 @@ name: In-App-Käufe
 # In-App-Käufe bei Apple ansehen (nur lesend).
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      texte:
+        description: 'Soll-Texte setzen (interne Namen, Beschreibung remove_ads)'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -27,4 +32,4 @@ jobs:
           set -euo pipefail
           ASC_KEY_P8=$(printf '%s' "$ASC_KEY_P8_BASE64" | tr -cd 'A-Za-z0-9+/=' | base64 -d)
           export ASC_KEY_P8
-          python3 scripts/asc-iap.py
+          if [ "${{ inputs.texte }}" = "true" ]; then python3 scripts/asc-iap.py --texte; else python3 scripts/asc-iap.py; fi
