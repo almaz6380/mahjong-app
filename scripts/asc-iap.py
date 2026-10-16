@@ -13,11 +13,24 @@ import sys
 import urllib.error
 import urllib.request
 
+EINREICHEN = '--einreichen' in sys.argv
+
 HIER = os.path.dirname(os.path.abspath(__file__))
 spec = importlib.util.spec_from_file_location('asc', os.path.join(HIER, 'asc-status.py'))
 asc = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(asc)
 TOK = asc.token()
+
+
+def post(pfad, daten):
+    req = urllib.request.Request(asc.BASE + pfad, method='POST', data=json.dumps(daten).encode())
+    req.add_header('Authorization', f'Bearer {TOK}')
+    req.add_header('Content-Type', 'application/json')
+    try:
+        with urllib.request.urlopen(req) as r:
+            return json.load(r)
+    except urllib.error.HTTPError as e:
+        return {'_fehler': f'HTTP {e.code}: {e.read().decode(errors="replace")[:1500]}'}
 
 
 def get(pfad):
@@ -49,3 +62,23 @@ for p in iaps.get('data', []):
     print(f"  Preisplan: {'ja' if preis.get('data') else 'FEHLT ' + preis.get('_fehler', '')}")
     verf = get(f"/v2/inAppPurchases/{p['id']}/inAppPurchaseAvailability")
     print(f"  Verfügbarkeit: {'ja' if verf.get('data') else 'FEHLT ' + verf.get('_fehler', '')[:120]}")
+
+# --einreichen: jedes Produkt im Zustand READY_TO_SUBMIT zur Prüfung schicken.
+# Die ERSTEN Käufe einer App prüft Apple nur zusammen mit einer App-Version —
+# deshalb läuft dieser Schritt in asc-submit.yml direkt VOR dem Einreichen der
+# Version (Schalter `iap`).
+if EINREICHEN:
+    fehler = 0
+    for p in iaps.get('data', []):
+        if p['attributes'].get('state') != 'READY_TO_SUBMIT':
+            continue
+        r = post('/v1/inAppPurchaseSubmissions', {'data': {
+            'type': 'inAppPurchaseSubmissions',
+            'relationships': {'inAppPurchaseV2': {'data': {'type': 'inAppPurchases', 'id': p['id']}}}}})
+        if '_fehler' in r:
+            fehler += 1
+            print(f"⚠ {p['attributes']['productId']}: {r['_fehler']}")
+        else:
+            print(f"eingereicht: {p['attributes']['productId']}")
+    if fehler:
+        sys.exit(f'{fehler} Produkt(e) nicht eingereicht')

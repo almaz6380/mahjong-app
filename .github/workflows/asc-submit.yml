@@ -53,6 +53,10 @@ on:
         description: 'Store-Texte + URLs (store-texte.json, asc-texte.py) vor dem Einreichen setzen'
         type: boolean
         default: true
+      iap:
+        description: 'In-App-Käufe (READY_TO_SUBMIT) mit dieser Version zur Prüfung schicken'
+        type: boolean
+        default: false
       kopfzeile:
         description: 'Kopfzeile + Suchergebnis-Bild aus der Mediathek zuordnen (asc-kopfzeile.py)'
         type: boolean
@@ -95,6 +99,7 @@ jobs:
           SHOTS: ${{ inputs.screenshots }}
           TEXTE: ${{ inputs.texte }}
           KOPFZEILE: ${{ inputs.kopfzeile }}
+          IAP: ${{ inputs.iap }}
         run: |
           set -euo pipefail
           ASC_KEY_P8=$(printf '%s' "$ASC_KEY_P8_BASE64" | tr -cd 'A-Za-z0-9+/=' | base64 -d)
@@ -181,6 +186,13 @@ jobs:
           # zwischen Vorbereiten und Einreichen.
           if [ "$KOPFZEILE" = "true" ]; then
             python3 scripts/asc-kopfzeile.py --zuordnen --schreiben
+          fi
+
+          # --- 3c. In-App-Käufe ---------------------------------------------
+          # Die ersten Käufe prüft Apple nur zusammen mit einer Version (1.4.1
+          # wurde am 15.10.2026 genau deshalb nach 2.1(b) abgelehnt).
+          if [ "$IAP" = "true" ]; then
+            python3 scripts/asc-iap.py --einreichen
           fi
 
           # --- 4. Einreichen -------------------------------------------------
