@@ -1075,6 +1075,12 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   nicht: Er wird **in App Store Connect auf der Versionsseite** („In-App-Käufe und Abonnements") der
   Version zugeordnet und mit ihr eingereicht. Spätere Käufe gehen per API (`inAppPurchaseVersions` +
   `reviewSubmissionItems.inAppPurchaseVersion`). Build 33 (1.4.1) ist dafür vorbereitet.
+  **✅ 16.10.2026 doch per API gelöst** (`scripts/asc-iap-mit-version.py`, Workflow „In-App-Käufe",
+  `mit_version`): Ein Entwurf, der die Käufe als `inAppPurchaseVersion`-Einträge trägt (entsteht über
+  die Kauf-Seite in ASC), bekommt die bearbeitbare App-Version als weiteren `appStoreVersion`-Eintrag,
+  dann `submitted: true` — Apple nimmt Version + erste Käufe so zusammen an (reviewSubmission
+  `b430c01a-…`, alle vier Käufe danach `WAITING_FOR_REVIEW`). ⚠ `GET /v2/inAppPurchases/{id}/
+  inAppPurchaseVersions` gibt 404 — die Kauf-Versionen findet man nur über die Einträge eines Entwurfs.
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
   **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
   Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in
