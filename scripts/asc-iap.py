@@ -53,8 +53,9 @@ for p in iaps.get('data', []):
           f"name={a.get('name')!r} id={p['id']}")
     print(f"  Prüfhinweis: {a.get('reviewNote')!r}")
     loks = get(f"/v2/inAppPurchases/{p['id']}/inAppPurchaseLocalizations?limit=50")
-    print('  Sprachen: ' + ', '.join(f"{l['attributes'].get('locale')}({l['attributes'].get('state')})"
-                                     for l in loks.get('data', [])) or '  Sprachen: –')
+    for l in loks.get('data', []):
+        la = l['attributes']
+        print(f"  {la.get('locale'):6} {la.get('state'):24} „{la.get('name')}“ – {la.get('description')}")
     shot = get(f"/v2/inAppPurchases/{p['id']}/appStoreReviewScreenshot")
     d = shot.get('data')
     print(f"  Prüf-Screenshot: {'ja, ' + str(d['attributes'].get('assetDeliveryState')) if d else 'FEHLT'}")
