@@ -1066,6 +1066,15 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   `asc-submit.yml` mit dem neuen Schalter `kopfzeile: true` (ordnet zwischen Vorbereiten und Einreichen
   zu). Android bleibt auf vc28. Versionshinweise `store/whatsnew-1.4.1.json`. Nach der Freigabe kann
   eine Duell-Produktseite folgen (Suchbegriff steht dann in den App-Keywords).
+  ⚠ **15.10.2026: 1.4.1 abgelehnt nach 2.1(b) — die vier In-App-Käufe waren NIE eingereicht**
+  (alle seit jeher `READY_TO_SUBMIT`, Texte/Preis/Prüf-Screenshot vollständig). Frühere Prüfer haben
+  den Shop nicht geöffnet; auf iOS war damit vermutlich nie ein Kauf möglich. Lesen per Workflow
+  „In-App-Käufe" (`scripts/asc-iap.py`). ⚠ **Den ERSTEN Kauf einer App lässt Apple nicht per API
+  einreichen** — `inAppPurchaseSubmissions` antwortet 409 `FIRST_CONSUMABLE_MUST_BE_SUBMITTED_ON_VERSION`,
+  und laut Apple-Doku („Managing In-App Purchases") gilt die Review-Submission-API für den ersten Kauf
+  nicht: Er wird **in App Store Connect auf der Versionsseite** („In-App-Käufe und Abonnements") der
+  Version zugeordnet und mit ihr eingereicht. Spätere Käufe gehen per API (`inAppPurchaseVersions` +
+  `reviewSubmissionItems.inAppPurchaseVersion`). Build 33 (1.4.1) ist dafür vorbereitet.
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
   **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
   Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in
