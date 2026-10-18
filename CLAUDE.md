@@ -1114,6 +1114,16 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   (en-US) und zieht es nach vorn. ⚠ Direkt nach dem Upload antwortet das Einreichen mit 409
   `ASSET_IN_POST_PROCESSING.APP_SCREENSHOT` — Apple braucht gut 10 min für die Bilder; der
   angelegte Entwurf bleibt liegen und wird beim nächsten Lauf wiederverwendet. Kein Fehler, nur warten.
+- **18.10.2026 — v1.5.0 (Android vc29 / iOS Build 34): 999 Level, deutlich schwerer** (Abschnitt
+  „Level-Rampe" oben). Android **vc29 in Produktion an alle**, Play-Beschreibung per „Store-Texte"
+  (`nur-play`) auf „999 Level + endlose Meister-Level" gebracht. iOS **Build 34 als 1.5.0 eingereicht**
+  (reviewSubmission `83279eb1-…`), Texte mit der Einreichung gesetzt, Versionshinweise
+  `store/whatsnew-1.5.0.json`. Die Kopfzeile kam von 1.4.1 **automatisch mit** in die neue Version
+  (`kopfzeile: true` meldete nur 409 „limit exceeded" — kein Fehler, schon belegt). Parallel lief die
+  Duell-Produktseite in der Prüfung; zwei Prüfungen gleichzeitig gingen ohne Abbruch durch.
+  ⚠ Der Hinweis „muss vor einer neuen Einreichung abgebrochen werden" in `nur_status` gilt nur für
+  App-Versionen, nicht für Produktseiten. ⚠ Die Release-Workflows melden derzeit „Artifact storage
+  quota has been hit" — betrifft nur das Ablegen des AAB/IPA als Artefakt, Upload und Rollout liefen.
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
   **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
   Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in
