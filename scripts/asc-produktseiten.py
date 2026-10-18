@@ -102,9 +102,15 @@ def bilder_hochladen(loc_id, loc, zuerst, schreiben):
     saetze = alle(f'/v1/appCustomProductPageLocalizations/{loc_id}/appScreenshotSets?limit=20')
     typen = {x['attributes']['screenshotDisplayType'] for x in saetze}
     for typ, (de, en) in SETS.items():
-        if typ in typen:
-            continue
         ordner = os.path.join(SHOTS, de if loc == 'de-DE' else en)
+        if typ in typen:
+            # Die aus der Vorlage kopierte Sprache hat schon Bilder — aber nur die
+            # der App-Version. Fehlt das Seiten-Motiv (Duell, 18.10.2026: kein
+            # Duell-Bild auf der Hauptseite), hier anhängen und nach vorn ziehen.
+            if zuerst:
+                motiv_nach_vorn(next(x for x in saetze if x['attributes']['screenshotDisplayType'] == typ),
+                                ordner, loc, zuerst, schreiben)
+            continue
         dateien = sorted(f for f in os.listdir(ordner) if f.endswith('.png'))
         dateien.sort(key=lambda f: 0 if zuerst and f.startswith(zuerst) else 1)
         if not schreiben:
@@ -115,17 +121,44 @@ def bilder_hochladen(loc_id, loc, zuerst, schreiben):
             'relationships': {'appCustomProductPageLocalization': {'data': {
                 'type': 'appCustomProductPageLocalizations', 'id': loc_id}}}}})['data']['id']
         for name in dateien:
-            roh = open(os.path.join(ordner, name), 'rb').read()
-            r = call('POST', '/v1/appScreenshots', {'data': {
-                'type': 'appScreenshots', 'attributes': {'fileName': name, 'fileSize': len(roh)},
-                'relationships': {'appScreenshotSet': {'data': {'type': 'appScreenshotSets', 'id': sid}}}}})
-            bild = r['data']['id']
-            op = r['data']['attributes']['uploadOperations'][0]
-            roh_call(op['method'], op['url'], roh, {h['name']: h['value'] for h in op.get('requestHeaders', [])})
-            call('PATCH', f'/v1/appScreenshots/{bild}', {'data': {
-                'type': 'appScreenshots', 'id': bild,
-                'attributes': {'uploaded': True, 'sourceFileChecksum': hashlib.md5(roh).hexdigest()}}})
+            ein_bild(sid, ordner, name)
         print(f'  {loc:6} {typ}: {len(dateien)} Bilder hochgeladen (zuerst {dateien[0]})')
+
+
+def ein_bild(sid, ordner, name):
+    roh = open(os.path.join(ordner, name), 'rb').read()
+    r = call('POST', '/v1/appScreenshots', {'data': {
+        'type': 'appScreenshots', 'attributes': {'fileName': name, 'fileSize': len(roh)},
+        'relationships': {'appScreenshotSet': {'data': {'type': 'appScreenshotSets', 'id': sid}}}}})
+    bild = r['data']['id']
+    op = r['data']['attributes']['uploadOperations'][0]
+    roh_call(op['method'], op['url'], roh, {h['name']: h['value'] for h in op.get('requestHeaders', [])})
+    call('PATCH', f'/v1/appScreenshots/{bild}', {'data': {
+        'type': 'appScreenshots', 'id': bild,
+        'attributes': {'uploaded': True, 'sourceFileChecksum': hashlib.md5(roh).hexdigest()}}})
+    return bild
+
+
+def motiv_nach_vorn(satz, ordner, loc, zuerst, schreiben):
+    typ = satz['attributes']['screenshotDisplayType']
+    bilder = alle(f"/v1/appScreenshotSets/{satz['id']}/appScreenshots?limit=20")
+    treffer = [b['id'] for b in bilder if (b['attributes'].get('fileName') or '').startswith(zuerst)]
+    if bilder and treffer and bilder[0]['id'] == treffer[0]:
+        return
+    datei = next((f for f in sorted(os.listdir(ordner)) if f.startswith(zuerst) and f.endswith('.png')), None)
+    if not datei:
+        sys.exit(f'{loc} {typ}: Motiv {zuerst} fehlt in {ordner}')
+    if not schreiben:
+        print(f'  {loc:6} TROCKENLAUF: würde {typ} um {datei} ergänzen und an Position 1 setzen')
+        return
+    if not treffer:
+        if len(bilder) >= 10:
+            sys.exit(f'{loc} {typ}: schon 10 Bilder, kein Platz für {datei}')
+        treffer = [ein_bild(satz['id'], ordner, datei)]
+    reihe = treffer[:1] + [b['id'] for b in bilder if b['id'] != treffer[0]]
+    call('PATCH', f"/v1/appScreenshotSets/{satz['id']}/relationships/appScreenshots",
+         {'data': [{'type': 'appScreenshots', 'id': i} for i in reihe]})
+    print(f'  {loc:6} {typ}: {datei} an Position 1')
 
 
 def entwurf():

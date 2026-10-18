@@ -81,12 +81,30 @@ const MOTIVE = [
   { datei: '3-games.png', tun: async (p) => { await p.click('.allgames-btn'); await sleep(900); } },
   { datei: '4-connect.png', tun: async (p) => ausSheet(p, 'connect') },
   { datei: '5-riichi.png', tun: async (p) => ausSheet(p, 'riichi') },
+  // Rennen gegen die KI, ein paar Sekunden nach dem Countdown — dann hat der
+  // Gegnerbalken sich schon bewegt. Motiv der Duell-Produktseite.
+  { datei: '6-duel.png', tun: async (p) => {
+    await ausSheet(p, 'duel');
+    await p.click('.duel-hub .text-btn');
+    await sleep(5000);
+    // Selbst ein paar Paare räumen (Tipp → die markierten Steine antippen),
+    // sonst steht der eigene Balken auf null und es sieht nach Verlieren aus.
+    for (let i = 0; i < 4; i++) {
+      await p.evaluate(() => [...document.querySelectorAll('.duel-bar button, button')]
+        .find((b) => b.textContent?.includes('+5s') && !b.textContent.includes('ischen') && !b.textContent.includes('huffle'))?.click());
+      await sleep(5600);
+      for (const el of await p.$$('.tile.hint')) { await el.click(); await sleep(250); }
+      await sleep(600);
+    }
+  } },
 ];
+// Nur einzelne Motive: MOTIV=6-duel node scripts/store-screenshots.mjs
+const MOTIV = process.env.MOTIV?.split(',');
 
 for (const g of GERAETE.filter((x) => !NUR || NUR.includes(x.ordner))) {
   const dir = join(ZIEL, g.ordner);
   await mkdir(dir, { recursive: true });
-  for (const m of MOTIVE) {
+  for (const m of MOTIVE.filter((x) => !MOTIV || MOTIV.some((n) => x.datei.startsWith(n)))) {
     const p = await seite(g);
     await m.tun(p);
     await sleep(500);

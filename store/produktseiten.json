@@ -73,6 +73,28 @@
         "ja-JP": "二角取り（四川省）系の麻雀コネクト。同じ牌を2回以内の曲がりでつなごう。何百ものレベルはすべてクリア可能。"
       },
       "zuerst": "4-connect"
+    },
+    {
+      "name": "Duell",
+      "keywords": {
+        "de-DE": ["duell"],
+        "en-US": ["duel"],
+        "es-ES": ["duelo"],
+        "pt-BR": ["duelo"],
+        "fr-FR": ["duel"],
+        "it-IT": ["duello"],
+        "ja-JP": ["対戦"]
+      },
+      "promo": {
+        "de-DE": "Mahjong im Duell: gleiches Brett, wer zuerst räumt, gewinnt. Fordere Freunde per Link heraus, spiel gegen Zufallsgegner – oder Riichi 1 gegen 1.",
+        "en-US": "Mahjong duels: same board, first to clear it wins. Challenge friends with a link, face random opponents – or play Riichi 1 vs 1.",
+        "es-ES": "Duelos de mahjong: mismo tablero, gana quien lo despeje primero. Reta a tus amigos con un enlace, juega contra rivales al azar o Riichi 1 contra 1.",
+        "pt-BR": "Duelos de mahjong: mesmo tabuleiro, vence quem limpar primeiro. Desafie amigos por link, enfrente rivais aleatórios – ou jogue Riichi 1 contra 1.",
+        "fr-FR": "Duels de mahjong : même plateau, le premier à tout vider gagne. Défie tes amis par lien, affronte des joueurs au hasard – ou joue au Riichi en 1 contre 1.",
+        "it-IT": "Duelli di mahjong: stesso tavolo, vince chi lo libera per primo. Sfida gli amici con un link, gioca contro avversari casuali – o a Riichi 1 contro 1.",
+        "ja-JP": "麻雀で対戦。同じ盤面を先にクリアした方が勝ち。リンクで友だちに挑戦、ランダムな相手とも対戦できます。リーチ麻雀の1対1も。"
+      },
+      "zuerst": "6-duel"
     }
   ]
 }
