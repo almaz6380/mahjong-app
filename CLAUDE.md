@@ -1083,6 +1083,14 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   inAppPurchaseVersions` gibt 404 — die Kauf-Versionen findet man nur über die Einträge eines Entwurfs.
   **✅ 18.10.2026: 1.4.1 (Build 33) samt allen vier Käufen von Apple freigegeben** — damit sind
   In-App-Käufe auf iOS zum ersten Mal verfügbar; Kopfzeile + Suchbegriff Duell sind live.
+  **18.10.2026: Duell-Produktseite eingereicht** (reviewSubmission `352bf5f1-…`, Seite `affd6e8f-…`,
+  Suchbegriffe duell/duel/duelo/duello/対戦, Kopfzeile zugeordnet). Riichi/Connect v2 sind freigegeben.
+  Neues Motiv `6-duel.png` (Rennen gegen die KI, `MOTIV=6-duel node scripts/store-screenshots.mjs`)
+  liegt in allen vier iOS-Ordnern — der nächste `--ersetzen`-Upload bringt es auch auf die Hauptseite.
+  `asc-produktseiten.py` ergänzt das Seiten-Motiv jetzt auch in der aus der Vorlage kopierten Sprache
+  (en-US) und zieht es nach vorn. ⚠ Direkt nach dem Upload antwortet das Einreichen mit 409
+  `ASSET_IN_POST_PROCESSING.APP_SCREENSHOT` — Apple braucht gut 10 min für die Bilder; der
+  angelegte Entwurf bleibt liegen und wird beim nächsten Lauf wiederverwendet. Kein Fehler, nur warten.
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
   **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
   Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in
