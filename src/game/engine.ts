@@ -217,6 +217,47 @@ export function generateBoardWithPairs(
   return { tiles: cells.map((c, i) => ({ key: i, ...c, face: deck[i], removed: false })), pairs: [] };
 }
 
+/**
+ * Wie oft gewinnt ein PLANLOSER Spieler dieses Brett? Er nimmt in jedem Zug
+ * irgendein freies passendes Paar, bis das Brett leer ist oder nichts mehr geht.
+ *
+ * Das ist das Schwierigkeitsmaß der Level-Kampagne (seit 18.10.2026): Ein
+ * Mensch spielt besser als der Zufall, aber Bretter, die der Zufallsspieler
+ * fast immer schafft, sind auch für Menschen trivial. Spezialsteine und
+ * verdeckte Steine spielen hier keine Rolle — gemessen wird vor ihrem Einbau.
+ */
+export function zufallsSiege(tiles: PlacedTile[], nb: Neighbors, versuche: number, rand: Rng = Math.random): number {
+  const n = tiles.length;
+  const present = new Uint8Array(n);
+  const free: number[] = [];
+  const paare: number[] = [];
+  let siege = 0;
+  for (let v = 0; v < versuche; v++) {
+    present.fill(1);
+    let rest = n;
+    for (;;) {
+      if (rest === 0) {
+        siege++;
+        break;
+      }
+      free.length = 0;
+      for (let i = 0; i < n; i++) if (present[i] && isFreeIdx(i, present, nb)) free.push(i);
+      paare.length = 0;
+      for (let a = 0; a < free.length; a++) {
+        for (let b = a + 1; b < free.length; b++) {
+          if (tiles[free[a]].face.matchKey === tiles[free[b]].face.matchKey) paare.push(free[a], free[b]);
+        }
+      }
+      if (!paare.length) break;
+      const k = ((rand() * (paare.length / 2)) | 0) * 2;
+      present[paare[k]] = 0;
+      present[paare[k + 1]] = 0;
+      rest -= 2;
+    }
+  }
+  return siege;
+}
+
 // Signatur unveraendert — daily.ts, useGame.ts und scripts/check-figures.mjs
 // haengen daran.
 export function generateBoard(

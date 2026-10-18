@@ -156,3 +156,39 @@ export function deckForCount(n: number): TileFace[] {
   for (let i = 0; out.length < n; i++) out.push(base[i]); // fügt ganze 4er-Gruppen -> Paarzahl bleibt gerade
   return out;
 }
+
+/**
+ * Deck mit genau `n` Steinen, in dem ein Anteil `vierer` (0–1) der Sorten
+ * VIERMAL liegt statt zweimal — die eigentliche Schwierigkeits-Stellschraube.
+ *
+ * Liegt eine Sorte nur als ein Paar auf dem Brett, gibt es keine falsche Wahl.
+ * Liegt sie viermal, kann man das „falsche“ Paar nehmen und sich damit die
+ * Partner eines verschütteten Steins wegräumen — genau daraus entstehen
+ * Sackgassen. Gemessen am 18.10.2026 mit einem planlosen Zufallsspieler: Ein
+ * reines Vierer-Deck senkt dessen Gewinnquote um rund 20 Prozentpunkte, ohne
+ * dass das Brett größer oder die Steine kleiner werden.
+ *
+ * Mit `vierer = 0` kommt unverändert `deckForCount(n)` zurück (alle Modi außer
+ * der Level-Kampagne). Jede Gruppe bleibt gerade (2 oder 4 Steine), die
+ * Paritätsregel aus modifiers.ts ist also gewahrt. Faces werden kopiert, nie
+ * geteilt (siehe „Faces nie mutieren“).
+ */
+export function deckForLevel(n: number, vierer: number, rand: () => number = Math.random): TileFace[] {
+  const base = deckForCount(n);
+  if (vierer <= 0 || n % 2) return base;
+  const nachSorte = new Map<string, TileFace[]>();
+  for (const f of base) (nachSorte.get(f.matchKey) ?? nachSorte.set(f.matchKey, []).get(f.matchKey)!).push(f);
+  const sorten = [...nachSorte.values()].filter((g) => g.length >= 4);
+  for (let i = sorten.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [sorten[i], sorten[j]] = [sorten[j], sorten[i]];
+  }
+  const ziel = Math.round(Math.min(1, vierer) * Math.floor(n / 4));
+  const out: TileFace[] = [];
+  let i = 0;
+  for (let q = 0; i < sorten.length && q < ziel && out.length + 4 <= n; i++, q++) {
+    out.push(...sorten[i].slice(0, 4).map((f) => ({ ...f })));
+  }
+  for (; i < sorten.length && out.length < n; i++) out.push(...sorten[i].slice(0, 2).map((f) => ({ ...f })));
+  return out.length === n ? out : base;
+}

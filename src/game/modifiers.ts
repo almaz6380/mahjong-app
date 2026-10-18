@@ -27,8 +27,17 @@
 // das `assignSolvable` einander zugewiesen hat, bleibt die Entfernungs-
 // Reihenfolge Zug für Zug gültig.
 
-import { mulberry32, seedFromString, type PlacedTile, type Rng } from './engine';
-import { specialFace, type SpecialKind } from './tiles';
+import {
+  generateBoardWithPairs,
+  mulberry32,
+  seedFromString,
+  zufallsSiege,
+  type Neighbors,
+  type PlacedTile,
+  type Rng,
+} from './engine';
+import type { Cell } from './layouts';
+import { deckForCount, deckForLevel, specialFace, type SpecialKind } from './tiles';
 
 /** Ab hier tauchen verdeckte Steine auf. Davor lernt man erst das Spiel. */
 export const HIDDEN_FROM_LEVEL = 30;
@@ -45,6 +54,15 @@ export interface LevelMods {
   hidden: number;
   /** Sonderwirkungen; je Eintrag ein PAAR gleichartiger Steine. */
   specials: SpecialKind[];
+  /** Anteil der Sorten, die viermal liegen (0–1), siehe `deckForLevel`. */
+  vierer?: number;
+  /**
+   * Wie viele lösbare Verteilungen erzeugt werden; genommen wird die, deren
+   * Zufallsquote (`zufallsSiege`) `zielQuote` am nächsten liegt. 1 = wie früher.
+   */
+  kandidaten?: number;
+  /** Gewünschte Gewinnquote des planlosen Spielers (0–1), siehe `zielQuote()`. */
+  zielQuote?: number;
 }
 
 export const KEINE_MODS: LevelMods = { hidden: 0, specials: [] };
@@ -61,6 +79,84 @@ export interface ModKontext {
   rated?: boolean;
   /** Läuft ein Countdown? (nur Zeit-Blitz) */
   timed?: boolean;
+  /**
+   * Level-Kampagne: zusätzlich Vierer-Fallen und Auswahl der härtesten
+   * Verteilung. Bewusst nur dort — Tages-Challenge, Blitz und Co. bleiben wie sie sind.
+   */
+  kampagne?: boolean;
+}
+
+/** Ab hier liegen erste Sorten viermal auf dem Brett. */
+export const VIERER_FROM_LEVEL = 15;
+/** Ab hier liegt jede Sorte viermal. */
+export const VIERER_VOLL_LEVEL = 100;
+
+/**
+ * Schwierigkeit der Level-Kampagne (seit 18.10.2026). Vorher gewann ein
+ * planloser Zufallsspieler bis Level ~150 über 90 % der Bretter — man konnte
+ * praktisch nicht verlieren. Vierer-Deck + Kandidaten-Auswahl gegen die
+ * Zielkurve (`zielQuote`) ergeben stattdessen ~90 % auf Level 1, ~60 % auf 50,
+ * ~40 % auf 150 und ~25 % ab 300 (Prüfung: scripts/check-schwierigkeit.mjs).
+ * Ein Mensch, der hinschaut, liegt deutlich darüber; die Zahlen messen nur,
+ * wie viel Nachdenken ein Brett verlangt.
+ */
+export function haerteForLevel(level: number): { vierer: number; kandidaten: number; zielQuote: number } {
+  const vierer =
+    level < VIERER_FROM_LEVEL
+      ? 0
+      : Math.min(1, (level - VIERER_FROM_LEVEL + 1) / (VIERER_VOLL_LEVEL - VIERER_FROM_LEVEL + 1));
+  const kandidaten = level < 10 ? 1 : level < 30 ? 4 : level < 100 ? 6 : level < 250 ? 8 : 10;
+  return { vierer, kandidaten, zielQuote: zielQuote(level) };
+}
+
+/** Zielkurve: Gewinnquote des planlosen Spielers je Level. */
+const ZIELKURVE: [number, number][] = [[1, 0.92], [50, 0.55], [150, 0.35], [300, 0.2]];
+export function zielQuote(level: number): number {
+  if (level <= ZIELKURVE[0][0]) return ZIELKURVE[0][1];
+  for (let i = 1; i < ZIELKURVE.length; i++) {
+    const [l1, q1] = ZIELKURVE[i];
+    if (level <= l1) {
+      const [l0, q0] = ZIELKURVE[i - 1];
+      return q0 + ((q1 - q0) * (level - l0)) / (l1 - l0);
+    }
+  }
+  return ZIELKURVE[ZIELKURVE.length - 1][1];
+}
+
+/** Zufallspartien je Kandidat — Rauschen ±10 %, reicht für die Auswahl. */
+export const KANDIDATEN_PROBEN = 24;
+
+/**
+ * Brett der Level-Kampagne: `kandidaten` lösbare Verteilungen bauen und die
+ * nehmen, deren Zufallsquote der Zielkurve am nächsten liegt. Bewusst nicht
+ * einfach „die härteste“: Die Figuren sind unterschiedlich schwer (gemessen
+ * zwischen 17 und 97 %), und mit der Zielkurve gleicht die Auswahl das aus —
+ * eine zu leichte Figur bekommt eine harte Verteilung, eine sehr harte eine
+ * mildere. So steigt die Kurve glatt, statt an jedem Größensprung zu zacken.
+ *
+ * Ohne `kandidaten` (alle anderen Modi) genau ein Brett, wie früher.
+ */
+export function kampagnenBrett(
+  cells: Cell[],
+  nb: Neighbors,
+  mods: LevelMods,
+  rand: Rng = Math.random,
+): { tiles: PlacedTile[]; pairs: [number, number][] } {
+  const kandidaten = Math.max(1, mods.kandidaten ?? 1);
+  const deck = () => (mods.vierer ? deckForLevel(cells.length, mods.vierer, rand) : deckForCount(cells.length));
+  if (kandidaten === 1) return generateBoardWithPairs(cells, nb, deck(), rand);
+  const ziel = mods.zielQuote ?? 0;
+  let bestes: { tiles: PlacedTile[]; pairs: [number, number][] } | null = null;
+  let abstand = Infinity;
+  for (let k = 0; k < kandidaten; k++) {
+    const brett = generateBoardWithPairs(cells, nb, deck(), rand);
+    const d = Math.abs(zufallsSiege(brett.tiles, nb, KANDIDATEN_PROBEN, rand) / KANDIDATEN_PROBEN - ziel);
+    if (d < abstand) {
+      abstand = d;
+      bestes = brett;
+    }
+  }
+  return bestes!;
 }
 
 export function modsForLevel(level: number, tileCount: number, ctx: ModKontext = {}): LevelMods {
@@ -87,7 +183,7 @@ export function modsForLevel(level: number, tileCount: number, ctx: ModKontext =
     }
   }
 
-  return { hidden, specials };
+  return ctx.kampagne ? { hidden, specials, ...haerteForLevel(level) } : { hidden, specials };
 }
 
 /**

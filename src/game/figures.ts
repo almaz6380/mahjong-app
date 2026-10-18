@@ -8,6 +8,7 @@
 // Alles deterministisch (kein Math.random) -> Level N zeigt immer dieselbe Figur.
 
 import type { Cell, Layout } from './layouts';
+import { LEVEL_ORDER, LEVEL_ORDER_SIG } from './levelOrder';
 
 /* ---------- Bitmasken ---------- */
 interface Mask {
@@ -305,32 +306,60 @@ export function allFigures(): Figure[] {
 }
 
 // ---------------------------------------------------------------------------
-//  Level-Rampe
-//  Nicht jede Figur wird ein Level: Bretter unter LEVEL_MIN_TILES sind für ein
-//  Solitaire-Level schlicht zu schnell weggeräumt, und mit LEVEL_STEP wird der
-//  Vorrat schneller durchlaufen, damit die Schwierigkeit spürbar steigt statt
-//  hundert Level lang auf der Stelle zu treten.
-//  Mit diesen Werten: Level 1 = 36 Steine/2 Ebenen, Level 25 ≈ 42/2,
-//  Level 100 ≈ 50 Steine, Level 300 ≈ 72 Steine/4 Ebenen; im Schnitt steigt es
-//  von 40 Steinen/2,6 Ebenen (Level 1–25) auf 85/3,3 (ab Level 200).
-//  Beide Zahlen sind die Stellschrauben für „zu leicht/zu schwer".
+//  Level-Rampe (seit 18.10.2026 GEMESSEN statt geschätzt)
+//  Die Reihenfolge steht fest in levelOrder.ts, erzeugt von
+//  `node scripts/make-level-order.mjs`: Jede Figur wird mit einem planlosen
+//  Zufallsspieler durchgespielt, die Level folgen einer Zielkurve von „leicht“
+//  zu „schwer“, und die Brettgröße darf nur langsam wachsen (große Steine am
+//  Anfang). Vorher ging die Rampe nach Fläche + Ebenen — Level 150 (38 Steine)
+//  war dadurch leichter als Level 1, und bis ~150 konnte man kaum verlieren.
+//  Die eigentliche Härte kommt zusätzlich aus `haerteForLevel` (modifiers.ts).
+//
+//  Nach dem letzten Level folgen endlos „Meister“-Level: die schwere hintere
+//  Hälfte der Rampe noch einmal, mit voller Härte. Vorher begann das Spiel nach
+//  Level 370 wieder bei Level 1 — mit den leichtesten Brettern.
+//
+//  ⚠ Wer am Figuren-Generator dreht, muss levelOrder.ts neu erzeugen. Passt die
+//  Signatur nicht mehr, fällt die App auf die alte Rampe zurück (nie ein
+//  kaputtes Level), und `check-figures.mjs` schlägt an.
 // ---------------------------------------------------------------------------
 const LEVEL_MIN_TILES = 36;
 const LEVEL_STEP = 3;
 
+/** Signatur einer Reihenfolge: hängt an den Hashes der benutzten Figuren. */
+export function levelOrderSig(order: number[]): number {
+  const all = allFigures();
+  let h = order.length;
+  for (const n of order) h = (Math.imul(h ^ ((all[n - 1] as (Figure & { hash?: number }) | undefined)?.hash ?? 0), 2654435761) + n) >>> 0;
+  return h;
+}
+
 let levelCache: Figure[] | null = null;
 export function levelFigures(): Figure[] {
   if (!levelCache) {
-    const pool = allFigures().filter((f) => f.cells.length >= LEVEL_MIN_TILES);
-    levelCache = pool.filter((_, i) => i % LEVEL_STEP === 0);
+    const all = allFigures();
+    if (LEVEL_ORDER.length && levelOrderSig(LEVEL_ORDER) === LEVEL_ORDER_SIG) {
+      levelCache = LEVEL_ORDER.map((n) => all[n - 1]);
+    } else {
+      const pool = all.filter((f) => f.cells.length >= LEVEL_MIN_TILES);
+      levelCache = pool.filter((_, i) => i % LEVEL_STEP === 0);
+    }
   }
   return levelCache;
 }
 
-// Level -> Figur entlang der Rampe; nach der letzten Figur beginnt sie von vorn.
+/** Ab diesem Level wiederholen sich die Bretter als Meister-Level. */
+export function meisterAb(): number {
+  return levelFigures().length + 1;
+}
+
+// Level -> Figur entlang der Rampe; danach die hintere Hälfte endlos.
 export function figureForLevel(level: number): Figure {
   const figs = levelFigures();
-  return figs[(Math.max(1, Math.floor(level)) - 1) % figs.length];
+  const l = Math.max(1, Math.floor(level));
+  if (l <= figs.length) return figs[l - 1];
+  const start = Math.floor(figs.length / 2);
+  return figs[start + ((l - figs.length - 1) % (figs.length - start))];
 }
 
 // 'fig-<n>' -> Figur (für useGame/newGame über den Layout-Namen).

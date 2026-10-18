@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { deckForCount, isPair, type SpecialKind } from './tiles';
+import { isPair, type SpecialKind } from './tiles';
 import { getLayout } from './layouts';
 import {
   blastSet,
   buildNeighbors,
-  generateBoardWithPairs,
   isFreeIdx,
   reshuffleBoard,
   type FadeTile,
@@ -12,7 +11,7 @@ import {
   type PlacedTile,
   type Rng,
 } from './engine';
-import { applyHidden, applySpecials, KEINE_MODS, type LevelMods } from './modifiers';
+import { applyHidden, applySpecials, kampagnenBrett, KEINE_MODS, type LevelMods } from './modifiers';
 
 /** Wie lange ein angetippter verdeckter Stein offen liegt. */
 export const PEEK_MS = 900;
@@ -71,7 +70,8 @@ export function useGame(initialLayout = 'classic', opts: GameOptions = {}) {
     // müssen sie zusammen mit dem Brett setzen, sonst rechnet `isFreeIdx` gegen
     // das Layout der Vorrunde.
     nbRef.current = buildNeighbors(lay.cells);
-    const { tiles: roh, pairs } = generateBoardWithPairs(lay.cells, nbRef.current, deckForCount(lay.cells.length));
+    // Kampagne: mehrere Verteilungen, die passendste zur Zielkurve; sonst eine.
+    const { tiles: roh, pairs } = kampagnenBrett(lay.cells, nbRef.current, mods);
     // Reihenfolge zaehlt: erst Spezialsteine (sie brauchen die Loesungspaarung),
     // dann verdeckte Stellen — `applyHidden` laesst Spezialsteine bewusst offen.
     return applyHidden(applySpecials(roh, pairs, mods.specials), mods.hidden);

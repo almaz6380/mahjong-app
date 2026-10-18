@@ -59,7 +59,7 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
   // sich während einer laufenden Partie nicht ändern, sonst würde ein Rerender
   // (z. B. Münzstand) das Brett neu würfeln.
   const mods = useMemo(
-    () => (mode === 'level' ? modsForLevel(level, getLayout(layoutName).cells.length, { rated: true }) : KEINE_MODS),
+    () => (mode === 'level' ? modsForLevel(level, getLayout(layoutName).cells.length, { rated: true, kampagne: true }) : KEINE_MODS),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
@@ -185,6 +185,7 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
         // diesen Leveln die Drei-Sterne-Quote, ohne dass jemand schlechter
         // gespielt haette.
         hiddenCount: game.tiles.filter((x) => x.hidden).length,
+        vierer: mods.vierer ?? 0,
       });
       if (mode === 'daily') {
         const coins = DAILY_REWARD + stars * 10;

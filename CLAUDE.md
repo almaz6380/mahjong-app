@@ -39,11 +39,32 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   zwei Stufen Schluss. Die Profile `Sockel`/`Turm`/`Stufenturm`/`Kranzturm` WIEDERHOLEN deshalb eine
   Ebene, statt sie weiter zu verjüngen — dadurch gibt es 4 Ebenen auch auf ≤5×6 (Steine bleiben ~75 px).
   Jede Ebene muss Teilmenge der darunter sein, sonst schweben Steine.
-  **Level-Rampe (`levelFigures`)**: nicht jede Figur wird ein Level — Filter `LEVEL_MIN_TILES` = 36 und
-  Schrittweite `LEVEL_STEP` = 3 ergeben **370 Level**; das sind die Stellschrauben für „zu leicht/zu
-  schwer". Ergebnis: Level 1 = 36 Steine/2 Ebenen (~75 px), Level 25 ≈ 42/2 (~63 px), Level 100 ≈ 50/2
-  (~55 px), Level 300 ≈ 72/4 (~48 px); Ø steigt von 40 Steinen/2,6 Ebenen auf 85/3,3. Scale-Deckel in
-  `Board.tsx` = 1.85. Prüfskript:
+  **Level-Rampe — seit 18.10.2026 GEMESSEN (Josef: „braucht neue und schwerere Level").** Gemessen mit
+  einem planlosen Zufallsspieler (`zufallsSiege` in engine.ts): Mit der alten Rampe (Filter ≥36 Steine,
+  jede 3. Figur, sortiert nach Fläche+Ebenen, 370 Level) gewann er **bis Level ~150 über 90 %**, Level 150
+  (38 Steine) war leichter als Level 1, und nach 370 begann alles wieder bei Level 1. Jetzt:
+  - **`src/game/levelOrder.ts`** — feste, ERZEUGTE Reihenfolge von **600 Leveln**
+    (`node scripts/make-level-order.mjs`, misst alle 1110 Figuren ≥36 Steine in ~13 s). Abschnitte nach
+    Brettgröße (1–40 ≤5×6, bis 130 ≤6×7, bis 260 ≤7×8, dann 8×9), darin von leicht nach schwer. Die Liste
+    hängt per Signatur (`levelOrderSig`, Figuren-Hashes) am Generator: Passt sie nicht, fällt die App auf
+    die alte Rampe zurück und `check-figures.mjs` schlägt an → **wer am Generator dreht, erzeugt
+    levelOrder.ts neu.**
+  - **Meister-Level ab 601**: endlos die hintere Hälfte der Rampe mit voller Härte (`figureForLevel`).
+  - **Härte aus `haerteForLevel` (modifiers.ts), nur Kampagne (`ctx.kampagne`)**: (1) **Vierer-Deck**
+    (`deckForLevel` in tiles.ts) — ab Level 15 steigend, ab 100 liegt jede Sorte viermal; das falsche der
+    passenden Paare verbaut Partner, daraus entstehen Fallen (−20 Prozentpunkte, ohne kleinere Steine).
+    (2) **Kandidaten-Auswahl** (`kampagnenBrett`): 4–10 lösbare Verteilungen, genommen wird die, deren
+    Zufallsquote der **Zielkurve** am nächsten liegt (`zielQuote`: 92 % → 55 % bei 50 → 35 % bei 150 →
+    20 % ab 300). Bewusst Zielkurve statt „die härteste“: Die Figuren streuen 17–97 %, so gleicht die
+    Auswahl sie aus und die Kurve zackt nicht an den Größensprüngen.
+  - Ergebnis (`node scripts/check-schwierigkeit.mjs`, prüft genau den Spielweg, mit Gegenprobe ohne
+    Härte und Rechenzeit): Zufallsspieler 94 % Level 1 → ~69 % L50 → ~50 % L100 → ~42 % L150 → ~30 % L300 →
+    ~25 % ab 450 (vorher 92/91/86/78 %). Brettaufbau ≤ ~35 ms (Node), im Browser ~340 ms bis zum Bild.
+  - Par-Zeit +30 % bei vollem Vierer-Deck (`parTimeMs(…, vierer)`), sonst fiele die Drei-Sterne-Quote.
+  - Tages-Challenge, Blitz, Zen, Pagode, Feste und **Duell bleiben unverändert** (Duell baut eigene
+    Bretter per Figurenname, `DUEL_PROTOCOL` musste nicht steigen).
+  - ⚠ Store-Texte sagen noch „370 Level" (`store/store-texte.json`) — beim nächsten Store-Lauf anpassen.
+  Scale-Deckel in `Board.tsx` = 1.85. Prüfskript:
   `node scripts/check-figures.mjs` (Maße, Rampe, Parität, Schweben, Lösbarkeit aller 1392, Modus-Filter).
   Steine im Solitaire mit 3D-Korpus (`<Tile solid>`, CSS `.tile.solid`); ab 40 Steinen (`SERIES_MIN_TILES`)
   mischen die Serien **Mythen** (龍鳳麒龜) & **Schätze** (Laterne/Fächer/Münze/Knoten) ins Deck
