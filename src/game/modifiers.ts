@@ -105,12 +105,12 @@ export function haerteForLevel(level: number): { vierer: number; kandidaten: num
     level < VIERER_FROM_LEVEL
       ? 0
       : Math.min(1, (level - VIERER_FROM_LEVEL + 1) / (VIERER_VOLL_LEVEL - VIERER_FROM_LEVEL + 1));
-  const kandidaten = level < 10 ? 1 : level < 30 ? 4 : level < 100 ? 6 : level < 250 ? 8 : 10;
+  const kandidaten = level < 10 ? 1 : level < 30 ? 4 : level < 100 ? 6 : level < 250 ? 8 : 14;
   return { vierer, kandidaten, zielQuote: zielQuote(level) };
 }
 
 /** Zielkurve: Gewinnquote des planlosen Spielers je Level. */
-const ZIELKURVE: [number, number][] = [[1, 0.92], [50, 0.55], [150, 0.35], [300, 0.2]];
+const ZIELKURVE: [number, number][] = [[1, 0.92], [50, 0.55], [150, 0.35], [300, 0.17]];
 export function zielQuote(level: number): number {
   if (level <= ZIELKURVE[0][0]) return ZIELKURVE[0][1];
   for (let i = 1; i < ZIELKURVE.length; i++) {
@@ -146,11 +146,14 @@ export function kampagnenBrett(
   const deck = () => (mods.vierer ? deckForLevel(cells.length, mods.vierer, rand) : deckForCount(cells.length));
   if (kandidaten === 1) return generateBoardWithPairs(cells, nb, deck(), rand);
   const ziel = mods.zielQuote ?? 0;
+  // Große Bretter kosten je Partie mehr — dort weniger Proben, damit der
+  // Levelstart auf dem Handy flott bleibt (94 Steine: 18 statt 24).
+  const proben = cells.length <= 60 ? KANDIDATEN_PROBEN : Math.max(18, Math.round((KANDIDATEN_PROBEN * 60) / cells.length));
   let bestes: { tiles: PlacedTile[]; pairs: [number, number][] } | null = null;
   let abstand = Infinity;
   for (let k = 0; k < kandidaten; k++) {
     const brett = generateBoardWithPairs(cells, nb, deck(), rand);
-    const d = Math.abs(zufallsSiege(brett.tiles, nb, KANDIDATEN_PROBEN, rand) / KANDIDATEN_PROBEN - ziel);
+    const d = Math.abs(zufallsSiege(brett.tiles, nb, proben, rand) / proben - ziel);
     if (d < abstand) {
       abstand = d;
       bestes = brett;

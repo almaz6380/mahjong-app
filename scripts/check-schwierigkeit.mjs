@@ -1,7 +1,7 @@
 // Prüft die Schwierigkeitskurve der Level-Kampagne so, wie das Spiel sie baut:
 // Figur aus levelOrder.ts, Vierer-Deck und Kandidaten-Auswahl aus
 // `haerteForLevel` — dann spielt ein planloser Zufallsspieler das gewählte Brett.
-// Gemittelt über ein Fenster von 10 Leveln, damit einzelne Figuren nicht täuschen.
+// Gemittelt über ein Fenster von 10 (ab Level 300: 30) Leveln, damit einzelne Figuren nicht täuschen.
 //
 // Aufruf aus dem Projekt-Root: node scripts/check-schwierigkeit.mjs
 // Ziel (18.10.2026, mit Josef abgestimmt): ~90 % auf Level 1, ~60 % auf 50,
@@ -36,10 +36,13 @@ function brettFuer(level, rand, mitHaerte) {
   return { brett: mods.kampagnenBrett(f.cells, nb, m, rand).tiles, nb };
 }
 
+// Ab Level 300 ist die Zielkurve flach; dort zählt der Schnitt über 30 Level
+// (einzelne 10er-Fenster schwanken mit den Figuren um ±10 Punkte).
 function quote(von, mitHaerte) {
   let siege = 0, partien = 0;
-  for (let l = von; l < von + 10; l++) {
-    for (let b = 0; b < BRETTER; b++) {
+  const breite = von >= 300 ? 30 : 10;
+  for (let l = von; l < von + breite; l++) {
+    for (let b = 0; b < (breite === 30 ? 2 : BRETTER); b++) {
       const rand = eng.mulberry32(eng.seedFromString(`kurve:${l}:${b}`));
       const { brett, nb } = brettFuer(l, rand, mitHaerte);
       siege += eng.zufallsSiege(brett, nb, MESSUNG, rand);
@@ -52,7 +55,7 @@ function quote(von, mitHaerte) {
 let fails = 0;
 const check = (ok, text) => { console.log(`  ${ok ? 'ok  ' : 'FEHL'} ${text}`); if (!ok) fails++; };
 
-const ZIELE = [[1, 0.9], [31, 0.75], [41, 0.7], [50, 0.6], [100, 0.5], [121, 0.45], [131, 0.45], [150, 0.4], [251, 0.3], [261, 0.3], [300, 0.25], [450, 0.25], [590, 0.25], [700, 0.25]];
+const ZIELE = [[1, 0.9], [31, 0.75], [41, 0.7], [50, 0.6], [100, 0.5], [121, 0.45], [131, 0.45], [150, 0.4], [251, 0.3], [261, 0.3], [300, 0.25], [450, 0.25], [590, 0.25], [800, 0.25], [990, 0.25], [1100, 0.25]];
 console.log('Level   neu    alt   Ziel');
 const neu = [];
 for (const [l, z] of ZIELE) {

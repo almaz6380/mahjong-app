@@ -43,27 +43,29 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   einem planlosen Zufallsspieler (`zufallsSiege` in engine.ts): Mit der alten Rampe (Filter ≥36 Steine,
   jede 3. Figur, sortiert nach Fläche+Ebenen, 370 Level) gewann er **bis Level ~150 über 90 %**, Level 150
   (38 Steine) war leichter als Level 1, und nach 370 begann alles wieder bei Level 1. Jetzt:
-  - **`src/game/levelOrder.ts`** — feste, ERZEUGTE Reihenfolge von **600 Leveln**
+  - **`src/game/levelOrder.ts`** — feste, ERZEUGTE Reihenfolge von **999 Leveln** (Josef: „Wieso nicht 999?“ — geht, fast alle 1110 Figuren werden gebraucht)
     (`node scripts/make-level-order.mjs`, misst alle 1110 Figuren ≥36 Steine in ~13 s). Abschnitte nach
-    Brettgröße (1–40 ≤5×6, bis 130 ≤6×7, bis 260 ≤7×8, dann 8×9), darin von leicht nach schwer. Die Liste
+    Brettgröße (1–40 ≤5×6, bis 160 ≤6×7, bis 420 ≤7×8, dann alle), darin von leicht nach schwer — außer im
+    letzten Abschnitt: Dort ist die Zielkurve flach, die Figuren stehen leicht/schwer **verzahnt** (sonst
+    bekäme sein Anfang alle leichten Restfiguren, gemessen Level 450: 46 %). Die Liste
     hängt per Signatur (`levelOrderSig`, Figuren-Hashes) am Generator: Passt sie nicht, fällt die App auf
     die alte Rampe zurück und `check-figures.mjs` schlägt an → **wer am Generator dreht, erzeugt
     levelOrder.ts neu.**
-  - **Meister-Level ab 601**: endlos die hintere Hälfte der Rampe mit voller Härte (`figureForLevel`).
+  - **Meister-Level ab 1000**: endlos die hintere Hälfte der Rampe mit voller Härte (`figureForLevel`).
   - **Härte aus `haerteForLevel` (modifiers.ts), nur Kampagne (`ctx.kampagne`)**: (1) **Vierer-Deck**
     (`deckForLevel` in tiles.ts) — ab Level 15 steigend, ab 100 liegt jede Sorte viermal; das falsche der
     passenden Paare verbaut Partner, daraus entstehen Fallen (−20 Prozentpunkte, ohne kleinere Steine).
-    (2) **Kandidaten-Auswahl** (`kampagnenBrett`): 4–10 lösbare Verteilungen, genommen wird die, deren
+    (2) **Kandidaten-Auswahl** (`kampagnenBrett`): 4–14 lösbare Verteilungen, genommen wird die, deren
     Zufallsquote der **Zielkurve** am nächsten liegt (`zielQuote`: 92 % → 55 % bei 50 → 35 % bei 150 →
-    20 % ab 300). Bewusst Zielkurve statt „die härteste“: Die Figuren streuen 17–97 %, so gleicht die
+    17 % ab 300). Bewusst Zielkurve statt „die härteste“: Die Figuren streuen 17–97 %, so gleicht die
     Auswahl sie aus und die Kurve zackt nicht an den Größensprüngen.
   - Ergebnis (`node scripts/check-schwierigkeit.mjs`, prüft genau den Spielweg, mit Gegenprobe ohne
-    Härte und Rechenzeit): Zufallsspieler 94 % Level 1 → ~69 % L50 → ~50 % L100 → ~42 % L150 → ~30 % L300 →
-    ~25 % ab 450 (vorher 92/91/86/78 %). Brettaufbau ≤ ~35 ms (Node), im Browser ~340 ms bis zum Bild.
+    Härte und Rechenzeit): Zufallsspieler 94 % Level 1 → ~69 % L50 → ~50 % L100 → ~42 % L150 → ~28 % L300 →
+    ~30–36 % bis Level 1100 (mit 600 Leveln wären es ~25 % gewesen — die zusätzlichen 399 brauchen auch die leichteren Restfiguren; 14 Kandidaten und ab 60 Steinen weniger Proben je Kandidat, Levelstart im Browser ≤ ~0,5 s) (vorher 92/91/86/78 %). Brettaufbau ≤ ~50 ms (Node), im Browser ~340 ms bis zum Bild.
   - Par-Zeit +30 % bei vollem Vierer-Deck (`parTimeMs(…, vierer)`), sonst fiele die Drei-Sterne-Quote.
   - Tages-Challenge, Blitz, Zen, Pagode, Feste und **Duell bleiben unverändert** (Duell baut eigene
     Bretter per Figurenname, `DUEL_PROTOCOL` musste nicht steigen).
-  - ⚠ Store-Texte sagen noch „370 Level" (`store/store-texte.json`) — beim nächsten Store-Lauf anpassen.
+  - ⚠ Store-Texte sagen noch „370 Level" (jetzt 999 + endlos) (`store/store-texte.json`) — beim nächsten Store-Lauf anpassen.
   Scale-Deckel in `Board.tsx` = 1.85. Prüfskript:
   `node scripts/check-figures.mjs` (Maße, Rampe, Parität, Schweben, Lösbarkeit aller 1392, Modus-Filter).
   Steine im Solitaire mit 3D-Korpus (`<Tile solid>`, CSS `.tile.solid`); ab 40 Steinen (`SERIES_MIN_TILES`)
