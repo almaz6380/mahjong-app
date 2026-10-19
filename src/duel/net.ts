@@ -21,7 +21,9 @@ export function serverBase(): string {
     /* kein Speicher */
   }
   if (Capacitor.isNativePlatform()) return DUEL_HOST;
-  const { protocol, origin, port } = window.location;
+  const { protocol, origin, port, hostname } = window.location;
+  // Kopie unter almaz6380.github.io/mahjong/spiel/ (für AdSense): dort gibt es keinen Duell-Server.
+  if (hostname.endsWith('github.io')) return DUEL_HOST;
   if ((protocol === 'http:' || protocol === 'https:') && port !== '5173' && port !== '5199') return origin;
   return DUEL_HOST;
 }

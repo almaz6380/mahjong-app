@@ -47,7 +47,7 @@ createRoot(document.getElementById('root')!).render(
   showTip()
   const tipTimer = window.setInterval(showTip, 2600)
 
-  const assets = [homeTemple, emblemShield, symbolZhong, '/splash.webp']
+  const assets = [homeTemple, emblemShield, symbolZhong, './splash.webp']
   let done = 0
   const bump = () => {
     done++

@@ -455,6 +455,15 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   puppeteer mit überschriebenem `navigator.language` (alle 7 Sprachen am Play-Knopf verifiziert).
 - Persistenz via `@capacitor/preferences` (`src/progress.ts`)
 
+## Kopie unter almaz6380.github.io/mahjong/spiel/ (seit 19.10.2026, für AdSense)
+
+AdSense nimmt `*.workers.dev`-Unteradressen nicht an, `almaz6380.github.io` ist dagegen freigegeben.
+Deshalb liegt das Web-Bundle **zusätzlich** im Repo `almaz6380.github.io` unter `mahjong/spiel/`.
+**Bei jedem Web-Release nachziehen:** `npm run build`, dann `dist/` nach `mahjong/spiel/` kopieren
+(ohne `_redirects`, `ads.txt`, `app-ads.txt`) und dort pushen. Duell: `serverBase()` in
+`src/duel/net.ts` nimmt auf `*.github.io` fest `DUEL_HOST` (CORS am Worker steht auf `*`).
+Pfade im Bundle müssen relativ bleiben (`./splash.webp`), sonst 404 unter dem Unterordner.
+
 ## WICHTIG: patch-package
 
 `patches/@capacitor-community+admob+6.2.0.patch` ist eine echte UMP-3.x-Portierung (GDPR-Consent).
