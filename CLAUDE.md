@@ -1135,6 +1135,13 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   quota has been hit" — betrifft nur das Ablegen des AAB/IPA als Artefakt, Upload und Rollout liefen.
   **✅ 20.10.2026: 1.5.0 (Build 34) von Apple freigegeben** — beide Plattformen tragen damit 1.5.0
   (Android vc29 / iOS Build 34), 999 Level überall live.
+  **Vergleichswert vor den schwereren Leveln** (Workflow „Store-Zahlen", 20.10.2026, 30 Tage):
+  Android 27 Installationen (Ø 1/Tag, ~25–30 aktiv, keine Deinstallationen), iOS 119 Downloads
+  (Ø 4/Tag). Play-Trichter im Export leer (0 Impressionen — Spalten prüfen). In ~2 Wochen erneut
+  laufen lassen; Bindungsrate gibt es nur in den Konsolen.
+  **20.10.2026: Play-Screenshots de-DE + en-US um `0-duel.png` an Position 1 ergänzt** (Workflow
+  „Play-Eintrag", sofort live, ohne Prüfung). Die anderen fünf Play-Sprachen haben keine eigenen
+  Sätze; die App-Store-Hauptseite bekommt das Duell-Bild erst mit der nächsten Version.
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
   **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
   Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in
