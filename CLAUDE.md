@@ -65,7 +65,7 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   - Par-Zeit +30 % bei vollem Vierer-Deck (`parTimeMs(…, vierer)`), sonst fiele die Drei-Sterne-Quote.
   - Tages-Challenge, Blitz, Zen, Pagode, Feste und **Duell bleiben unverändert** (Duell baut eigene
     Bretter per Figurenname, `DUEL_PROTOCOL` musste nicht steigen).
-  - ⚠ Store-Texte sagen noch „370 Level" (jetzt 999 + endlos) (`store/store-texte.json`) — beim nächsten Store-Lauf anpassen.
+  - Store-Texte nennen seit 1.5.0 „999 Level + endlose Meister-Level" und die Vierer-Fallen (beide Stores).
   Scale-Deckel in `Board.tsx` = 1.85. Prüfskript:
   `node scripts/check-figures.mjs` (Maße, Rampe, Parität, Schweben, Lösbarkeit aller 1392, Modus-Filter).
   Steine im Solitaire mit 3D-Korpus (`<Tile solid>`, CSS `.tile.solid`); ab 40 Steinen (`SERIES_MIN_TILES`)
@@ -1133,6 +1133,8 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   ⚠ Der Hinweis „muss vor einer neuen Einreichung abgebrochen werden" in `nur_status` gilt nur für
   App-Versionen, nicht für Produktseiten. ⚠ Die Release-Workflows melden derzeit „Artifact storage
   quota has been hit" — betrifft nur das Ablegen des AAB/IPA als Artefakt, Upload und Rollout liefen.
+  **✅ 20.10.2026: 1.5.0 (Build 34) von Apple freigegeben** — beide Plattformen tragen damit 1.5.0
+  (Android vc29 / iOS Build 34), 999 Level überall live.
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
   **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
   Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in
