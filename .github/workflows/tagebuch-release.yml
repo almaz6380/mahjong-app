@@ -30,9 +30,9 @@ on:
         default: production
         options: [production, alpha, internal]
       notes:
-        description: 'Android: Was ist neu'
+        description: 'Android: Was ist neu (leer = Texte je Sprache aus store/texte.json)'
         type: string
-        default: 'Erste Version: dein privates Tagebuch mit Fotos, Schreibimpulsen und Stimmungsverlauf.'
+        default: ''
 
 permissions:
   contents: read
