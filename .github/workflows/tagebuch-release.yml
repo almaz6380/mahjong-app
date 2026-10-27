@@ -175,6 +175,7 @@ jobs:
         run: |
           python3 scripts/asc.py warten --build "$BUILD"
           python3 scripts/asc.py metadaten --ausfuehren
+          python3 scripts/asc.py iap --ausfuehren
           python3 scripts/asc.py einreichen --build "$BUILD" --ausfuehren
 
       - name: Aufräumen
@@ -270,6 +271,8 @@ jobs:
           python3 scripts/play.py eintrag --ausfuehren
           python3 scripts/play.py release --aab android/app/build/outputs/bundle/release/app-release.aab \
             --track "${{ inputs.track }}" --notes "$NOTES" --ausfuehren
+          # Play lets you create a product only once a build with the billing permission is uploaded.
+          python3 scripts/play.py produkt --ausfuehren
 
       - name: Schlüssel aufräumen
         if: always()
