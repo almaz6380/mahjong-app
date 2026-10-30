@@ -664,6 +664,13 @@ und `~/.appstoreconnect/private_keys/*.p8` sind gitignored bzw. außerhalb des R
 kann also erst bauen, wenn diese Dateien aus dem Backup dorthin kopiert wurden — oder man nimmt
 gleich den Action-Weg, der die Schlüssel aus den GitHub-Secrets zieht.
 
+**Fremd-App im selben Repo: `tagebuch-release.yml` („Tagebuch Release“)** baut die App *Daily Journal*
+aus dem Repo almaz6380/Tagebuch (Expo, Bundle `io.github.almaz6380.tagebuch`). Er liegt hier, weil
+dieses Repo die Signier- und Store-Secrets hat und öffentlich ist (keine Actions-Kosten). Inputs
+`plattform`/`upload`/`einreichen`, Build-Nummer `run_number + 100`. Alles Weitere — Store-Historie,
+4.3(a)-Ablehnung, Fallen — steht in der `CLAUDE.md` des Tagebuch-Repos. Nicht mit den
+Mahjong-Workflows verwechseln und nicht löschen.
+
 ## Native Builds (Launch-Rezept, verifiziert 12.7.2026)
 
 **Skripte im Repo** (nur auf dem Mac lauffähig — Android-SDK, Keystore und Signier-Zertifikate liegen
