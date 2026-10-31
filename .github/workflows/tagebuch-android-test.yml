@@ -1,0 +1,134 @@
+# Startet die Release-Fassung der App „Daily Journal“ (Repo almaz6380/Tagebuch)
+# auf einem Android-Emulator und prüft, ob sie den Start überlebt. Anlass: Google
+# hat das erste Release wegen „App stürzt beim Öffnen ab“ beanstandet, ohne dass
+# es in dieser Umgebung ein Android-Gerät gab. Lädt nichts in einen Store.
+#
+# Ergebnis: Absturz-Log im Protokoll, Screenshot + Logcat als Artefakt. Der Lauf
+# schlägt fehl, wenn die App nach 40 s nicht mehr läuft oder ein FATAL im Log steht.
+name: Tagebuch Android-Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch oder Commit im Tagebuch-Repo'
+        type: string
+        default: main
+
+permissions:
+  contents: read
+
+jobs:
+  start:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [34, 35]
+    defaults:
+      run:
+        working-directory: tagebuch
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: almaz6380/Tagebuch
+          ref: ${{ inputs.ref }}
+          path: tagebuch
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: tagebuch/.node-version
+          cache: npm
+          cache-dependency-path: tagebuch/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Abhängigkeiten
+        run: npm ci
+
+      - name: Natives Projekt erzeugen
+        run: CI=1 npx expo prebuild -p android --clean
+
+      - name: Signaturschlüssel bereitstellen
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$KEYSTORE_B64" | tr -cd 'A-Za-z0-9+/=' | base64 -d > android/upload.keystore
+          cat > android/keystore.properties <<EOF
+          storeFile=upload.keystore
+          storePassword=$STORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+
+      - name: Release-APK bauen (nur x86_64 für den Emulator)
+        run: cd android && ./gradlew --no-daemon assembleRelease -PreactNativeArchitectures=x86_64
+
+      - name: Schlüssel aufräumen
+        if: always()
+        run: rm -f android/upload.keystore android/keystore.properties
+
+      - name: KVM freischalten
+        working-directory: .
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Testskript schreiben
+        working-directory: .
+        run: |
+          mkdir -p "$RUNNER_TEMP/out"
+          cat > "$RUNNER_TEMP/start-test.sh" <<'EOF'
+          #!/usr/bin/env bash
+          set -u
+          PKG=io.github.almaz6380.tagebuch
+          OUT="$RUNNER_TEMP/out"
+          APK=tagebuch/android/app/build/outputs/apk/release/app-release.apk
+          adb install -r "$APK" || exit 1
+          adb logcat -c; adb logcat -b crash -c
+          adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1
+          sleep 40
+          adb exec-out screencap -p > "$OUT/screen.png"
+          adb logcat -d > "$OUT/logcat.txt"
+          adb logcat -b crash -d > "$OUT/crash.txt"
+          echo "===== Absturz-Puffer ====="
+          cat "$OUT/crash.txt"
+          echo "===== Auszug Logcat ====="
+          grep -E "AndroidRuntime|FATAL|ReactNativeJS|ReactNative|Hermes|$PKG|E/" "$OUT/logcat.txt" | tail -300
+          PID=$(adb shell pidof "$PKG" | tr -d '\r')
+          echo "Prozess: ${PID:-keiner}"
+          if [ -z "$PID" ] || grep -q "FATAL EXCEPTION" "$OUT/logcat.txt" "$OUT/crash.txt"; then
+            echo "ERGEBNIS: App abgestürzt oder beendet"; exit 1
+          fi
+          echo "ERGEBNIS: App läuft nach 40 s"
+          EOF
+          chmod +x "$RUNNER_TEMP/start-test.sh"
+
+      - name: Auf dem Emulator starten
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          script: bash "$RUNNER_TEMP/start-test.sh"
+
+      - name: Ergebnis ablegen
+        if: always()
+        # Das Artefakt-Kontingent dieses Repos ist zeitweise voll; das Protokoll reicht dann.
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: tagebuch-android-test-api${{ matrix.api }}
+          path: ${{ runner.temp }}/out
+          retention-days: 7
