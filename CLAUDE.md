@@ -1149,6 +1149,14 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   **20.10.2026: Play-Screenshots de-DE + en-US um `0-duel.png` an Position 1 ergänzt** (Workflow
   „Play-Eintrag", sofort live, ohne Prüfung). Die anderen fünf Play-Sprachen haben keine eigenen
   Sätze; die App-Store-Hauptseite bekommt das Duell-Bild erst mit der nächsten Version.
+  **Vergleich am 4.11.2026 (30 Tage, 5.10.–3.11.):** Android **31** Installationen (vorher 27, Ø 1,2/Tag;
+  Ausreißer 10 am 30.10.), aktive Geräte 25–34 (vorher 24–30), Deinstallationen weiter überall 0
+  (Spalte womöglich nicht gefüllt — ungeprüft). iOS **200** Downloads (vorher 119, Ø 6,9 statt 4/Tag),
+  steigend bis 22 am 2.11. Ursache nicht trennbar: In denselben Zeitraum fallen die Produktseiten
+  Riichi/Connect/Duell, Kopfzeile und Suchbegriff Duell — die Schwierigkeit allein erklärt es nicht.
+  Kein Einbruch nach 1.5.0 erkennbar. **Play-Trichter repariert:** Die Store-Performance-Spalten
+  heißen „Store listing visitors/acquisitions" (kleines l), `feld()` liest jetzt ohne Groß-/Klein-
+  schreibung → 44 Besucher → 11 Installationen (25 %, gesund). Impressionen liefert der Export nicht.
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
   **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
   Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in
