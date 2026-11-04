@@ -202,6 +202,22 @@ def zahl(wert):
         return 0
 
 
+def feld(r, *namen):
+    """Wert einer CSV-Spalte, ohne auf Gross-/Kleinschreibung zu achten.
+
+    Play schreibt die Spaltenkoepfe nicht einheitlich: Die Installations-
+    berichte nutzen „Daily Device Installs", die Store-Performance-Berichte
+    „Store listing acquisitions" mit kleinem l. Mit exakten Namen blieb der
+    ganze Trichter am 20.10.2026 auf 0, obwohl die Berichte gefunden wurden.
+    """
+    klein = {k.strip().lower(): v for k, v in r.items() if k}
+    for n in namen:
+        v = klein.get(n.lower())
+        if v not in (None, ''):
+            return v
+    return None
+
+
 def android(tage):
     print('\n=== ANDROID (Google Play) ===')
     if not BUCKET:
@@ -258,9 +274,13 @@ def android(tage):
             continue
         art = 'Laender' if '_country' in name else 'Quellen'
         eintrag = trichter[art]
-        eintrag[0] += zahl(r.get('Store Listing Acquisitions'))
-        eintrag[1] += zahl(r.get('Store Listing Visitors'))
-        eintrag[2] += zahl(r.get('Store Listing Impressions') or r.get('Impressions'))
+        eintrag[0] += zahl(feld(r, 'Store listing acquisitions', 'Store Listing Acquisitions'))
+        eintrag[1] += zahl(feld(r, 'Store listing visitors', 'Store Listing Visitors'))
+        eintrag[2] += zahl(feld(r, 'Store listing impressions', 'Impressions'))
+    if roh and not any(sum(v) for v in trichter.values()):
+        # Berichte da, aber keine Spalte erkannt: Koepfe zeigen statt zu raten.
+        print('   Berichte gefunden, aber keine bekannte Spalte. Spalten im Bericht:')
+        print('     ' + ', '.join(k for k in roh[0][1].keys() if k))
     if trichter:
         for art, (akq, bes, imp) in trichter.items():
             quote_b = f'{100 * bes / imp:.1f} %' if imp else '—'
