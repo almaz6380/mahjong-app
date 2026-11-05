@@ -110,8 +110,18 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   season1–4, treasure1–4, elem-pin (Münze = Kreis-Pips), elem-sou (Bambusstab = Sou-Pips),
   face-marble (Deckfläche). Als SVG nachgezeichnet
   (schärfer in Kleinstgrößen, `Glyph`-Helper mit Goldkante): Zahlen = Lapis-Ziffer + Rubin-萬,
-  Winde = Onyx, 中 rot / 發 jade / 白 schiefer, Blume = rote Scheibe. Skins mit eigener Flächenfarbe
-  blenden Marmor+Goldrand aus (`.face-tex`), Neon hellt Lapis/Onyx/Slate auf (sonst unlesbar).
+  Winde = Onyx, 中 rot / 發 jade / 白 schiefer, Blume = rote Scheibe. **Stein-Skins seit 1.6.0 OHNE CSS-Filter**
+  (vorher `filter: hue-rotate/contrast/saturate` auf `.tileface` — verstieß gegen die iOS-Regel unten
+  und drehte bei Sakura auch die Bild-Motive um). Jetzt setzt jedes `[data-skin=…]` CSS-Variablen
+  (`--skin-face/-side/-back/-tex/-tint/-frame/-gloss/-lapis/-onyx/-slate/-ruby/-rank/-bomb/-flower`),
+  die IM SVG als `fill`/`stroke` wirken (Klassen `face-frame`, `skin-tint`, `face-gloss`, `rank-num`,
+  `bomb-core`, `flower-core` in `Tile.tsx`) — reiner Malvorgang wie `.sel-tint`. Weil Variablen vom
+  NÄCHSTEN `[data-skin]`-Vorfahren erben, trägt jede Vorschau im Design-Screen ihr eigenes
+  `data-skin` und zeigt so ihren Skin statt des aktiven. Neuer Skin = ein Variablenblock in styles.css.
+  Prüfung: `grep` darf kein `filter:` auf `.tile`/`.tileface` finden.
+  **Design-Screen (`ThemesScreen`):** nach Preis sortiert, Antippen öffnet eine Vorschau (Brett aus
+  8 Steinen auf dem Hintergrund) mit Kaufknopf — Ausprobieren vor dem Kauf. Preise unverändert
+  (Josefs Entscheidung). ≤360 px: zwei statt drei Vorschau-Steine, sonst laufen Namen unter den Knopf.
   **Auswahl-Tönung:** Der angetippte Stein wird golden (`--sel-tint` Fläche, `--sel-gold` Kontur).
   Das macht ein Rechteck `.sel-tint` IM SVG (`TileBody`, über der Marmor-Textur, unter Glanz und
   Motiv) — so färbt sich nur die Fläche, das Motiv bleibt scharf. Bewusst `fill` statt CSS-Filter:
@@ -287,8 +297,11 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
     hätte nichts mehr bewirkt. Ersatz ist **`--wash`** (`src/game/themes.ts`): eine Farbschicht
     über dem Foto, mittlere Lage im `background-image` von `html`. `classic` steht bewusst auf
     `transparent`, damit der Grundzustand unverändert aussieht; die bezahlten Welten färben das
-    ganze Bild spürbar. Wer eine Welt ändert, muss `swatch`, `--felt-2` und `--wash` zusammen
-    nachziehen.
+    ganze Bild spürbar. Seit 1.6.0 ist der Wash ein **Verlauf aus zwei Tönen**
+    (`--wash` unten, `--wash-top` oben, `linear-gradient(0deg, …)`), je Welt eigene Deckkraft —
+    vorher sahen Mitternacht/Lampion und Sonnenuntergang/Lack praktisch gleich aus. `--felt`/`--felt-2`
+    und `swatch` sind ganz weg; die Kachel im Design-Screen ist ein Tempel-Thumbnail mit genau
+    diesem Wash (`themeBg()` in Screens.tsx), zeigt also das echte Ergebnis.
     ⚠ Bewusst **kein `color-mix`** dafür: Safari kann es erst ab 16.2, das Deployment-Target
     steht auf iOS 15 — ein ungültiger Wert würde die ganze `background-image`-Angabe verwerfen
     und damit auch das Foto.
@@ -1124,7 +1137,7 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   In-App-Käufe auf iOS zum ersten Mal verfügbar; Kopfzeile + Suchbegriff Duell sind live.
   **18.10.2026: Duell-Produktseite eingereicht** (reviewSubmission `352bf5f1-…`, Seite `affd6e8f-…`,
   Suchbegriffe duell/duel/duelo/duello/対戦, Kopfzeile zugeordnet). Riichi/Connect v2 sind freigegeben.
-  Neues Motiv `6-duel.png` (Rennen gegen die KI, `MOTIV=6-duel node scripts/store-screenshots.mjs`)
+  Neues Motiv `6-duel.png` (seit 1.6.0 `0-duel.png`, Rennen gegen die KI, `MOTIV=0-duel node scripts/store-screenshots.mjs`)
   liegt in allen vier iOS-Ordnern — der nächste `--ersetzen`-Upload bringt es auch auf die Hauptseite.
   `asc-produktseiten.py` ergänzt das Seiten-Motiv jetzt auch in der aus der Vorlage kopierten Sprache
   (en-US) und zieht es nach vorn. ⚠ Direkt nach dem Upload antwortet das Einreichen mit 409
@@ -1157,6 +1170,19 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   Kein Einbruch nach 1.5.0 erkennbar. **Play-Trichter repariert:** Die Store-Performance-Spalten
   heißen „Store listing visitors/acquisitions" (kleines l), `feld()` liest jetzt ohne Groß-/Klein-
   schreibung → 44 Besucher → 11 Installationen (25 %, gesund). Impressionen liefert der Export nicht.
+- **5.11.2026 — v1.6.0 (Android vc30 / iOS Build 35) vorbereitet, NOCH NICHT gebaut** (Josef:
+  „Rundumcheck, was fehlt und was an den Design-Modi geändert werden muss"). Inhalt: Skins ohne
+  Filter + ehrliche Vorschau + Ausprobieren vor dem Kauf, Farbwelten unterscheidbar (s. Stein-Design
+  und Tempel-Abschnitt oben); 90 fehlende Übersetzungen je Sprache in ES/PT/FR/IT/JA nachgezogen
+  (Duell, Erinnerung, Riichi, Spezialsteine — Stand jetzt 0 fehlende Schlüssel); aria-labels und
+  „Lv"-Badge übersetzbar; **Meister-Level** ab 1000 sichtbar (`src/game/meister.ts`, aus der Länge
+  von LEVEL_ORDER statt `meisterAb()`, das den ganzen Generator bräuchte); 7 neue Erfolge;
+  Statistik zählt Duelle (`stats.duelGames/duelWins`, `DuelScreen.onResult`) und **Riichi getrennt**
+  (`riichiHands/riichiWins` — bis 1.5 lief Riichi in `m4Hands` mit, alte Werte bleiben dort);
+  Dimensions-Bestwert; Hub-Bild `game-duel.webp` (`scripts/render-game-duel.mjs`) statt ⚔️.
+  Store-Screenshots: `6-duel` → **`0-duel`** auch bei iOS (Position 1, `produktseiten.json`
+  angepasst), neu `7-lawine` und `8-design` (Play: 8 Bilder = Höchstzahl). Versionshinweise
+  `store/whatsnew-1.6.0.json`. Plan: Android gestuft (`--fraction 0.2`), weil optisch heikel.
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
   **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
   Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in

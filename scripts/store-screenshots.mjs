@@ -1,4 +1,4 @@
-// Store-Screenshots erzeugen — fünf Motive × vier Geräteformate × zwei Sprachen.
+// Store-Screenshots erzeugen — acht Motive × vier Geräteformate × zwei Sprachen.
 //
 // Bis 1.0.6 entstanden die Bilder von Hand; ab 1.1.0 macht es dieses Skript, weil
 // der Tempel-Hintergrund seit dem 11.08.2026 auf ALLEN Bildschirmen liegt und die
@@ -50,7 +50,7 @@ async function seite(g) {
     // genau das, was 1.1.0 zeigen soll), Connect und Pagode angespielt.
     localStorage.setItem('CapacitorStorage.mahjong.progress.v1', JSON.stringify({
       level: 60, coins: 2450, lang, showFacts: false,
-      connectLevel: 14, pagodaFloor: 23,
+      connectLevel: 14, pagodaFloor: 23, lawineLevel: 9,
       stats: { bestTimeMs: 142000, dailies: 9, m4Hands: 26, m4Wins: 11, m4BestFaan: 7, modeBest: { memory: 18 } },
     }));
   }, g.lang);
@@ -83,7 +83,8 @@ const MOTIVE = [
   { datei: '5-riichi.png', tun: async (p) => ausSheet(p, 'riichi') },
   // Rennen gegen die KI, ein paar Sekunden nach dem Countdown — dann hat der
   // Gegnerbalken sich schon bewegt. Motiv der Duell-Produktseite.
-  { datei: '6-duel.png', tun: async (p) => {
+  // Seit 1.6.0 heißt es 0-duel (Position 1 in beiden Stores, wie bei Play seit 20.10.).
+  { datei: '0-duel.png', tun: async (p) => {
     await ausSheet(p, 'duel');
     await p.click('.duel-hub .text-btn');
     await sleep(5000);
@@ -97,8 +98,14 @@ const MOTIVE = [
       await sleep(600);
     }
   } },
+  // seit 1.6.0: Lawine und der neue Design-Screen
+  { datei: '7-lawine.png', tun: async (p) => ausSheet(p, 'lawine') },
+  { datei: '8-design.png', tun: async (p) => {
+    await p.evaluate(() => document.querySelectorAll('.home-rbtn')[0].click());
+    await sleep(900);
+  } },
 ];
-// Nur einzelne Motive: MOTIV=6-duel node scripts/store-screenshots.mjs
+// Nur einzelne Motive: MOTIV=0-duel node scripts/store-screenshots.mjs
 const MOTIV = process.env.MOTIV?.split(',');
 
 for (const g of GERAETE.filter((x) => !NUR || NUR.includes(x.ordner))) {
