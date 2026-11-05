@@ -73,7 +73,7 @@ export function SudokuScreen({ api, onExit }: ModeProps) {
   return (
     <div className="mode-play">
       <header className="mode-head">
-        <button className="icon-btn" onClick={onExit} aria-label="Menü"><Icon name="chevron" /></button>
+        <button className="icon-btn" onClick={onExit} aria-label={t('a11y.menu')}><Icon name="chevron" /></button>
         <div className="grow"><div className="score" style={{ fontSize: 16 }}>{t('mode.sudoku')}</div></div>
         <div style={{ width: 40 }} />
       </header>

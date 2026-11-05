@@ -29,6 +29,7 @@ import { activeFestival } from './game/festivals';
 import { useProgress } from './game/progress';
 import { layoutForLevel } from './game/layouts';
 import { applyTheme, applySkin } from './game/themes';
+import { istMeister } from './game/meister';
 import { satisfiedAchievements, getAchievement, type Achievement } from './game/achievements';
 import { loadSession, clearSession, type SavedGame } from './game/session';
 import { makeDailyBoard, dailyLayoutName, dailyDoneToday } from './game/daily';
@@ -44,6 +45,7 @@ import { setFactsEnabled } from './ui/FactHost';
 import gameSolitaire from './assets/game-solitaire.webp';
 import gameConnect from './assets/game-connect.webp';
 import gameLawine from './assets/game-lawine.webp';
+import gameDuel from './assets/game-duel.webp';
 import gameM4 from './assets/game-m4.webp';
 import gameRiichi from './assets/game-riichi.webp';
 import gameZen from './assets/game-zen.webp';
@@ -269,7 +271,7 @@ export default function App() {
       <RiichiTable
         onExit={() => setScreen('menu')}
         addCoins={bonusCoins}
-        onHandResult={(won) => p.recordM4Hand(won, 0)}
+        onHandResult={p.recordRiichiHand}
       />
     );
   if (screen === 'settings')
@@ -349,6 +351,7 @@ export default function App() {
       <DuelScreen
         key={duelCode ?? 'duel'}
         addCoins={bonusCoins}
+        onResult={p.recordDuel}
         initialCode={duelCode}
         onOpenRiichi={() => {
           setDuelCode(null);
@@ -377,9 +380,9 @@ export default function App() {
 
   const gameItems: GameItem[] = [
     { id: 'solitaire', icon: <img className="game-img" src={gameSolitaire} alt="" />, name: t('hub.solitaire'), sub: canResume ? t('hub.resume', { n: resume!.level }) : t('hub.solitaire.sub', { n: progress.level }), onClick: canResume ? startResume : startFresh },
-    { id: 'duel', icon: <span className="game-emoji" aria-hidden>⚔️</span>, name: t('duel.title'), sub: t('hub.duel.sub'), onClick: () => setScreen('duel') },
-    { id: 'connect', icon: <img className="game-img" src={gameConnect} alt="" />, name: t('menu.connect'), sub: t('hub.connect.sub'), badge: connectLevel > 1 ? 'Lv ' + connectLevel : undefined, onClick: () => setScreen('connect') },
-    { id: 'lawine', icon: <img className="game-img" src={gameLawine} alt="" />, name: t('menu.lawine'), sub: t('hub.lawine.sub'), badge: lawineLevel > 1 ? 'Lv ' + lawineLevel : undefined, onClick: () => setScreen('lawine') },
+    { id: 'duel', icon: <img className="game-img" src={gameDuel} alt="" />, name: t('duel.title'), sub: t('hub.duel.sub'), onClick: () => setScreen('duel') },
+    { id: 'connect', icon: <img className="game-img" src={gameConnect} alt="" />, name: t('menu.connect'), sub: t('hub.connect.sub'), badge: connectLevel > 1 ? t('hub.lv', { n: connectLevel }) : undefined, onClick: () => setScreen('connect') },
+    { id: 'lawine', icon: <img className="game-img" src={gameLawine} alt="" />, name: t('menu.lawine'), sub: t('hub.lawine.sub'), badge: lawineLevel > 1 ? t('hub.lv', { n: lawineLevel }) : undefined, onClick: () => setScreen('lawine') },
     { id: 'm4', icon: <img className="game-img" src={gameM4} alt="" />, name: t('menu.m4'), sub: t('hub.m4.sub'), onClick: () => setScreen('mahjong4') },
     { id: 'riichi', icon: <img className="game-img" src={gameRiichi} alt="" />, name: t('menu.riichi'), sub: t('hub.riichi.sub'), onClick: () => setScreen('riichi') },
     { id: 'zen', icon: <img className="game-img" src={gameZen} alt="" />, name: t('menu.zen'), sub: t('hub.zen.sub'), onClick: () => setScreen('zen') },
@@ -439,7 +442,7 @@ export default function App() {
           <span className="play-tri">▶</span>
           <span className="play-tx">
             {canResume ? t('home.resume') : t('home.play')}
-            <small>{t('home.level', { n: progress.level })}</small>
+            <small>{istMeister(progress.level) ? t('level.master', { n: progress.level }) : t('home.level', { n: progress.level })}</small>
           </span>
         </button>
         <button className="allgames-btn" onClick={() => setGamesOpen(true)}>{t('home.allGames')} ›</button>

@@ -13,7 +13,7 @@ import { appVersionLabel } from '../appVersion';
 export function ScreenHeader({ title, onBack }: { title: string; onBack: () => void }) {
   return (
     <header className="hud">
-      <button className="icon-btn" onClick={onBack} aria-label="Zurück">
+      <button className="icon-btn" onClick={onBack} aria-label={t('a11y.back')}>
         <Icon name="chevron" />
       </button>
       <div className="hud-center">
@@ -95,7 +95,7 @@ export function SettingsScreen({
           <button
             className={'toggle' + (progress.soundOn ? ' on' : '')}
             onClick={() => setSoundOn(!progress.soundOn)}
-            aria-label="Sound umschalten"
+            aria-label={t('a11y.sound')}
           >
             <span className="knob" />
           </button>
@@ -417,6 +417,17 @@ export function StatsScreen({ progress, onBack }: { progress: Progress; onBack: 
     [t('stats.streak'), t('stats.days', { n: progress.streak })],
     [t('stats.coins'), progress.coins],
   ];
+  const pct = (w: number, n: number) => (n > 0 ? Math.round((w / n) * 100) + ' %' : '–');
+  const rowsDuel: [string, string | number][] = [
+    [t('stats.duelGames'), st.duelGames],
+    [t('stats.duelWins'), st.duelWins],
+    [t('stats.m4Rate'), pct(st.duelWins, st.duelGames)],
+  ];
+  const rowsRiichi: [string, string | number][] = [
+    [t('stats.m4Hands'), st.riichiHands],
+    [t('stats.m4Wins'), st.riichiWins],
+    [t('stats.m4Rate'), pct(st.riichiWins, st.riichiHands)],
+  ];
   const rowsM4: [string, string | number][] = [
     [t('stats.m4Hands'), st.m4Hands],
     [t('stats.m4Wins'), st.m4Wins],
@@ -439,6 +450,7 @@ export function StatsScreen({ progress, onBack }: { progress: Progress; onBack: 
     // vergleichbar. Alte Werte bleiben im Speicher liegen und stören nicht.
     [t('mode.memory'), mb['memory'] ? t('home.level', { n: mb['memory'] }) : '–'],
     [t('mode.sudoku'), dash(mb['sudoku'])],
+    [t('mode.dimensions'), mb['dimensions'] ? t('home.level', { n: mb['dimensions'] }) : '–'],
   ];
   return (
     <div className="app screen">
@@ -453,6 +465,20 @@ export function StatsScreen({ progress, onBack }: { progress: Progress; onBack: 
         ))}
         <div className="stats-section">{t('stats.best')}</div>
         {rowsBest.map(([k, v]) => (
+          <div className="row" key={k}>
+            <span>{k}</span>
+            <span className="stat-val">{v}</span>
+          </div>
+        ))}
+        <div className="stats-section">{t('duel.title')}</div>
+        {rowsDuel.map(([k, v]) => (
+          <div className="row" key={k}>
+            <span>{k}</span>
+            <span className="stat-val">{v}</span>
+          </div>
+        ))}
+        <div className="stats-section">{t('menu.riichi')}</div>
+        {rowsRiichi.map(([k, v]) => (
           <div className="row" key={k}>
             <span>{k}</span>
             <span className="stat-val">{v}</span>

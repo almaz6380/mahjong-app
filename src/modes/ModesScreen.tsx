@@ -33,7 +33,7 @@ export function ModesScreen({ onPick, onBack, best }: { onPick: (id: ModeId) => 
   return (
     <div className="app screen">
       <header className="hud">
-        <button className="icon-btn" onClick={onBack} aria-label="Zurück">
+        <button className="icon-btn" onClick={onBack} aria-label={t('a11y.back')}>
           <Icon name="chevron" />
         </button>
         <div className="hud-center">

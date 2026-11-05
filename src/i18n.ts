@@ -90,6 +90,11 @@ const D: Record<string, Entry> = {
 
   // Solitaire / GameScreen
   'game.level': { de: 'Level {n}', en: 'Level {n}' },
+  'level.master': { de: 'Meister-Level {n}', en: 'Master level {n}' },
+  'hub.lv': { de: 'Lv {n}', en: 'Lv {n}' },
+  'a11y.menu': { de: 'Menü', en: 'Menu' },
+  'a11y.back': { de: 'Zurück', en: 'Back' },
+  'a11y.sound': { de: 'Sound umschalten', en: 'Toggle sound' },
   'game.daily': { de: 'Tages-Challenge', en: 'Daily challenge' },
   'game.pairs': { de: '{layout} · {n} Paare', en: '{layout} · {n} pairs' },
   'game.new': { de: 'Neu', en: 'New' },
@@ -301,6 +306,20 @@ const D: Record<string, Entry> = {
   'ach.three_star.d': { de: 'Hol 3 Sterne in einem Level', en: 'Get 3 stars in a level' },
   'ach.streak_7': { de: 'Treuer Spieler', en: 'Loyal player' },
   'ach.streak_7.d': { de: '7 Tage in Folge', en: '7 days in a row' },
+  'ach.level_100': { de: 'Gipfelstürmer', en: 'Summit seeker' },
+  'ach.level_100.d': { de: 'Erreiche Level 100', en: 'Reach level 100' },
+  'ach.level_500': { de: 'Drachenpfad', en: 'Dragon path' },
+  'ach.level_500.d': { de: 'Erreiche Level 500', en: 'Reach level 500' },
+  'ach.meister': { de: 'Meister', en: 'Master' },
+  'ach.meister.d': { de: 'Schaffe alle 999 Level', en: 'Clear all 999 levels' },
+  'ach.duel_win': { de: 'Duellant', en: 'Duelist' },
+  'ach.duel_win.d': { de: 'Gewinne ein Duell', en: 'Win a duel' },
+  'ach.riichi_win': { de: 'Riichi!', en: 'Riichi!' },
+  'ach.riichi_win.d': { de: 'Gewinne eine Riichi-Hand', en: 'Win a riichi hand' },
+  'ach.connect_25': { de: 'Verbinder', en: 'Connector' },
+  'ach.connect_25.d': { de: 'Erreiche Connect-Level 25', en: 'Reach Connect level 25' },
+  'ach.lawine_25': { de: 'Lawinenreiter', en: 'Avalanche rider' },
+  'ach.lawine_25.d': { de: 'Erreiche Lawine-Level 25', en: 'Reach Avalanche level 25' },
   'ach.rich': { de: 'Reich', en: 'Rich' },
   'ach.rich.d': { de: 'Besitze 1000 Münzen', en: 'Own 1,000 coins' },
 
@@ -321,6 +340,8 @@ const D: Record<string, Entry> = {
   'stats.m4Faan': { de: 'Beste Hand', en: 'Best hand' },
   'stats.solitaire': { de: 'Solitär', en: 'Solitaire' },
   'stats.best': { de: 'Bestwerte', en: 'Best scores' },
+  'stats.duelGames': { de: 'Gespielte Duelle', en: 'Duels played' },
+  'stats.duelWins': { de: 'Gewonnene Duelle', en: 'Duels won' },
   'stats.faanN': { de: '{n} Faan', en: '{n} faan' },
 
   // 4-Spieler-Tisch

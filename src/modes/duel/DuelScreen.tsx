@@ -32,13 +32,15 @@ type View =
 
 interface Props {
   addCoins: (n: number) => void;
+  /** Für die Statistik: einmal je beendetem Duell (null = unentschieden). */
+  onResult?: (won: boolean | null) => void;
   /** Aus einem Einladungslink: direkt diesem Raum beitreten. */
   initialCode?: string | null;
   onOpenRiichi: () => void;
   onExit: () => void;
 }
 
-export function DuelScreen({ addCoins, initialCode, onOpenRiichi, onExit }: Props) {
+export function DuelScreen({ addCoins, onResult, initialCode, onOpenRiichi, onExit }: Props) {
   const [game, setGame] = useState<DuelGame>('solitaire');
   const [view, setView] = useState<View>({ k: 'hub' });
   const [me, setMe] = useState<DuelIdentity | null>(null);
@@ -206,9 +208,10 @@ export function DuelScreen({ addCoins, initialCode, onOpenRiichi, onExit }: Prop
       let n = won === true ? tab.win : won === null ? tab.draw : tab.loss;
       if (sessionRef.current?.vsBot) n = Math.floor(n / 2);
       addCoins(n);
+      onResult?.(won);
       return n;
     },
-    [game, addCoins],
+    [game, addCoins, onResult],
   );
 
   // ---- Spiel läuft --------------------------------------------------------

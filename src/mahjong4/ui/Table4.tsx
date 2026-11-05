@@ -105,7 +105,7 @@ export function Table4({
   return (
     <div className="m4">
       <header className="hud">
-        <button className="icon-btn" onClick={onExit} aria-label="Menü"><Icon name="chevron" /></button>
+        <button className="icon-btn" onClick={onExit} aria-label={t('a11y.menu')}><Icon name="chevron" /></button>
         <div className="hud-center">
           <div className="level">{t('m4.title', { n: g4.match.hand })}</div>
           <div className="sub">{t('m4.wall', { n: g.live.length - g.livePos })}</div>

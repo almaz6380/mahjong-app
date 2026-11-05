@@ -61,6 +61,11 @@ export interface Progress {
     m4Wins: number; // davon gewonnen
     m4BestFaan: number;
     modeBest: Record<string, number>; // Bestwerte je Spezialmodus
+    // seit 1.6.0 (alte Stände bekommen 0 über das Zusammenführen mit DEFAULT.stats)
+    duelGames: number; // beendete Duelle (Solitaire + Riichi, gegen Menschen und KI)
+    duelWins: number;
+    riichiHands: number; // Riichi zählte bis 1.5 in m4Hands mit
+    riichiWins: number;
   };
 }
 
@@ -101,7 +106,7 @@ const DEFAULT: Progress = {
   lastDoubleDate: '',
   bonusCoinsDate: '',
   bonusCoinsToday: 0,
-  stats: { bestTimeMs: 0, dailies: 0, m4Hands: 0, m4Wins: 0, m4BestFaan: 0, modeBest: {} },
+  stats: { bestTimeMs: 0, dailies: 0, m4Hands: 0, m4Wins: 0, m4BestFaan: 0, modeBest: {}, duelGames: 0, duelWins: 0, riichiHands: 0, riichiWins: 0 },
 };
 
 // Seit 1.2.0 (Rechtsprüfung/Ökonomie): Hilfen kosten so viel, dass sie
@@ -530,6 +535,26 @@ export function useProgress() {
     [persist],
   );
 
+  // Riichi-Hand getrennt vom 4-Spieler-Modus verbuchen.
+  const recordRiichiHand = useCallback(
+    (won: boolean) => {
+      const s = stateRef.current;
+      if (!s) return;
+      persist({ ...s, stats: { ...s.stats, riichiHands: s.stats.riichiHands + 1, riichiWins: s.stats.riichiWins + (won ? 1 : 0) } });
+    },
+    [persist],
+  );
+
+  // Ein beendetes Duell (won=null: unentschieden).
+  const recordDuel = useCallback(
+    (won: boolean | null) => {
+      const s = stateRef.current;
+      if (!s) return;
+      persist({ ...s, stats: { ...s.stats, duelGames: s.stats.duelGames + 1, duelWins: s.stats.duelWins + (won === true ? 1 : 0) } });
+    },
+    [persist],
+  );
+
   // Bestwert je Modus verbuchen. higher=true: höher ist besser; false: niedriger (z. B. Züge/Zeit).
   const recordModeBest = useCallback(
     (key: string, value: number, higher = true): boolean => {
@@ -591,6 +616,8 @@ export function useProgress() {
     unlockAchievements,
     completeDailyChallenge,
     recordM4Hand,
+    recordRiichiHand,
+    recordDuel,
     recordModeBest,
     setLang,
     markM4TutorialSeen,

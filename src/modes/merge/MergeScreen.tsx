@@ -98,7 +98,7 @@ export function MergeScreen({ api, onExit }: ModeProps) {
   return (
     <div className="mode-play">
       <header className="mode-head">
-        <button className="icon-btn" onClick={onExit} aria-label="Menü"><Icon name="chevron" /></button>
+        <button className="icon-btn" onClick={onExit} aria-label={t('a11y.menu')}><Icon name="chevron" /></button>
         <div className="grow"><div className="score">{score}<small>{t('mode.score')}</small></div></div>
         <div className="score" style={{ textAlign: 'right', minWidth: 64 }}>{Math.max(best, score)}<small>{t('mode.bestLabel')}</small></div>
       </header>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { istMeister } from '../game/meister';
 import { Board } from './Board';
 import { CountUp } from './CountUp';
 import { Icon } from './Icon';
@@ -248,12 +249,12 @@ export function GameScreen({ mode, level, layoutName, layoutLabel, initial, prog
     if (!deadlock) setNoShuffle(false);
   }, [deadlock]);
 
-  const title = mode === 'daily' ? t('game.daily') : t('game.level', { n: level });
+  const title = mode === 'daily' ? t('game.daily') : istMeister(level) ? t('level.master', { n: level }) : t('game.level', { n: level });
 
   return (
     <div className="app">
       <header className="hud">
-        <button className="icon-btn" onClick={exitRound} aria-label="Menü">
+        <button className="icon-btn" onClick={exitRound} aria-label={t('a11y.menu')}>
           <Icon name="chevron" />
         </button>
         <div className="hud-center">

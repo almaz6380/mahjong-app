@@ -131,7 +131,7 @@ export function MemoryScreen({ api, onExit }: ModeProps) {
   return (
     <div className="mode-play">
       <header className="mode-head">
-        <button className="icon-btn" onClick={onExit} aria-label="Menü"><Icon name="chevron" /></button>
+        <button className="icon-btn" onClick={onExit} aria-label={t('a11y.menu')}><Icon name="chevron" /></button>
         <div className="grow">
           <div className="score">{moves}<small>{t('mode.moves')}</small></div>
         </div>

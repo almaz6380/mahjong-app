@@ -57,7 +57,7 @@ export function RiichiTable({ onExit, addCoins, onHandResult }: { onExit: () => 
   return (
     <div className="m4 riichi">
       <header className="hud">
-        <button className="icon-btn" onClick={onExit} aria-label="Menü"><Icon name="chevron" /></button>
+        <button className="icon-btn" onClick={onExit} aria-label={t('a11y.menu')}><Icon name="chevron" /></button>
         <div className="hud-center">
           <div className="level">Riichi</div>
           <div className="sub">{t('m4.wall', { n: g.live.length - g.livePos })}</div>
