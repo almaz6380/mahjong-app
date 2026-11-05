@@ -2024,6 +2024,16 @@ body {
   font: inherit;
   text-align: left;
   min-width: 0;
+  /* Nimmt den Platz bis zum Knopf, der Name bricht statt unter den Knopf zu laufen. */
+  flex: 1 1 0;
+  margin-right: 8px;
+}
+.design-pick > span:last-child { min-width: 0; overflow-wrap: break-word; line-height: 1.2; }
+.design-pick .skin-preview { flex-shrink: 0; }
+@media (max-width: 360px) {
+  .skin-preview .tileface { width: 24px; height: 32px; }
+  .skin-preview > :nth-child(3) { display: none; }
+  .design-pick { gap: 8px; }
 }
 .theme-swatch { width: 44px; height: 32px; margin-right: 0; }
 .design-card { width: min(92vw, 380px); }
