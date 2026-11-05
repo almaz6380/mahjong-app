@@ -25,6 +25,7 @@
      setzen sie (src/game/themes.ts). Muss hier stehen, damit vor dem ersten
      applyTheme() kein ungültiger Wert im html-Hintergrund landet. */
   --wash: transparent;
+  --wash-top: transparent;
   --accent-ink: #ffffff;
   --danger: #ef5b52;
 
@@ -33,10 +34,6 @@
      Dezenter: Alpha auf 0.28 senken, kräftiger: auf 0.55. */
   --sel-gold: #e6b74a;
   --sel-tint: rgba(255, 199, 62, 0.42);
-
-  /* Filz (Spielfläche) – von Themes gesetzt */
-  --felt: #0b3d2e;
-  --felt-2: #0f4a37;
 
   --r-sm: 12px;
   --r: 16px;
@@ -98,7 +95,7 @@ html {
   background-image:
     linear-gradient(180deg, rgba(8, 16, 15, 0.26) 0%, rgba(8, 16, 15, 0) 20%,
       rgba(8, 16, 15, 0) 100%),
-    linear-gradient(0deg, var(--wash), var(--wash)),
+    linear-gradient(0deg, var(--wash), var(--wash-top)),
     url('./assets/home-temple.webp');
   background-size: cover, cover, cover;
   background-position: center bottom, center bottom, center bottom;
@@ -1236,6 +1233,8 @@ body {
   display: inline-block;
   width: 18px;
   height: 18px;
+  background-size: cover;
+  background-position: center bottom;
   border-radius: 6px;
   vertical-align: -3px;
   margin-right: 6px;
@@ -1921,50 +1920,139 @@ body {
 }
 
 /* ================= Stein-Designs (Skins) ================= */
-/* Wirken global auf alle <Tile>-SVGs via [data-skin] am <html>. */
-:root[data-skin="sakura"] .tileface { filter: saturate(1.35) hue-rotate(-30deg) brightness(1.03) drop-shadow(0 1px 2px rgba(180, 60, 110, 0.25)); }
-:root[data-skin="minimal"] .tileface { filter: saturate(0.6) contrast(1.2); }
-:root[data-skin="minimal"] .tileface rect[fill="url(#tbody)"] { fill: #fbfcfe; }
-:root[data-skin="minimal"] .tileface rect[fill="url(#tside)"] { fill: #c9d3de; }
-/* Skins mit eigener Flächenfarbe: Marmor-Textur + Goldrand ausblenden */
-:root[data-skin="minimal"] .tileface .face-tex,
-:root[data-skin="neon"] .tileface .face-tex,
-:root[data-skin="contrast"] .tileface .face-tex { display: none; }
-:root[data-skin="neon"] .tileface {
-  filter: contrast(1.15) saturate(1.6) drop-shadow(0 0 4px rgba(94, 160, 255, 0.7));
+/* Seit 1.6.0 über CSS-Variablen statt Filter. Zwei Gründe:
+   (1) Filter auf Steinen heben jeden Stein auf eine eigene Compositing-Ebene und
+       lassen auf iOS das Brett ruckeln (CLAUDE.md, „iOS-Safari-Fallen" (4)) — Sakura
+       drehte zudem per hue-rotate die BILD-Motive um (Münzen orange, 中 magenta).
+   (2) Variablen erben vom NÄCHSTEN [data-skin]: <html> trägt den aktiven Skin, jede
+       Vorschau im Design-Screen ihren eigenen. Mit `:root[data-skin] …` färbte der
+       aktive Skin alle Vorschauen mit.
+   Neue Skins: nur einen [data-skin="…"]-Block mit Variablen anlegen. */
+[data-skin] {
+  --skin-face: url(#tbody);
+  --skin-side: url(#tside);
+  --skin-back: url(#tback);
+  --skin-tex: inline;
+  --skin-tint: none;
+  --skin-frame: rgba(0, 0, 0, 0.10);
+  --skin-frame-w: 1px;
+  --skin-gloss: 0.55;
+  --skin-lapis: url(#lapis);
+  --skin-onyx: url(#onyx);
+  --skin-slate: url(#slate);
+  --skin-ruby: url(#ruby);
+  --skin-rank: #2e4a86;
+  --skin-bomb: url(#onyx);
+  --skin-flower: #1c1713;
 }
-:root[data-skin="neon"] .tileface rect[fill="url(#tbody)"] { fill: #1b2740; }
-:root[data-skin="neon"] .tileface rect[fill="url(#tside)"] { fill: #101a30; }
-/* Dunkle Deckfläche: Lapis-Ziffern und Onyx-Winde aufhellen, sonst unlesbar. */
-:root[data-skin="neon"] .tileface text[fill="url(#lapis)"] { fill: #7fb6ff; }
-:root[data-skin="neon"] .tileface text[fill="url(#onyx)"] { fill: #cdd8ea; }
-:root[data-skin="neon"] .tileface text[fill="url(#slate)"] { fill: #9fc4e8; }
-:root[data-skin="contrast"] .tileface { filter: contrast(1.7) saturate(1.5) brightness(1.05); }
-:root[data-skin="contrast"] .tileface rect[fill="url(#tbody)"] { fill: #ffffff; }
-:root[data-skin="contrast"] .tileface rect[fill="url(#tside)"] { fill: #bdbdbd; }
-:root[data-skin="contrast"] .tileface rect[stroke] { stroke: #000 !important; stroke-width: 1.5px; }
-/* Verdeckte Rückseite mitfärben. Die Umfärbung oben greift über die
-   Verlaufs-ID (`rect[fill="url(#tbody)"]`); die Rückseite nutzt `#tback` und
-   wäre sonst als einziges Element grün geblieben, während das übrige Brett
-   weiß bzw. blau wird. */
-/* Beim „Minimal"-Design ist die Vorderseite fast weiß. Ein zu heller Rücken
-   verschwindet dann zwischen den offenen Steinen — im Screenshot war der
-   verdeckte Stein kaum zu finden. Deshalb hier deutlich dunkler als die
-   Flächenfarbe des Skins. */
-:root[data-skin="minimal"] .tileface rect[fill="url(#tback)"] { fill: #8ea3ba; }
-:root[data-skin="neon"] .tileface rect[fill="url(#tback)"] { fill: #16233c; }
-:root[data-skin="contrast"] .tileface rect[fill="url(#tback)"] { fill: #2b2b2b; }
+[data-skin="sakura"] {
+  --skin-tint: rgba(244, 143, 177, 0.30);
+  --skin-side: #e9a9bf;
+  --skin-frame: rgba(190, 70, 120, 0.35);
+}
+[data-skin="minimal"] {
+  --skin-face: #f7f9fc;
+  --skin-side: #c3cfdc;
+  --skin-back: #8ea3ba;
+  --skin-tex: none;
+  --skin-frame: #b5c3d3;
+  --skin-gloss: 0.25;
+}
+[data-skin="neon"] {
+  --skin-face: #1b2740;
+  --skin-side: #0d1629;
+  --skin-back: #16233c;
+  --skin-tex: none;
+  --skin-frame: #5ea0ff;
+  --skin-frame-w: 1.4px;
+  --skin-gloss: 0.12;
+  --skin-lapis: #7fb6ff;
+  --skin-onyx: #cdd8ea;
+  --skin-slate: #9fc4e8;
+  --skin-ruby: #ff7a6e;
+  --skin-rank: #9cc2ff;
+  --skin-bomb: #3a4a68;
+  --skin-flower: #ffe7a8;
+}
+[data-skin="contrast"] {
+  --skin-face: #ffffff;
+  --skin-side: #9e9e9e;
+  --skin-back: #2b2b2b;
+  --skin-tex: none;
+  --skin-frame: #000000;
+  --skin-frame-w: 1.6px;
+  --skin-gloss: 0;
+  --skin-lapis: #0b2a8f;
+  --skin-onyx: #000000;
+  --skin-slate: #1f2a33;
+  --skin-ruby: #b50d00;
+  --skin-rank: #000000;
+}
+.tileface rect[fill="url(#tbody)"] { fill: var(--skin-face, url(#tbody)); }
+.tileface rect[fill="url(#tside)"] { fill: var(--skin-side, url(#tside)); }
+/* Rückseite verdeckter Steine mitfärben — sonst bliebe sie als einziges Element
+   grün. Beim fast weißen „Modern" bewusst deutlich dunkler als die Fläche, sonst
+   verschwindet der verdeckte Stein zwischen den offenen. */
+.tileface rect[fill="url(#tback)"] { fill: var(--skin-back, url(#tback)); }
+.tileface .face-tex { display: var(--skin-tex, inline); }
+.tileface .skin-tint { fill: var(--skin-tint, none); }
+.tileface .face-frame { stroke: var(--skin-frame, rgba(0, 0, 0, 0.10)); stroke-width: var(--skin-frame-w, 1px); }
+.tileface .face-gloss { opacity: var(--skin-gloss, 0.55); }
+.tileface text[fill="url(#lapis)"] { fill: var(--skin-lapis, url(#lapis)); }
+.tileface text[fill="url(#onyx)"] { fill: var(--skin-onyx, url(#onyx)); }
+.tileface text[fill="url(#slate)"] { fill: var(--skin-slate, url(#slate)); }
+.tileface text[fill="url(#ruby)"] { fill: var(--skin-ruby, url(#ruby)); }
+.tileface .rank-num { fill: var(--skin-rank, #2e4a86); }
+.tileface .bomb-core { fill: var(--skin-bomb, url(#onyx)); }
+.tileface .flower-core { fill: var(--skin-flower, #1c1713); }
 
 .skin-row { display: inline-flex; align-items: center; gap: 8px; }
 .skin-preview {
   display: inline-flex;
-  width: 26px;
-  height: 34px;
-  border-radius: 6px;
-  overflow: hidden;
+  gap: 3px;
   vertical-align: middle;
 }
-.skin-preview .tileface { width: 100%; height: 100%; }
+.skin-preview .tileface { width: 30px; height: 40px; }
+.design-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  min-width: 0;
+}
+.theme-swatch { width: 44px; height: 32px; margin-right: 0; }
+.design-card { width: min(92vw, 380px); }
+.design-stage {
+  position: relative;
+  border-radius: 14px;
+  background-size: cover;
+  background-position: center bottom;
+  padding: 18px 12px 14px;
+  margin: 6px 0 14px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+.design-board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  max-width: 260px;
+  margin: 0 auto;
+}
+.design-board .tileface { width: 100%; height: auto; aspect-ratio: 64 / 96; }
+.design-accent {
+  display: block;
+  width: fit-content;
+  margin: 12px auto 0;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-weight: 800;
+  color: #fff;
+}
 
 /* ================= Spiele-Hub (Startmenü) ================= */
 .menu.hub {

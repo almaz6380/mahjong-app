@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Progress } from '../game/progress';
-import { THEMES, TILE_SKINS, SKIN_FILTER } from '../game/themes';
+import { THEMES, TILE_SKINS, type Theme } from '../game/themes';
+import homeTemple from '../assets/home-temple.webp';
 import { Tile } from './Tile';
 import { ACHIEVEMENTS } from '../game/achievements';
 import { PRODUCTS, purchase, displayPrice, canRestore, restorePurchases, type Product } from '../store/iap';
@@ -215,6 +216,20 @@ export function HowToScreen({ onBack }: { onBack: () => void }) {
 }
 
 // --- Design (Hintergrund-Welten + Stein-Designs) ---------------------------
+// Vorschau-Steine: Zahl mit 萬, roter Drache, Bild-Motiv — genau die Teile, die
+// die Skins umfärben (Bambus-1 allein zeigte nur ein Bild und keinen Unterschied).
+const PREVIEW_FACES = ['m8', 'z5', 'myth1'];
+const BOARD_FACES = ['m3', 'p5', 'z1', 's7', 'z6', 'myth2', 'f1', 'treasure1'];
+
+/** Der Farbfleck einer Welt: dieselbe Tönung wie im Spiel, über dem Tempelfoto. */
+function themeBg(th: Theme): string {
+  const w = th.vars['--wash'] ?? 'transparent';
+  const top = th.vars['--wash-top'] ?? w;
+  return `linear-gradient(0deg, ${w}, ${top}), url(${homeTemple})`;
+}
+
+type DesignPick = { kind: 'skin' | 'theme'; id: string } | null;
+
 export function ThemesScreen({
   progress,
   purchaseTheme,
@@ -230,6 +245,19 @@ export function ThemesScreen({
   selectSkin: (id: string) => void;
   onBack: () => void;
 }) {
+  // Ansehen vor dem Kauf: Antippen eines noch nicht gekauften Designs zeigt es
+  // groß, gekauft wird erst im Dialog. Vorher wurde sofort abgebucht.
+  const [pick, setPick] = useState<DesignPick>(null);
+  const skins = [...TILE_SKINS].sort((a, b) => a.cost - b.cost);
+  const themes = [...THEMES].sort((a, b) => a.cost - b.cost);
+  const pickedSkin = pick?.kind === 'skin' ? skins.find((s) => s.id === pick.id) : undefined;
+  const pickedTheme = pick?.kind === 'theme' ? themes.find((x) => x.id === pick.id) : undefined;
+  const picked = pickedSkin ?? pickedTheme;
+  const buy = () => {
+    if (pickedSkin && purchaseSkin(pickedSkin.id, pickedSkin.cost)) setPick(null);
+    if (pickedTheme && purchaseTheme(pickedTheme.id, pickedTheme.cost)) setPick(null);
+  };
+
   return (
     <div className="app screen">
       <ScreenHeader title={t('design.title')} onBack={onBack} />
@@ -239,20 +267,18 @@ export function ThemesScreen({
         </div>
 
         <div className="stats-section">{t('design.tiles')}</div>
-        {TILE_SKINS.map((sk) => {
+        {skins.map((sk) => {
           const owned = progress.ownedSkins.includes(sk.id);
           const active = progress.tileSkin === sk.id;
           return (
             <div className="row" key={sk.id}>
-              <span className="skin-row">
-                <span
-                  className="skin-preview"
-                  style={{ filter: SKIN_FILTER[sk.id] ?? 'none', background: sk.id === 'neon' ? '#12203a' : undefined }}
-                >
-                  <Tile face="s1" />
-                </span>{' '}
-                {t(sk.label)}
-              </span>
+              <button className="design-pick" onClick={() => setPick({ kind: 'skin', id: sk.id })}>
+                {/* Eigenes data-skin: die Vorschau zeigt IHREN Skin, nicht den aktiven. */}
+                <span className="skin-preview" data-skin={sk.id}>
+                  {PREVIEW_FACES.map((f) => <Tile key={f} face={f} />)}
+                </span>
+                <span>{t(sk.label)}</span>
+              </button>
               {active ? (
                 <span className="tag">{t('common.active')}</span>
               ) : owned ? (
@@ -260,11 +286,7 @@ export function ThemesScreen({
                   {t('common.choose')}
                 </button>
               ) : (
-                <button
-                  className="small-btn gold"
-                  disabled={progress.coins < sk.cost}
-                  onClick={() => purchaseSkin(sk.id, sk.cost)}
-                >
+                <button className="small-btn gold" onClick={() => setPick({ kind: 'skin', id: sk.id })}>
                   <span className="btn-ico"><Icon name="coin" size={16} /> {sk.cost}</span>
                 </button>
               )}
@@ -273,14 +295,15 @@ export function ThemesScreen({
         })}
 
         <div className="stats-section">{t('design.bg')}</div>
-        {THEMES.map((th) => {
+        {themes.map((th) => {
           const owned = progress.ownedThemes.includes(th.id);
           const active = progress.theme === th.id;
           return (
             <div className="row" key={th.id}>
-              <span>
-                <span className="swatch" style={{ background: th.swatch }} /> {t(th.label)}
-              </span>
+              <button className="design-pick" onClick={() => setPick({ kind: 'theme', id: th.id })}>
+                <span className="swatch theme-swatch" style={{ backgroundImage: themeBg(th) }} />
+                <span>{t(th.label)}</span>
+              </button>
               {active ? (
                 <span className="tag">{t('common.active')}</span>
               ) : owned ? (
@@ -288,11 +311,7 @@ export function ThemesScreen({
                   {t('common.choose')}
                 </button>
               ) : (
-                <button
-                  className="small-btn gold"
-                  disabled={progress.coins < th.cost}
-                  onClick={() => purchaseTheme(th.id, th.cost)}
-                >
+                <button className="small-btn gold" onClick={() => setPick({ kind: 'theme', id: th.id })}>
                   <span className="btn-ico"><Icon name="coin" size={16} /> {th.cost}</span>
                 </button>
               )}
@@ -300,6 +319,56 @@ export function ThemesScreen({
           );
         })}
       </div>
+
+      {picked && (
+        <div className="overlay" onClick={() => setPick(null)}>
+          <div className="card design-card" onClick={(e) => e.stopPropagation()}>
+            <h2>{t(picked.label)}</h2>
+            {pickedSkin ? (
+              <div className="design-stage" style={{ backgroundImage: themeBg(themes.find((x) => x.id === progress.theme) ?? themes[0]) }}>
+                <div className="design-board" data-skin={pickedSkin.id}>
+                  {BOARD_FACES.map((f) => <Tile key={f} face={f} solid />)}
+                </div>
+              </div>
+            ) : pickedTheme ? (
+              <div className="design-stage" style={{ backgroundImage: themeBg(pickedTheme) }}>
+                <div className="design-board" data-skin={progress.tileSkin}>
+                  {BOARD_FACES.slice(0, 4).map((f) => <Tile key={f} face={f} solid />)}
+                </div>
+                <span className="design-accent" style={{ background: pickedTheme.vars['--accent'] }}>
+                  {t('common.choose')}
+                </span>
+              </div>
+            ) : null}
+            {(() => {
+              const owned = pickedSkin
+                ? progress.ownedSkins.includes(pickedSkin.id)
+                : progress.ownedThemes.includes(pickedTheme!.id);
+              const active = pickedSkin ? progress.tileSkin === pickedSkin.id : progress.theme === pickedTheme!.id;
+              if (active) return <p className="tag">{t('common.active')}</p>;
+              if (owned)
+                return (
+                  <button
+                    className="big-btn"
+                    onClick={() => {
+                      if (pickedSkin) selectSkin(pickedSkin.id);
+                      else selectTheme(pickedTheme!.id);
+                      setPick(null);
+                    }}
+                  >
+                    {t('common.choose')}
+                  </button>
+                );
+              return (
+                <button className="big-btn gold" disabled={progress.coins < picked.cost} onClick={buy}>
+                  <span className="btn-ico"><Icon name="coin" size={18} /> {picked.cost}</span>
+                </button>
+              );
+            })()}
+            <button className="text-btn" onClick={() => setPick(null)}>{t('common.cancel')}</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

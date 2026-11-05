@@ -212,7 +212,7 @@ function TileBody({ children }: { children: React.ReactNode }) {
   const marble = timg('face-marble');
   return (
     <>
-      <rect x="3" y="3" width="54" height="72" rx="11" fill="url(#tbody)" stroke="rgba(0,0,0,.10)" />
+      <rect className="face-frame" x="3" y="3" width="54" height="72" rx="11" fill="url(#tbody)" stroke="rgba(0,0,0,.10)" />
       {marble && (
         <image
           href={marble} x="3" y="3" width="54" height="72"
@@ -225,6 +225,10 @@ function TileBody({ children }: { children: React.ReactNode }) {
           stroke="url(#gold)" strokeWidth="1.4" opacity="0.9" className="face-tex"
         />
       )}
+      {/* Skin-Tönung (z. B. Sakura): färbt nur die Fläche, wie die Auswahl-Tönung
+          darunter ein reiner Malvorgang — Skins setzen seit 1.6.0 keine CSS-Filter
+          mehr auf Steine (siehe CLAUDE.md, „iOS-Safari-Fallen"). */}
+      <rect className="skin-tint" x="3" y="3" width="54" height="72" rx="11" fill="none" />
       {/* Auswahl-Tönung: Farbe setzt das CSS, und nur beim ausgewählten Stein
           (.tile.solid.selected). Liegt ÜBER der Marmor-Textur, aber UNTER Glanz
           und Motiv — die Fläche färbt sich, das Motiv bleibt unangetastet.
@@ -232,7 +236,7 @@ function TileBody({ children }: { children: React.ReactNode }) {
           auf eine eigene Compositing-Ebene heben und auf iOS das ganze Brett
           verrutschen lassen (siehe CLAUDE.md, „iOS-Safari-Fallen"). */}
       <rect className="sel-tint" x="3" y="3" width="54" height="72" rx="11" fill="none" />
-      <path d="M8 15 Q8 6 17 6 H43 Q52 6 52 15 Q52 20 30 20.5 Q8 21 8 15" fill="url(#tgloss)" opacity="0.55" />
+      <path className="face-gloss" d="M8 15 Q8 6 17 6 H43 Q52 6 52 15 Q52 20 30 20.5 Q8 21 8 15" fill="url(#tgloss)" opacity="0.55" />
       {children}
     </>
   );
@@ -291,7 +295,7 @@ function specialMotif(rank: number): React.ReactNode {
     // Bombe: Kugel mit Zündschnur
     return (
       <g>
-        <circle cx="29" cy="44" r="15" fill="url(#onyx)" stroke={g} strokeWidth="1.6" />
+        <circle className="bomb-core" cx="29" cy="44" r="15" fill="url(#onyx)" stroke={g} strokeWidth="1.6" />
         <circle cx="24" cy="39" r="3.6" fill="#fff" opacity="0.32" />
         <path d="M36 31 q6 -8 12 -5" stroke={g} strokeWidth="3" fill="none" strokeLinecap="round" />
         <circle cx="49" cy="25" r="4" fill="url(#redlac)" />
@@ -360,7 +364,7 @@ function motif(f: Face): React.ReactNode {
       <>
         <Glyph ch={CJK_NUM[rank]} fill="url(#lapis)" size={27} y={33} />
         <Glyph ch="萬" fill="url(#ruby)" size={27} y={64} />
-        <text x={49} y={71} textAnchor="middle" fontFamily="Inter, system-ui, sans-serif" fontSize={10} fontWeight={800} fill="#2e4a86">{rank}</text>
+        <text className="rank-num" x={49} y={71} textAnchor="middle" fontFamily="Inter, system-ui, sans-serif" fontSize={10} fontWeight={800} fill="#2e4a86">{rank}</text>
       </>
     );
   }
@@ -453,7 +457,7 @@ function motif(f: Face): React.ReactNode {
           <circle cx="30" cy="38" r="17.5" fill="none" stroke="url(#gold)" strokeWidth="2" />
           <circle cx="30" cy="38" r="15.6" fill="none" stroke="rgba(138,106,32,.55)" strokeWidth="0.6" />
           <circle cx="30" cy="38" r="14.6" fill="url(#redlac)" />
-          <circle cx="30" cy="38" r="5.2" fill="#1c1713" />
+          <circle className="flower-core" cx="30" cy="38" r="5.2" fill="#1c1713" />
         </g>
       ) : (
         <g>
