@@ -1170,7 +1170,7 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   Kein Einbruch nach 1.5.0 erkennbar. **Play-Trichter repariert:** Die Store-Performance-Spalten
   heißen „Store listing visitors/acquisitions" (kleines l), `feld()` liest jetzt ohne Groß-/Klein-
   schreibung → 44 Besucher → 11 Installationen (25 %, gesund). Impressionen liefert der Export nicht.
-- **5.11.2026 — v1.6.0 (Android vc30 / iOS Build 35) vorbereitet, NOCH NICHT gebaut** (Josef:
+- **5./6.11.2026 — v1.6.0 (Android vc30 / iOS Build 35)** (Josef:
   „Rundumcheck, was fehlt und was an den Design-Modi geändert werden muss"). Inhalt: Skins ohne
   Filter + ehrliche Vorschau + Ausprobieren vor dem Kauf, Farbwelten unterscheidbar (s. Stein-Design
   und Tempel-Abschnitt oben); 90 fehlende Übersetzungen je Sprache in ES/PT/FR/IT/JA nachgezogen
@@ -1182,7 +1182,15 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   Dimensions-Bestwert; Hub-Bild `game-duel.webp` (`scripts/render-game-duel.mjs`) statt ⚔️.
   Store-Screenshots: `6-duel` → **`0-duel`** auch bei iOS (Position 1, `produktseiten.json`
   angepasst), neu `7-lawine` und `8-design` (Play: 8 Bilder = Höchstzahl). Versionshinweise
-  `store/whatsnew-1.6.0.json`. Plan: Android gestuft (`--fraction 0.2`), weil optisch heikel.
+  `store/whatsnew-1.6.0.json`. Josef wollte Android doch gleich an alle (`rollout: complete`).
+  **Stand 6.11.:** Web + github.io-Kopie live; iOS Build 35 als 1.6.0 **eingereicht**
+  (reviewSubmission `0651aa24-…`, Screenshots ersetzt — Apple brauchte diesmal **>25 min**
+  für die Bildverarbeitung, zwei Läufe endeten mit 409 `ASSET_IN_POST_PROCESSING`, der dritte
+  mit `screenshots: false` reichte ein). ⚠ **Android NICHT ausgeliefert:** „Android Release"
+  endete zweimal sofort mit `conclusion: action_required` und null Jobs (Läufe 21/22, z. B.
+  42259063122), während iOS-Läufe daneben normal liefen; per API nicht neu startbar (403).
+  Grund steht nur auf der Lauf-Seite — Josef muss dort nachsehen/freigeben. Danach noch
+  Play-Screenshots per „Play-Eintrag" (de-DE + en-US) nachziehen.
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
   **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
   Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in
