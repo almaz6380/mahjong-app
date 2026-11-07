@@ -1186,11 +1186,14 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   **Stand 6.11.:** Web + github.io-Kopie live; iOS Build 35 als 1.6.0 **eingereicht**
   (reviewSubmission `0651aa24-…`, Screenshots ersetzt — Apple brauchte diesmal **>25 min**
   für die Bildverarbeitung, zwei Läufe endeten mit 409 `ASSET_IN_POST_PROCESSING`, der dritte
-  mit `screenshots: false` reichte ein). ⚠ **Android NICHT ausgeliefert:** „Android Release"
-  endete zweimal sofort mit `conclusion: action_required` und null Jobs (Läufe 21/22, z. B.
-  42259063122), während iOS-Läufe daneben normal liefen; per API nicht neu startbar (403).
-  Grund steht nur auf der Lauf-Seite — Josef muss dort nachsehen/freigeben. Danach noch
-  Play-Screenshots per „Play-Eintrag" (de-DE + en-US) nachziehen.
+  mit `screenshots: false` reichte ein). **Android vc30 an alle Nutzer** (7.11. nachts) — aber erst
+  im zweiten Anlauf: ⚠ „Android Release" endete zweimal sofort mit `conclusion: action_required`
+  und null Jobs (Lauf 22, 42259063122), während iOS-/ubuntu-Läufe daneben normal liefen; die
+  Lauf-Seite nannte keinen Grund, ein API-Rerun gab 403. **Lösung: Josef tippt im Browser auf
+  „Erneut ausführen" → „Alle Jobs erneut ausführen"** — danach lief derselbe Lauf in 3:33 min durch.
+  Play-Screenshots (8 Bilder) für de-DE und en-US per „Play-Eintrag" ersetzt. ⚠ **Play-Eintrag-Läufe
+  NIE parallel starten:** Play erlaubt nur eine offene Bearbeitung; der zweite Lauf scheitert mit
+  400 „This Edit has been deleted" (nichts geändert, einfach allein wiederholen).
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
   **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
   Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in
