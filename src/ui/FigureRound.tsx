@@ -5,6 +5,7 @@ import { useGame } from '../game/useGame';
 import { BOOSTER_COST } from '../game/progress';
 import { playTap, playMatch, playInvalid, playWin, playKoto } from '../audio/sound';
 import { t } from '../i18n';
+import { maybeShowInterstitialModes } from '../ads/admob';
 import type { PlacedTile } from '../game/engine';
 
 // Gemeinsame Solitaire-Runde für Zen, Pagoden-Aufstieg und Saison-Feste:
@@ -48,6 +49,8 @@ export function FigureRound({
     onWin: () => {
       if (!quiet) playWin();
       onWin?.();
+      // Zen, Pagode, Feste: Interstitial erst, wenn die Sieg-Karte kurz zu sehen war (gedrosselt auf 120 s).
+      setTimeout(() => void maybeShowInterstitialModes(), 1200);
     },
   });
 

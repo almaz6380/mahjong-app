@@ -4,6 +4,7 @@ import { seatWind, type GameState } from '../engine4';
 import { Tile } from '../../ui/Tile';
 import { Icon } from '../../ui/Icon';
 import { t } from '../../i18n';
+import { maybeShowInterstitialModes } from '../../ads/admob';
 import { presentFact } from '../../ui/FactHost';
 
 const WINDS = ['東', '南', '西', '北'];
@@ -159,8 +160,8 @@ export function RiichiTable({ onExit, addCoins, onHandResult }: { onExit: () => 
               </>
             )}
             <div className="row-btns">
-              <button className="big-btn" onClick={() => presentFact().then(r.newGame)}>{t('common.next')}</button>
-              <button className="text-btn" onClick={onExit}>{t('common.toMenu')}</button>
+              <button className="big-btn" onClick={() => { void maybeShowInterstitialModes(); presentFact().then(r.newGame); }}>{t('common.next')}</button>
+              <button className="text-btn" onClick={() => { void maybeShowInterstitialModes(); onExit(); }}>{t('common.toMenu')}</button>
             </div>
           </div>
         </div>

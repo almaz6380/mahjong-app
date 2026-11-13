@@ -8,6 +8,7 @@ import { type Difficulty } from '../ai';
 import { Tile } from '../../ui/Tile';
 import { Icon } from '../../ui/Icon';
 import { t } from '../../i18n';
+import { maybeShowInterstitialModes } from '../../ads/admob';
 import { presentFact } from '../../ui/FactHost';
 
 const WINDS = ['東', '南', '西', '北'];
@@ -260,7 +261,7 @@ export function Table4({
                 </div>
               </>
             )}
-            <button className="big-btn" onClick={() => presentFact().then(g4.continueHand)}>{t('common.next')}</button>
+            <button className="big-btn" onClick={() => { void maybeShowInterstitialModes(); presentFact().then(g4.continueHand); }}>{t('common.next')}</button>
           </div>
         </div>
       )}
@@ -277,7 +278,7 @@ export function Table4({
               ))}
             </div>
             <p className="coins-won"><Icon name="coin" size={24} /> +{g4.coinsEarned}</p>
-            <button className="big-btn" onClick={onExit}>{t('common.toMenu')}</button>
+            <button className="big-btn" onClick={() => { void maybeShowInterstitialModes(); onExit(); }}>{t('common.toMenu')}</button>
           </div>
         </div>
       )}

@@ -381,6 +381,11 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   Sperre** (`INTERSTITIAL_EVERY_NTH_WIN` + `INTERSTITIAL_MIN_GAP_MS`) — Josef war die Taktung zu dicht.
   Der Mindestabstand ist die eigentliche Bremse und gilt über dieselbe Konstante auch für
   `maybeShowInterstitialModes`, also für die Bonus-Spiele, die keinen Level-Zähler haben.
+  **Seit 13.11.2026 auch in Duell, 4-Spieler, Riichi, Zen, Pagode und Feste** (Josef: „wird hier nie
+  eine Werbung eingeblendet?" — dort fehlte der Aufruf ganz). Stellen: `DuelResult` beim „Zum Menü"
+  (bewusst NICHT bei Revanche/Ergebnis — gegen Menschen läuft der Countdown nach Serverzeit),
+  `Table4`/`RiichiTable` beim „Weiter" nach der Hand und „Zum Menü", `FigureRound.onWin` 1,2 s nach
+  dem Sieg (deckt Zen/Pagode/Feste). Drosselung wie überall über `INTERSTITIAL_MIN_GAP_MS`.
 - **`public/app-ads.txt` — Verkäufer-Autorisierung (bares Geld).** Eine Zeile:
   `google.com, pub-8860791993288062, DIRECT, f08c47fec0942fa0`. Ohne diese Datei kaufen
   Werbetreibende, die nur bei autorisierten Verkäufern einkaufen, unser Inventar **nicht** —

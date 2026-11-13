@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from '../../ui/Icon';
 import { t } from '../../i18n';
+import { maybeShowInterstitialModes } from '../../ads/admob';
 import type { DuelGame, EndReason } from '../../duel/protocol';
 
 export interface DuelEnd {
@@ -97,7 +98,8 @@ export function DuelResult({
         ) : (
           <p className="duel-reason">{t('duel.oppLeft')}</p>
         )}
-        <button className="text-btn" onClick={onExit}>{t('common.toMenu')}</button>
+        {/* Werbung erst beim Verlassen: bei „Revanche“ läuft gegen Menschen der Countdown nach Serverzeit. */}
+        <button className="text-btn" onClick={() => { void maybeShowInterstitialModes(); onExit(); }}>{t('common.toMenu')}</button>
       </div>
     </div>
   );
