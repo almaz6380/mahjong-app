@@ -1213,7 +1213,8 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   **Regel:** Jede `…UsageDescription` hat in `Info.plist` einen **englischen** Grundtext und eine
   Übersetzung in `ios/App/App/<sprache>.lproj/InfoPlist.strings` für alle 7 Sprachen (en, de, es,
   pt-BR, fr, it, ja; im pbxproj als Variant-Group „InfoPlist.strings" in der Resources-Phase,
-  `knownRegions` erweitert). Neu eingereicht als **1.6.1 / Build 37** (Android unverändert vc31).
+  `knownRegions` erweitert). **Build 37 als 1.6.1 neu eingereicht am 16.11.** über dieselbe
+  reviewSubmission `604a7974-…` (Android unverändert vc31).
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
   **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
   Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in
