@@ -1206,6 +1206,14 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   Pagode, Feste** (Abschnitt `src/ads/admob.ts` oben). Android **vc31 an alle** (Lauf startete diesmal
   normal), iOS **Build 36 als 1.6.1 eingereicht** (reviewSubmission `604a7974-…`, ohne neue Screenshots),
   Versionshinweise `store/whatsnew-1.6.1.json` („Kleine Verbesserungen und Fehlerkorrekturen").
+  ⚠ **16.11.: 1.6.1 (Build 36) abgelehnt nach Guideline 4** — „permissions requests that are not
+  written in the same language as the app's localization" (iPad Air, englisch). Der ATT-Text
+  `NSUserTrackingUsageDescription` stand nur **deutsch** in der Info.plist (Entwicklungsregion `en`,
+  keine `InfoPlist.strings`) — seit der ATT-Dialog beim Start kommt (Build 31), sieht ihn jeder Prüfer.
+  **Regel:** Jede `…UsageDescription` hat in `Info.plist` einen **englischen** Grundtext und eine
+  Übersetzung in `ios/App/App/<sprache>.lproj/InfoPlist.strings` für alle 7 Sprachen (en, de, es,
+  pt-BR, fr, it, ja; im pbxproj als Variant-Group „InfoPlist.strings" in der Resources-Phase,
+  `knownRegions` erweitert). Neu eingereicht als **1.6.1 / Build 37** (Android unverändert vc31).
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
   **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
   Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in

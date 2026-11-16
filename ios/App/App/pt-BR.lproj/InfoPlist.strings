@@ -1,0 +1,2 @@
+/* ATT-Abfrage (App Tracking Transparency). Grundtext Englisch in Info.plist. */
+"NSUserTrackingUsageDescription" = "Seu consentimento nos permite mostrar anúncios mais relevantes para você.";

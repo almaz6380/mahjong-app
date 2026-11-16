@@ -27,7 +27,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSUserTrackingUsageDescription</key>
-	<string>Deine Zustimmung erlaubt uns, dir relevantere Werbung anzuzeigen.</string>
+	<string>Your consent lets us show you more relevant ads.</string>
 	<key>SKAdNetworkItems</key>
 	<!-- SKAdNetwork-Kennungen der Werbenetzwerke, die ueber AdMob bieten.
 	     Fehlt eine Kennung, kann das Netzwerk auf dieser App nichts messen und
