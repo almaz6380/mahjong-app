@@ -1215,6 +1215,43 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   pt-BR, fr, it, ja; im pbxproj als Variant-Group „InfoPlist.strings" in der Resources-Phase,
   `knownRegions` erweitert). **Build 37 als 1.6.1 neu eingereicht am 16.11.** über dieselbe
   reviewSubmission `604a7974-…` (Android unverändert vc31).
+- **22.11.2026 — v1.7.0 VORBEREITET (Android vc32 / iOS Build 38), Zweig `claude/optimistic-darwin-k01rmb`.
+  NICHT gebaut, NICHT hochgeladen, kein Merge** (main deployt das Web). Inhalt auf Josefs Bestellung:
+  - **Welten** (`src/game/worlds.ts`, `src/ui/WorldsScreen.tsx`, Screen `worlds`): die 999 Level in
+    20 Welten à 50 (Welt 20 = 951–999, 49 Level) + „Meisterhalle“ ab `MEISTER_AB`. Reine Gliederung
+    über Levelnummern — Brett-Erzeugung, `levelOrder.ts` und `DUEL_PROTOCOL` sind unberührt.
+    Namen `world.<id>` (IDs in `WORLD_IDS`, nie umbenennen). Startseite: dezente Zeile unter
+    „Spielen“ (`.world-chip`, 🎁 wenn eine Truhe offen ist), Tippen öffnet die Übersicht.
+    **Sterne-Truhen** je Welt: `half` (50 % der Sterne, 50 Münzen), `clear` (alle Level der Welt,
+    75), `most` (80 %, 100). Bewusst nicht „alle Sterne“: Level lassen sich nicht wiederholen,
+    ein verpasster 3. Stern wäre sonst eine für immer verschlossene Truhe. Gutschrift über
+    `claimWorldChest` direkt aufs Konto (wie Level-Siege, **nicht** `bonusCoins`), jede ID einmal
+    (`progress.worldChests`), Bedingung wird in `chestReached` noch einmal geprüft. Altstände
+    brauchen keine Migration: Was beim ersten Start schon erfüllt ist, steht als 🎁 bereit.
+  - **Drei neue Feste** (`festivals.ts`), nur vorhandene Grundformen: Tanabata 1.7.–31.8. (`bruecke`,
+    20 Figuren), Ahornfest 5.10.–30.11. (`raute`, 68), Neujahr 10.12.–20.1. (`tor`, 19, über den
+    Jahreswechsel). `claimFestival(bonus, festId)` merkt sich die Fest-ID in `progress.festivalsSeen`
+    (für Erfolge).
+  - **Erfolge 15 → 40** (`achievements.ts`, per `ACHIEVEMENTS.push`): Siege 100/250/500, 3-Sterne-Level
+    25/100, Welten 1/5/10/20, Truhen 1/10, Feste 1/4/alle 7, Pagode 150/200/300, Connect/Lawine 100,
+    10 Duell-Siege, 10 Riichi-Siege, eine 4-Spieler-Hand, Album komplett, 30-Tage-Serie,
+    30 Tages-Challenges. ⚠ **Riichi-Yaku gibt es NICHT als Erfolg** — es existiert kein Yaku-Zähler,
+    und erfunden wird keiner. Bestandsspieler bekommen beim ersten Start alle schon erfüllten auf
+    einmal (Toast zeigt den ersten).
+  - **Pagode 100 → 300 Etagen.** Etage 1–100 sind **exakt** die alte Rampe (kein laufender Aufstieg
+    wechselt sein Brett). 101–300 sind ein zweiter Abschnitt von 60 % der Figuren-Rampe bis zur
+    schwersten Figur, ohne Wiederholung (alle 300 Figuren verschieden, geprüft). Schwerer als die
+    schwerste Figur geht ohne Generator-Änderung nicht (8×9-Deckel). Krone (1000) auf 100/200/300,
+    Münzen weiter über `bonusCoins`. `pagoda.progress` hat jetzt `{max}`.
+  - Texte in de/en + allen fünf Sprachpaketen (86 Schlüssel neu bzw. geändert, 0 fehlend), Store-Beschreibung
+    „300 Etagen“ in allen 7 Sprachen, Versionshinweise `store/whatsnew-1.7.0.json` (it/ja ohne Länderteil).
+  - Geprüft: `tsc`, `npm run build`, `check-figures`, `check-specials`, `e2e-level-flow`,
+    `check-altstand` (alle grün, Chrome unter `/usr/bin/google-chrome`), Puppeteer-Probe Startseite →
+    Welten → Truhe öffnen (+50 Münzen, nur einmal) → Pagode Etage 120 spielbar, keine neuen
+    Konsolenfehler. Auf 320×568 war die Startseite schon vorher eng (Stein überlappt die Seiten-Symbole);
+    die Welten-Zeile wird dort per `max-height`-Query flacher.
+  - **Vor dem Release offen:** Screenshots (Welten-Bildschirm wäre ein neues Motiv), Store-Texte um
+    Welten/Feste ergänzen, iOS-Übersetzungen der neuen Texte am Gerät ansehen.
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
   **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
   Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in

@@ -2455,3 +2455,60 @@ body {
 .duel .seat-tag .duel-pts { font-weight: 700; opacity: 0.8; margin-left: 4px; }
 .duel .seat-tag .duel-timer { color: #ffb4a8; font-weight: 800; }
 .duel-winhand { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; margin: 2px 0 6px; }
+
+/* ---------- Welten (seit 1.7.0) ----------
+   Bewusst nur Farbe/Rahmen, keine transform-/filter-/opacity-Animation. */
+.world-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px auto 0;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line, rgba(244, 236, 216, 0.18));
+  background: rgba(0, 0, 0, 0.22);
+  color: rgba(244, 236, 216, 0.85);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+.world-chip-stars { color: #e6b74a; font-size: 12px; }
+.world-chip-dot { font-size: 14px; }
+.world-list { display: flex; flex-direction: column; gap: 10px; width: min(420px, 94%); margin: 0 auto 24px; }
+.world-card {
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  text-align: left;
+}
+.world-card.current { border-color: rgba(230, 183, 74, 0.7); }
+.world-card.complete { background: linear-gradient(135deg, rgba(53, 160, 109, 0.18), rgba(230, 183, 74, 0.08)); }
+.world-card.locked { color: var(--muted, #a9c4b3); }
+.world-head { display: flex; align-items: center; gap: 10px; }
+.world-name { flex: 1; min-width: 0; display: flex; flex-direction: column; font-weight: 800; font-size: 15px; }
+.world-name small { font-weight: 500; font-size: 12px; color: var(--muted, #a9c4b3); }
+.world-stars { font-size: 12px; font-weight: 700; color: #e6b74a; white-space: nowrap; }
+.world-chests { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.world-chest {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+  background: rgba(0, 0, 0, 0.18);
+  color: var(--muted, #a9c4b3);
+  font-size: 11px;
+  text-align: left;
+  cursor: default;
+}
+.world-chest.ready { border-color: rgba(230, 183, 74, 0.8); background: rgba(230, 183, 74, 0.2); color: var(--text, #f4ecd8); cursor: pointer; }
+.world-chest.claimed { color: #7fd0a3; }
+.wc-ico { font-size: 16px; flex: none; }
+.wc-tx { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.wc-tx small { display: inline-flex; align-items: center; gap: 3px; }
+/* Kleine Handys (iPhone SE): Die Startseite ist dort ohnehin eng — Zeile flacher. */
+@media (max-height: 620px) {
+  .world-chip { margin-top: 0; padding: 3px 10px; font-size: 12px; }
+}

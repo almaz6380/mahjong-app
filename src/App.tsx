@@ -23,6 +23,8 @@ import { ZenScreen } from './modes/zen/ZenScreen';
 import { PagodaScreen, PAGODA_FLOORS } from './modes/pagoda/PagodaScreen';
 import { FestivalScreen } from './modes/festival/FestivalScreen';
 import { AlbumScreen } from './ui/AlbumScreen';
+import { WorldsScreen } from './ui/WorldsScreen';
+import { worldIndexOf, worldInfo, openableChests, WORLD_IDS } from './game/worlds';
 import { DuelScreen } from './modes/duel/DuelScreen';
 import { consumeInviteCode, onInviteLink } from './duel/links';
 import { activeFestival } from './game/festivals';
@@ -56,7 +58,7 @@ import { Sakura } from './ui/Sakura';
 import { setAmbientLevel } from './ui/SumiE';
 import type { PlacedTile } from './game/engine';
 
-type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop' | 'modes' | 'memory' | 'merge' | 'sudoku' | 'match3' | 'tilematch' | 'blitz' | 'dimensions' | 'connect' | 'lawine' | 'riichi' | 'zen' | 'pagoda' | 'album' | 'festival' | 'duel';
+type Screen = 'menu' | 'play' | 'daily' | 'mahjong4' | 'settings' | 'howto' | 'themes' | 'achievements' | 'stats' | 'shop' | 'modes' | 'memory' | 'merge' | 'sudoku' | 'match3' | 'tilematch' | 'blitz' | 'dimensions' | 'connect' | 'lawine' | 'riichi' | 'zen' | 'pagoda' | 'album' | 'festival' | 'duel' | 'worlds';
 
 export default function App() {
   const p = useProgress();
@@ -334,6 +336,8 @@ export default function App() {
         onExit={() => setScreen('menu')}
       />
     );
+  if (screen === 'worlds')
+    return <WorldsScreen progress={progress} claimWorldChest={p.claimWorldChest} onBack={() => setScreen('menu')} />;
   if (screen === 'album')
     return <AlbumScreen progress={progress} claimAlbum={p.claimAlbum} onBack={() => setScreen('menu')} />;
   if (screen === 'festival') {
@@ -377,6 +381,9 @@ export default function App() {
   const lawineLevel = progress.lawineLevel;
   const eventDone = progress.lastEvent === todayStr();
   const fest = activeFestival();
+  const worldIdx = worldIndexOf(progress.level);
+  const world = worldIdx !== null ? worldInfo(worldIdx, progress.bestStars, progress.level) : null;
+  const chestsReady = openableChests(progress.bestStars, progress.level, progress.worldChests);
 
   const gameItems: GameItem[] = [
     { id: 'solitaire', icon: <img className="game-img" src={gameSolitaire} alt="" />, name: t('hub.solitaire'), sub: canResume ? t('hub.resume', { n: resume!.level }) : t('hub.solitaire.sub', { n: progress.level }), onClick: canResume ? startResume : startFresh },
@@ -444,6 +451,16 @@ export default function App() {
             {canResume ? t('home.resume') : t('home.play')}
             <small>{istMeister(progress.level) ? t('level.master', { n: progress.level }) : t('home.level', { n: progress.level })}</small>
           </span>
+        </button>
+        {/* Welten: dezente Zeile unter „Spielen“ — Weltname, Sterne, Punkt bei offener Truhe. */}
+        <button className="world-chip" onClick={() => setScreen('worlds')}>
+          <span className="world-chip-tx">
+            {world
+              ? t('home.world', { n: (worldIdx ?? 0) + 1, name: t(`world.${WORLD_IDS[worldIdx ?? 0]}`) })
+              : t('world.meister')}
+          </span>
+          {world && <span className="world-chip-stars">★ {world.stars}/{world.maxStars}</span>}
+          {chestsReady > 0 && <span className="world-chip-dot" aria-label={t('worlds.chestReady')}>🎁</span>}
         </button>
         <button className="allgames-btn" onClick={() => setGamesOpen(true)}>{t('home.allGames')} ›</button>
       </div>

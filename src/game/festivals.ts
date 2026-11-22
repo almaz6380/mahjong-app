@@ -19,6 +19,14 @@ export const FESTIVALS: Festival[] = [
   { id: 'sakura', titleKey: 'fest.sakura', emoji: '🌸', shapePrefix: 'bluete', bonus: 50, from: [3, 20], to: [4, 10] },
   { id: 'drache', titleKey: 'fest.drache', emoji: '🐉', shapePrefix: 'drache', bonus: 50, from: [5, 28], to: [6, 10] },
   { id: 'mond', titleKey: 'fest.mond', emoji: '🌕', shapePrefix: 'ring', bonus: 50, from: [9, 15], to: [10, 1] },
+  // Seit 1.7.0 für die Lücken im Jahr. Nur vorhandene Grundformen — der
+  // Figuren-Generator bleibt unverändert (sonst levelOrder/DUEL_PROTOCOL).
+  // Tanabata: Orihime und Hikoboshi treffen sich auf der Elsterbrücke.
+  { id: 'tanabata', titleKey: 'fest.tanabata', emoji: '🎋', shapePrefix: 'bruecke', bonus: 50, from: [7, 1], to: [8, 31] },
+  // Momiji: Ahornblätter im Herbst (Raute als Blattform).
+  { id: 'momiji', titleKey: 'fest.momiji', emoji: '🍁', shapePrefix: 'raute', bonus: 50, from: [10, 5], to: [11, 30] },
+  // Neujahr (Hatsumōde): der erste Schreinbesuch des Jahres — durchs Torii.
+  { id: 'neujahr', titleKey: 'fest.neujahr', emoji: '🎍', shapePrefix: 'tor', bonus: 50, from: [12, 10], to: [1, 20] },
 ];
 
 const key = (m: number, d: number) => m * 100 + d;
