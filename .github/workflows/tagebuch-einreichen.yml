@@ -1,0 +1,51 @@
+# Reicht einen schon hochgeladenen iOS-Build der App „Daily Journal“
+# (Repo almaz6380/Tagebuch) bei Apple ein, ohne neu zu bauen. Für den Fall, dass
+# „Tagebuch Release“ hochgeladen hat, das Einreichen aber scheiterte.
+name: Tagebuch iOS einreichen
+
+on:
+  workflow_dispatch:
+    inputs:
+      build:
+        description: 'Build-Nummer, die schon in App Store Connect liegt (z. B. 126)'
+        type: string
+        required: true
+      ref:
+        description: 'Branch im Tagebuch-Repo (Skripte und Store-Texte)'
+        type: string
+        default: main
+
+permissions:
+  contents: read
+
+jobs:
+  einreichen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: tagebuch
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_P8: ${{ secrets.ASC_KEY_P8_BASE64 }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: almaz6380/Tagebuch
+          ref: ${{ inputs.ref }}
+          path: tagebuch
+
+      - name: Python-Pakete
+        run: |
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet pyjwt cryptography
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+
+      - name: Stand
+        run: python3 scripts/asc.py status
+
+      - name: Einreichen
+        run: |
+          python3 scripts/asc.py warten --build "${{ inputs.build }}"
+          python3 scripts/asc.py einreichen --build "${{ inputs.build }}" --ausfuehren
