@@ -1,0 +1,111 @@
+# Startet die Release-Fassung der App „Daily Journal“ (Repo almaz6380/Tagebuch)
+# im iOS-Simulator (iPhone und iPad) und prüft, ob sie den Start überlebt.
+# Anlass: Apple hat Build 120 mit „crashed on launch“ abgelehnt (2.1(a)).
+# Keine Signierung, kein Upload.
+#
+# Ergebnis: Absturzbericht (.ips) und Log-Auszug im Protokoll, Screenshot als
+# Artefakt. Der Lauf schlägt fehl, wenn die App nach 40 s nicht mehr läuft.
+name: Tagebuch iOS-Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch oder Commit im Tagebuch-Repo'
+        type: string
+        default: main
+
+permissions:
+  contents: read
+
+jobs:
+  start:
+    runs-on: macos-26
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: tagebuch
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: almaz6380/Tagebuch
+          ref: ${{ inputs.ref }}
+          path: tagebuch
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: tagebuch/.node-version
+          cache: npm
+          cache-dependency-path: tagebuch/package-lock.json
+
+      - name: Abhängigkeiten
+        run: npm ci
+
+      - name: Natives Projekt erzeugen
+        run: CI=1 npx expo prebuild -p ios --clean
+
+      - name: Release-Build für den Simulator
+        run: |
+          set -o pipefail
+          WORKSPACE=$(ls -d ios/*.xcworkspace | head -1)
+          SCHEME=$(basename "$WORKSPACE" .xcworkspace)
+          echo "SCHEME=$SCHEME" >> "$GITHUB_ENV"
+          xcodebuild -workspace "$WORKSPACE" -scheme "$SCHEME" -configuration Release \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/dd" CODE_SIGNING_ALLOWED=NO build | tail -40
+          APP=$(ls -d "$RUNNER_TEMP"/dd/Build/Products/Release-iphonesimulator/*.app | head -1)
+          echo "APP=$APP" >> "$GITHUB_ENV"
+          echo "Gebaut: $APP"
+
+      - name: Auf iPhone und iPad starten
+        working-directory: .
+        run: |
+          set -u
+          OUT="$RUNNER_TEMP/out"; mkdir -p "$OUT"
+          BUNDLE=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist")
+          EXE=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Info.plist")
+          xcrun simctl list runtimes
+          FAIL=0
+          for KIND in iPhone iPad; do
+            UDID=$(xcrun simctl list devices available -j | python3 -c "
+          import json,sys
+          d=json.load(sys.stdin)['devices']
+          best=None
+          for rt,devs in d.items():
+            if 'iOS' not in rt: continue
+            for x in devs:
+              if x['name'].startswith('$KIND'): best=(rt,x['udid'],x['name'])
+          print(best[1] if best else '')")
+            echo "===== $KIND: $UDID ====="
+            [ -z "$UDID" ] && { echo "kein $KIND-Simulator"; FAIL=1; continue; }
+            xcrun simctl boot "$UDID"; xcrun simctl bootstatus "$UDID" -b
+            xcrun simctl install "$UDID" "$APP"
+            START=$(date +%s)
+            log stream --style compact --predicate "process == \"$EXE\"" > "$OUT/log-$KIND.txt" 2>&1 &
+            LOGPID=$!
+            xcrun simctl launch "$UDID" "$BUNDLE"
+            sleep 40
+            xcrun simctl io "$UDID" screenshot "$OUT/screen-$KIND.png" || true
+            kill $LOGPID || true
+            echo "--- Log-Auszug ---"
+            grep -iE "fatal|exception|error|ReactNativeJS|hermes|terminat|abort" "$OUT/log-$KIND.txt" | tail -120
+            echo "--- Absturzberichte ---"
+            find ~/Library/Logs/DiagnosticReports -newermt "@$START" -name "*$EXE*" 2>/dev/null | while read -r f; do
+              echo ">>> $f"; head -c 60000 "$f"; cp "$f" "$OUT/"; done
+            if xcrun simctl spawn "$UDID" launchctl list | grep -q "$BUNDLE"; then
+              echo "ERGEBNIS $KIND: App läuft nach 40 s"
+            else
+              echo "ERGEBNIS $KIND: App abgestürzt oder beendet"; FAIL=1
+            fi
+            xcrun simctl shutdown "$UDID" || true
+          done
+          exit $FAIL
+
+      - name: Ergebnis ablegen
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: tagebuch-ios-test
+          path: ${{ runner.temp }}/out
+          retention-days: 7
