@@ -1250,8 +1250,11 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
     Welten → Truhe öffnen (+50 Münzen, nur einmal) → Pagode Etage 120 spielbar, keine neuen
     Konsolenfehler. Auf 320×568 war die Startseite schon vorher eng (Stein überlappt die Seiten-Symbole);
     die Welten-Zeile wird dort per `max-height`-Query flacher.
-  - **Vor dem Release offen:** Screenshots (Welten-Bildschirm wäre ein neues Motiv), Store-Texte um
-    Welten/Feste ergänzen, iOS-Übersetzungen der neuen Texte am Gerät ansehen.
+  - **Vor dem Release offen:** Screenshots (Welten-Bildschirm wäre ein neues Motiv),
+    iOS-Übersetzungen der neuen Texte am Gerät ansehen.
+    ✅ Store-Texte um Welten/Feste ergänzt (23.11.2026, `store/store-texte.json`, alle 7 Sprachen:
+    eine Zeile „20 Welten mit Sterne-Truhen … Meisterhalle“ unter Klassisches Solitaire, die Feste-Zeile
+    nennt Tanabata/Ahornfest/Neujahr; Beschreibungen 1119–2654 Zeichen, Untertitel/Keywords unverändert).
 - **6.9.2026 — v1.1.3 (iOS Build 25, nur iOS): ATT nativ + volle SKAdNetwork-Liste.**
   **Eingereicht 06.09., 15:54 UTC** — reviewSubmission `27cc0b6a-…`, Build 25 `VALID`,
   Version 1.1.3 neu angelegt (1.1.2 war freigegeben, kein Rückzug nötig), whatsNew in
