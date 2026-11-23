@@ -473,6 +473,19 @@ verpackt mit Capacitor für iOS und Android. Sprache im Projekt/mit dem Nutzer: 
   puppeteer mit überschriebenem `navigator.language` (alle 7 Sprachen am Play-Knopf verifiziert).
 - Persistenz via `@capacitor/preferences` (`src/progress.ts`)
 
+## „Mehr von WellApps" (Querverweise auf die anderen eigenen Apps, seit 23.11.2026)
+
+- Sitzt in den Einstellungen über „Rechtliches": `src/ui/WellApps.tsx` (Liste `APPS` + Komponente),
+  eingebunden in `SettingsScreen` (`src/ui/Screens.tsx`). Nie im Spiel, nie in einem Dialog, nie beim Start.
+- Symbole liegen offline im Paket: `src/assets/wellapps/<id>.webp` (144×144). Nichts wird nachgeladen,
+  kein Tracking der Klicks.
+- Links: iOS (nativ oder iPhone/iPad-Browser) → `apps.apple.com/app/id…`, sonst Play. Geöffnet über
+  `openExternal` (`src/ui/external.ts`, `window.open` wie die Rechtslinks).
+- App ergänzen: Zeile in `APPS`, Symbol `<id>.webp`, Kurzzeile `wa.<id>` in `src/i18n.ts` UND allen fünf
+  `src/locales/*.ts`. „WellApps" und App-Namen bleiben unübersetzt (Ausnahme `wa.weltgeschichte.name`).
+- Dieselbe Liste wird in allen sieben Apps gepflegt (hier fehlt nur der eigene Eintrag `mahjong`) —
+  eine Änderung gehört in alle sieben Repos.
+
 ## Kopie unter almaz6380.github.io/mahjong/spiel/ (seit 19.10.2026, für AdSense)
 
 AdSense nimmt `*.workers.dev`-Unteradressen nicht an, `almaz6380.github.io` ist dagegen freigegeben.

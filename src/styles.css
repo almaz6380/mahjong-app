@@ -2455,3 +2455,12 @@ body {
 .duel .seat-tag .duel-pts { font-weight: 700; opacity: 0.8; margin-left: 4px; }
 .duel .seat-tag .duel-timer { color: #ffb4a8; font-weight: 800; }
 .duel-winhand { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; margin: 2px 0 6px; }
+
+/* „Mehr von WellApps" (Einstellungen): Symbol + Name + Kurzzeile je Zeile.
+   min-width: 0 + Umbruch, damit lange Kurzzeilen bei 320 px nicht überlaufen. */
+.wellapps button { text-align: start; padding: 10px 14px; }
+.wellapps img { flex: none; width: 48px; height: 48px; border-radius: 22%; }
+.wellapps .wa-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; overflow-wrap: anywhere; }
+.wellapps .wa-text b { font-size: 15px; font-weight: 700; }
+.wellapps .wa-text small { font-size: 13px; font-weight: 500; color: var(--muted); line-height: 1.3; }
+.wellapps button .chev { margin-inline-start: 8px; }
