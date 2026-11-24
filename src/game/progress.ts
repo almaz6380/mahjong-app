@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Preferences } from '@capacitor/preferences';
 import { subscribeCoinCredits } from '../store/iap';
+import { chestReached } from './worlds';
 
 // ===========================================================================
 //  Persistenter Spielerfortschritt (übersteht App-Neustart)
@@ -54,6 +55,9 @@ export interface Progress {
   lastDoubleDate: string; // 'YYYY-M-D' des letzten „Münzen verdoppeln“-Videos (1×/Tag)
   bonusCoinsDate: string; // Tag, für den bonusCoinsToday zählt
   bonusCoinsToday: number; // heute aus Bonus-Spielen verdiente Münzen (Deckel BONUS_DAILY_CAP)
+  // v1.7 Welten + Feste
+  worldChests: string[]; // geöffnete Sterne-Truhen ('w<n>.<tier>', siehe worlds.ts)
+  festivalsSeen: string[]; // Feste, deren Bonus mindestens einmal geholt wurde (für Erfolge)
   stats: {
     bestTimeMs: number; // schnellstes Solitaire-Level (0 = noch keins)
     dailies: number; // erledigte Tages-Challenges
@@ -106,6 +110,8 @@ const DEFAULT: Progress = {
   lastDoubleDate: '',
   bonusCoinsDate: '',
   bonusCoinsToday: 0,
+  worldChests: [],
+  festivalsSeen: [],
   stats: { bestTimeMs: 0, dailies: 0, m4Hands: 0, m4Wins: 0, m4BestFaan: 0, modeBest: {}, duelGames: 0, duelWins: 0, riichiHands: 0, riichiWins: 0 },
 };
 
@@ -457,11 +463,26 @@ export function useProgress() {
 
   // Fest-Bonus einlösen (max. 1×/Tag während eines Saison-Fests).
   const claimFestival = useCallback(
-    (bonus: number): boolean => {
+    (bonus: number, festId?: string): boolean => {
       const s = stateRef.current;
       if (!s || s.lastFestival === todayStr()) return false;
-      persist({ ...s, coins: s.coins + bonus, lastFestival: todayStr() });
+      const festivalsSeen = festId && !s.festivalsSeen.includes(festId) ? [...s.festivalsSeen, festId] : s.festivalsSeen;
+      persist({ ...s, coins: s.coins + bonus, lastFestival: todayStr(), festivalsSeen });
       return true;
+    },
+    [persist],
+  );
+
+  // Sterne-Truhe einer Welt öffnen: einmalig, nur wenn erreicht. Münzen laufen
+  // wie Level-Siege direkt aufs Konto (kein Bonus-Tagesdeckel).
+  const claimWorldChest = useCallback(
+    (id: string): number => {
+      const s = stateRef.current;
+      if (!s || s.worldChests.includes(id)) return 0;
+      const chest = chestReached(id, s.bestStars);
+      if (!chest) return 0;
+      persist({ ...s, coins: s.coins + chest.coins, worldChests: [...s.worldChests, id] });
+      return chest.coins;
     },
     [persist],
   );
@@ -612,6 +633,7 @@ export function useProgress() {
     bumpAlbum,
     claimAlbum,
     claimFestival,
+    claimWorldChest,
     setRemoveAds,
     unlockAchievements,
     completeDailyChallenge,

@@ -5,21 +5,43 @@ import { Icon } from '../../ui/Icon';
 import { allFigures } from '../../game/figures';
 import { t } from '../../i18n';
 
-// Pagoden-Aufstieg: 100 Etagen, jede Etage eine Generator-Figur (unten klein,
-// oben groß). Alle 10 Etagen wartet ein Meilenstein-Bonus, Etage 100 die Krone.
+// Pagoden-Aufstieg: 300 Etagen (bis 1.6: 100), jede Etage eine Generator-Figur.
+// Alle 10 Etagen wartet ein Meilenstein-Bonus, auf 100, 200 und 300 eine Krone.
+//
+// Etage 1–100 bleiben EXAKT wie bis 1.6 (Rampe über alle Figuren, leicht → schwer),
+// damit kein laufender Aufstieg sein Brett wechselt. Etage 101–300 sind ein
+// zweiter Abschnitt: Er beginnt bei 60 % der Figuren-Rampe und steigt wieder bis
+// zur schwersten Figur — schwerer geht es ohne Generator-Änderung nicht (die
+// Bretter sind auf 8×9 gedeckelt, damit die Steine groß bleiben). Figuren aus
+// Etage 1–100 werden dabei übersprungen, damit sich kein Brett wiederholt.
+// Münzen laufen weiter über bonusCoins (Tagesdeckel) im Aufrufer.
 
-export const PAGODA_FLOORS = 100;
+export const LEGACY_FLOORS = 100;
+export const PAGODA_FLOORS = 300;
 export const FLOOR_COINS = 30;
 export const MILESTONE_COINS = 100;
 export const TOP_COINS = 1000;
+const SECOND_START = 0.6;
+
+let legacyIdx: Set<number> | null = null;
+const legacyIndex = (floor: number, len: number) =>
+  Math.min(len - 1, Math.max(0, Math.round(((floor - 1) / (LEGACY_FLOORS - 1)) * (len - 1))));
 
 export function pagodaFigure(floor: number) {
   const figs = allFigures();
-  const idx = Math.round(((floor - 1) / (PAGODA_FLOORS - 1)) * (figs.length - 1));
-  return figs[Math.min(figs.length - 1, Math.max(0, idx))];
+  const len = figs.length;
+  if (floor <= LEGACY_FLOORS) return figs[legacyIndex(floor, len)];
+  if (!legacyIdx) legacyIdx = new Set(Array.from({ length: LEGACY_FLOORS }, (_, i) => legacyIndex(i + 1, len)));
+  const start = Math.floor(len * SECOND_START);
+  const span = PAGODA_FLOORS - LEGACY_FLOORS - 1;
+  let idx = Math.round(start + ((Math.min(floor, PAGODA_FLOORS) - LEGACY_FLOORS - 1) / span) * (len - 1 - start));
+  // Bereits benutzte Figur überspringen: erst nach unten, an der Spitze nach oben ausweichen.
+  for (let d = 0; d < len && legacyIdx.has(idx); d++) idx = idx > start ? idx - 1 : idx + 1;
+  return figs[Math.min(len - 1, Math.max(0, idx))];
 }
 
 export const isMilestone = (floor: number) => floor % 10 === 0;
+export const isCrown = (floor: number) => floor % 100 === 0;
 
 interface Props {
   floor: number; // aktuelle (höchste offene) Etage aus progress.pagodaFloor
@@ -36,7 +58,7 @@ export function PagodaScreen({ floor, addCoins, spendCoins, recordPagoda, onExit
   const listRef = useRef<HTMLDivElement>(null);
   const done = floor > PAGODA_FLOORS;
 
-  // Turm-Karte: Etage 100 oben, 1 unten; automatisch zur aktuellen scrollen.
+  // Turm-Karte: Etage 300 oben, 1 unten; automatisch zur aktuellen scrollen.
   const floors = useMemo(() => Array.from({ length: PAGODA_FLOORS }, (_, i) => PAGODA_FLOORS - i), []);
   useEffect(() => {
     if (playing !== null) return;
@@ -63,7 +85,7 @@ export function PagodaScreen({ floor, addCoins, spendCoins, recordPagoda, onExit
           // Volle Belohnung nur beim ERSTEN Abschluss der Etage (kein Farmen).
           const first = flr >= floor;
           const coins = first
-            ? FLOOR_COINS + (flr === PAGODA_FLOORS ? TOP_COINS : isMilestone(flr) ? MILESTONE_COINS : 0)
+            ? FLOOR_COINS + (isCrown(flr) ? TOP_COINS : isMilestone(flr) ? MILESTONE_COINS : 0)
             : 10;
           setReward(coins);
           addCoins(coins);
@@ -105,7 +127,7 @@ export function PagodaScreen({ floor, addCoins, spendCoins, recordPagoda, onExit
         </button>
         <div className="hud-center">
           <div className="level">{t('pagoda.title')}</div>
-          <div className="sub">{done ? t('pagoda.allDone') : t('pagoda.progress', { n: Math.min(floor, PAGODA_FLOORS) })}</div>
+          <div className="sub">{done ? t('pagoda.allDone') : t('pagoda.progress', { n: Math.min(floor, PAGODA_FLOORS), max: PAGODA_FLOORS })}</div>
         </div>
         <div style={{ width: 40 }} />
       </header>
@@ -131,7 +153,7 @@ export function PagodaScreen({ floor, addCoins, spendCoins, recordPagoda, onExit
                   {state === 'done' ? '✓' : t(pagodaFigure(f).label)}
                   {isMilestone(f) && (
                     <span className="pf-bonus">
-                      <Icon name="coin" size={13} /> {f === PAGODA_FLOORS ? TOP_COINS : MILESTONE_COINS}
+                      <Icon name="coin" size={13} /> {isCrown(f) ? TOP_COINS : MILESTONE_COINS}
                     </span>
                   )}
                 </span>

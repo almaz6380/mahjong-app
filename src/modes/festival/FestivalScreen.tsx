@@ -10,7 +10,7 @@ import { t } from '../../i18n';
 
 interface Props {
   fest: Festival;
-  claimFestival: (bonus: number) => boolean;
+  claimFestival: (bonus: number, festId?: string) => boolean;
   spendCoins: (n: number) => boolean;
   onExit: () => void;
 }
@@ -27,7 +27,7 @@ export function FestivalScreen({ fest, claimFestival, spendCoins, onExit }: Prop
       title={`${fest.emoji} ${t(fest.titleKey)}`}
       sub={t(fig.label)}
       spendCoins={spendCoins}
-      onWin={() => setGotBonus(claimFestival(fest.bonus))}
+      onWin={() => setGotBonus(claimFestival(fest.bonus, fest.id))}
       renderWin={() => (
         <div className="card">
           <WinCeremony />
