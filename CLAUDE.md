@@ -1228,8 +1228,15 @@ noch keine Freigabe → in Play Console (Nutzer und Berechtigungen → SA-Mail e
   pt-BR, fr, it, ja; im pbxproj als Variant-Group „InfoPlist.strings" in der Resources-Phase,
   `knownRegions` erweitert). **Build 37 als 1.6.1 neu eingereicht am 16.11.** über dieselbe
   reviewSubmission `604a7974-…` (Android unverändert vc31).
-- **22.11.2026 — v1.7.0 VORBEREITET (Android vc32 / iOS Build 38), Zweig `claude/optimistic-darwin-k01rmb`.
-  NICHT gebaut, NICHT hochgeladen, kein Merge** (main deployt das Web). Inhalt auf Josefs Bestellung:
+- **24.11.2026 — v1.7.0 AUSGELIEFERT (Android vc32 / iOS Build 38).** Vorher `main` (ab21b6e „Mehr von
+  WellApps") in den Zweig gemergt (Konflikt nur in styles.css, beide Blöcke behalten), alle Prüfungen grün.
+  Android **vc32 in Produktion an alle** (`android-release` 45452521682, Edit `13706372911802040106`),
+  Play-Beschreibungen per „Store-Texte“ `nur-play` (45469174018). iOS Build 38 hochgeladen
+  (`ios-release` 45452527519, nur Warnung 90725), **als 1.7.0 eingereicht** (`asc-submit` 45469386487,
+  reviewSubmission `5334df98-e4fa-4735-8329-35ff618c01b9`, Screenshots unverändert). 1.6.1 war vorher im Store.
+  Zweig per PR nach `main` (Web) und github.io-Kopie nachgezogen.
+- **22.11.2026 — v1.7.0 vorbereitet (Android vc32 / iOS Build 38), Zweig `claude/optimistic-darwin-k01rmb`.**
+  Inhalt auf Josefs Bestellung:
   - **Welten** (`src/game/worlds.ts`, `src/ui/WorldsScreen.tsx`, Screen `worlds`): die 999 Level in
     20 Welten à 50 (Welt 20 = 951–999, 49 Level) + „Meisterhalle“ ab `MEISTER_AB`. Reine Gliederung
     über Levelnummern — Brett-Erzeugung, `levelOrder.ts` und `DUEL_PROTOCOL` sind unberührt.
