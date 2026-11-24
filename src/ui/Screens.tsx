@@ -9,6 +9,8 @@ import { setAdsRemoved, canChangeAdConsent, changeAdConsent } from '../ads/admob
 import { Icon } from './Icon';
 import { t, LANGS, type Lang } from '../i18n';
 import { appVersionLabel } from '../appVersion';
+import { openExternal } from './external';
+import { WellApps } from './WellApps';
 
 export function ScreenHeader({ title, onBack }: { title: string; onBack: () => void }) {
   return (
@@ -26,17 +28,12 @@ export function ScreenHeader({ title, onBack }: { title: string; onBack: () => v
 
 // Rechtstexte liegen auf GitHub Pages (Repo almaz6380.github.io), damit sie
 // ohne App und ohne Konto erreichbar sind — Apple, Google und das ECG wollen
-// das so. Kein Browser-Plugin installiert: window.open mit _blank öffnet in
-// Capacitor den System-Browser, im Web einen neuen Tab.
+// das so. Geöffnet wird extern über openExternal (./external).
 const LEGAL_LINKS: [string, string][] = [
   ['set.privacy', 'https://almaz6380.github.io/mahjong/datenschutz.html'],
   ['set.imprint', 'https://almaz6380.github.io/mahjong/impressum.html'],
   ['set.terms', 'https://almaz6380.github.io/mahjong/nutzungsbedingungen.html'],
 ];
-
-function openExternal(url: string) {
-  window.open(url, '_blank', 'noopener');
-}
 
 // --- Einstellungen ---------------------------------------------------------
 export function SettingsScreen({
@@ -164,6 +161,7 @@ export function SettingsScreen({
             {t('set.resetBtn')}
           </button>
         </div>
+        <WellApps />
         <div className="stats-section">{t('set.legal')}</div>
         <div className="set-nav">
           {LEGAL_LINKS.map(([key, url]) => (
